@@ -4,7 +4,7 @@ WorldTV is a SwiftUI application for discovering free, publicly accessible telev
 
 ## Project status
 
-Phase 1 provides a compiling multiplatform foundation:
+Phase 2 provides the first navigable catalog experience:
 
 - iOS and iPadOS
 - macOS
@@ -13,10 +13,14 @@ Phase 1 provides a compiling multiplatform foundation:
 - Typed networking with `URLSession` and `async/await`
 - DTO decoding and catalog mapping
 - Filtering for NSFW, blocked, closed, orphaned, and insecure entries
-- A temporary launch screen showing catalog totals
+- Home with featured channels, countries, and categories
+- Searchable country browser and channel mosaics
+- Asynchronous logos with controlled HTTP caching and cancellation
+- Precomputed catalog indexes for large datasets
+- A 24-hour persistent catalog cache with stale fallback when the network fails
 - Unit tests based on local fixtures
 
-Catalog browsing, persistent caching, playback, favorites, search, and final platform-specific navigation belong to later phases.
+Playback and recently watched channels belong to Phase 3. Favorites, advanced filters, settings, and final platform-specific navigation belong to later phases.
 
 ## Requirements
 

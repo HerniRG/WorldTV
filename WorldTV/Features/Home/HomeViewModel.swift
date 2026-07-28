@@ -3,42 +3,45 @@ import Observation
 
 @Observable
 @MainActor
-final class LaunchViewModel {
-    private(set) var state: Loadable<CatalogSummary> = .idle
+final class HomeViewModel {
+    private(set) var state: Loadable<HomeContent> = .idle
 
-    private let loadCatalogSummary: LoadCatalogSummaryUseCase
+    private let loadHomeContent: LoadHomeContentUseCase
     private var loadTask: Task<Void, Never>?
 
-    init(loadCatalogSummary: LoadCatalogSummaryUseCase) {
-        self.loadCatalogSummary = loadCatalogSummary
+    init(loadHomeContent: LoadHomeContentUseCase) {
+        self.loadHomeContent = loadHomeContent
     }
 
     func loadIfNeeded() {
         guard case .idle = state else {
             return
         }
-        load()
+        load(forceRefresh: false)
+    }
+
+    func refresh() {
+        load(forceRefresh: true)
     }
 
     func retry() {
-        load()
+        load(forceRefresh: false)
     }
 
-    private func load() {
+    private func load(forceRefresh: Bool) {
         loadTask?.cancel()
         state = .loading
-
         loadTask = Task { [weak self] in
             guard let self else {
                 return
             }
 
             do {
-                let summary = try await loadCatalogSummary.execute()
+                let content = try await loadHomeContent.execute(forceRefresh: forceRefresh)
                 guard !Task.isCancelled else {
                     return
                 }
-                state = summary.channelCount == 0 ? .empty : .loaded(summary)
+                state = content.summary.channelCount == 0 ? .empty : .loaded(content)
             } catch is CancellationError {
                 return
             } catch {

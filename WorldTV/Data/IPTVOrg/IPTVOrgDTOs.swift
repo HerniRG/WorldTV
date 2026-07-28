@@ -1,6 +1,6 @@
 import Foundation
 
-struct IPTVOrgChannelDTO: Decodable, Sendable {
+struct IPTVOrgChannelDTO: Codable, Sendable {
     let id: String
     let name: String
     let alternativeNames: [String]
@@ -20,7 +20,7 @@ struct IPTVOrgChannelDTO: Decodable, Sendable {
     }
 }
 
-struct IPTVOrgStreamDTO: Decodable, Sendable {
+struct IPTVOrgStreamDTO: Codable, Sendable {
     let channel: String?
     let feed: String?
     let title: String?
@@ -42,7 +42,7 @@ struct IPTVOrgStreamDTO: Decodable, Sendable {
     }
 }
 
-struct IPTVOrgLogoDTO: Decodable, Sendable {
+struct IPTVOrgLogoDTO: Codable, Sendable {
     let channel: String?
     let feed: String?
     let url: String
@@ -62,23 +62,23 @@ struct IPTVOrgLogoDTO: Decodable, Sendable {
     }
 }
 
-struct IPTVOrgCountryDTO: Decodable, Sendable {
+struct IPTVOrgCountryDTO: Codable, Sendable {
     let code: String
     let name: String
     let languages: [String]
     let flag: String?
 }
 
-struct IPTVOrgCategoryDTO: Decodable, Sendable {
+struct IPTVOrgCategoryDTO: Codable, Sendable {
     let id: String
     let name: String
 }
 
-struct IPTVOrgBlocklistDTO: Decodable, Sendable {
+struct IPTVOrgBlocklistDTO: Codable, Sendable {
     let channel: String
 }
 
-struct IPTVOrgCatalogPayload: Sendable {
+struct IPTVOrgCatalogPayload: Codable, Sendable {
     let channels: [IPTVOrgChannelDTO]
     let streams: [IPTVOrgStreamDTO]
     let logos: [IPTVOrgLogoDTO]
