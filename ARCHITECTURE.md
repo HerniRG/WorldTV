@@ -1,6 +1,6 @@
 # WorldTV Architecture
 
-WorldTV uses pragmatic Clean Architecture. Phase 3 keeps the dependency direction established by Phase 1 and adds indexed catalog access, persistent caching, playback, and local viewing history.
+WorldTV uses pragmatic Clean Architecture. Phase 4 keeps the dependency direction established by Phase 1 and adds indexed catalog access, persistent caching, playback, local viewing history, and platform-native roots.
 
 ```text
 SwiftUI feature
@@ -43,6 +43,17 @@ Logos are loaded through an injected actor backed by a dedicated `URLSession` an
 
 Successful preparation records the channel through an injected history repository. Home maps those identifiers back through the current catalog index, so removed channels disappear safely and recent channels retain current logos and availability.
 
+## Navigation
+
+`AppRoute` remains the typed route passed between feature screens. A shared destination modifier resolves route identifiers using `AppContainer`, so platform roots do not duplicate construction or pass complete catalog objects.
+
+- iPhone uses bottom tabs with an independent `NavigationStack` per section.
+- iPad switches to `NavigationSplitView` in regular horizontal size classes.
+- macOS uses a resizable `NavigationSplitView` sidebar.
+- tvOS uses its native top-level `TabView`; the selected section is restored with scene storage, while each tab retains its navigation and focus context.
+
+Platform conditionals are confined to the launch boundary and platform root files. Feature views and domain logic remain shared.
+
 ## Concurrency
 
 The project compiles in Swift 6 mode with complete strict-concurrency checking. Domain values and DTOs are `Sendable`. Networking uses structured concurrency, and UI ViewModels are explicitly isolated to `@MainActor`.
@@ -50,5 +61,4 @@ The project compiles in Swift 6 mode with complete strict-concurrency checking. 
 ## Current trade-offs
 
 - The mapper accepts HTTPS only. Any narrowly scoped transport exception must be justified and documented later.
-- The shared `NavigationStack` is intentional at this stage; final platform-specific roots belong to Phase 4.
 - tvOS still needs final App Icon and Top Shelf assets before distribution.
