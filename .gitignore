@@ -1,10 +1,19 @@
-# Xcode user-specific settings
-xcuserdata/
-*.xcuserstate
-
-# Build products
+# Xcode user state and build products
 DerivedData/
 build/
+*.xcuserstate
+xcuserdata/
+*.xccheckout
+*.xcscmblueprint
+*.xcresult
 
-# macOS metadata
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# macOS
 .DS_Store
+
+# Local logs and temporary files
+*.log
+*.tmp

@@ -1,0 +1,60 @@
+name: Channel removal request
+description: Request review of a channel listing on behalf of a rights holder
+title: "[Channel removal]: "
+labels:
+  - channel-removal
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include private documents, credentials, tokens, or personal data in this public form. Read DISCLAIMER.md before submitting.
+  - type: input
+    id: channel
+    attributes:
+      label: Channel name
+      description: Use the exact public channel name.
+    validations:
+      required: true
+  - type: input
+    id: identifier
+    attributes:
+      label: iptv-org channel identifier
+      description: Include the stable identifier when known.
+    validations:
+      required: false
+  - type: input
+    id: country
+    attributes:
+      label: Country or region
+    validations:
+      required: true
+  - type: textarea
+    id: listing
+    attributes:
+      label: Affected listing
+      description: Identify the URL or metadata without sharing secrets.
+    validations:
+      required: true
+  - type: textarea
+    id: authority
+    attributes:
+      label: Authority for the request
+      description: Explain whether you are the rights holder or an authorized representative. State how the claim can be verified privately.
+    validations:
+      required: true
+  - type: textarea
+    id: requested_action
+    attributes:
+      label: Requested action
+      description: Explain the correction or removal requested.
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmations
+      options:
+        - label: I have not included credentials, private tokens, personal documents, or other sensitive evidence.
+          required: true
+        - label: I understand that WorldTV consumes an external catalog and cannot remove upstream records directly.
+          required: true

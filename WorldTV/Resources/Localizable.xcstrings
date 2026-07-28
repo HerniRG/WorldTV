@@ -3,11 +3,14 @@
   "strings" : {
     "about.attribution" : {"localizations":{"en":{"stringUnit":{"state":"translated","value":"Attribution"}},"es":{"stringUnit":{"state":"translated","value":"Atribución"}}}},
     "about.availability" : {"localizations":{"en":{"stringUnit":{"state":"translated","value":"Channel availability depends on third parties and is not guaranteed."}},"es":{"stringUnit":{"state":"translated","value":"La disponibilidad de los canales depende de terceros y no está garantizada."}}}},
+    "about.channelRemoval" : {"localizations":{"en":{"stringUnit":{"state":"translated","value":"Request a channel review or removal"}},"es":{"stringUnit":{"state":"translated","value":"Solicitar la revisión o retirada de un canal"}}}},
     "about.description" : {"localizations":{"en":{"stringUnit":{"state":"translated","value":"WorldTV discovers and plays free, publicly accessible television streams."}},"es":{"stringUnit":{"state":"translated","value":"WorldTV descubre y reproduce emisiones de televisión gratuitas y públicamente accesibles."}}}},
+    "about.disclaimer" : {"localizations":{"en":{"stringUnit":{"state":"translated","value":"Read the complete disclaimer"}},"es":{"stringUnit":{"state":"translated","value":"Leer el aviso legal completo"}}}},
     "about.iptvOrg" : {"localizations":{"en":{"stringUnit":{"state":"translated","value":"Catalog data is provided by the open source iptv-org project."}},"es":{"stringUnit":{"state":"translated","value":"Los datos del catálogo proceden del proyecto open source iptv-org."}}}},
     "about.legal" : {"localizations":{"en":{"stringUnit":{"state":"translated","value":"Legal notice"}},"es":{"stringUnit":{"state":"translated","value":"Aviso legal"}}}},
     "about.legalNotice" : {"localizations":{"en":{"stringUnit":{"state":"translated","value":"WorldTV does not host or retransmit content. Stream availability and rights remain the responsibility of their respective providers."}},"es":{"stringUnit":{"state":"translated","value":"WorldTV no aloja ni retransmite contenido. La disponibilidad y los derechos de las emisiones corresponden a sus respectivos proveedores."}}}},
     "about.openIPTVOrg" : {"localizations":{"en":{"stringUnit":{"state":"translated","value":"Open iptv-org on GitHub"}},"es":{"stringUnit":{"state":"translated","value":"Abrir iptv-org en GitHub"}}}},
+    "about.sourceCode" : {"localizations":{"en":{"stringUnit":{"state":"translated","value":"WorldTV source code"}},"es":{"stringUnit":{"state":"translated","value":"Código fuente de WorldTV"}}}},
     "about.worldtv" : {"localizations":{"en":{"stringUnit":{"state":"translated","value":"About WorldTV"}},"es":{"stringUnit":{"state":"translated","value":"Acerca de WorldTV"}}}},
     "action.cancel" : {"localizations":{"en":{"stringUnit":{"state":"translated","value":"Cancel"}},"es":{"stringUnit":{"state":"translated","value":"Cancelar"}}}},
     "action.done" : {"localizations":{"en":{"stringUnit":{"state":"translated","value":"Done"}},"es":{"stringUnit":{"state":"translated","value":"Listo"}}}},
@@ -57,7 +60,13 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
+            "value" : "%1$@ %2$@ · %3$@ %4$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "%1$@ %2$@ · %3$@ %4$@"
           }
         }
@@ -69,7 +78,13 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
+            "value" : "%1$lld %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "%1$lld %2$@"
           }
         }
