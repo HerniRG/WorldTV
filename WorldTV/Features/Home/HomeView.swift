@@ -33,15 +33,10 @@ struct HomeView: View {
         .task {
             viewModel.loadIfNeeded()
         }
-        .toolbar {
-            ToolbarItem {
-                Button {
-                    viewModel.refresh()
-                } label: {
-                    Label("catalog.refresh", systemImage: "arrow.clockwise")
-                }
-            }
+        .onAppear {
+            viewModel.reloadVisibleContent()
         }
+        .modifier(CatalogRefreshToolbar(action: viewModel.refresh))
     }
 
     private func loadedView(_ content: HomeContent) -> some View {
@@ -49,28 +44,37 @@ struct HomeView: View {
             LazyVStack(alignment: .leading, spacing: DesignTokens.sectionSpacing) {
                 header(content.summary)
 
+                if !content.recentlyWatched.isEmpty {
+                    channelCarousel(
+                        title: "home.recentlyWatched",
+                        systemImage: "clock.arrow.circlepath",
+                        channels: content.recentlyWatched
+                    )
+                }
+
                 if !content.featuredChannels.isEmpty {
-                    sectionTitle("home.featured", systemImage: "sparkles.tv")
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        LazyHStack(spacing: DesignTokens.contentSpacing) {
-                            ForEach(content.featuredChannels) { item in
-                                ChannelCard(item: item, imageLoader: imageLoader)
-                                    .frame(width: DesignTokens.cardWidth)
-                            }
-                        }
-                    }
+                    channelCarousel(
+                        title: "home.featured",
+                        systemImage: "sparkles.tv",
+                        channels: content.featuredChannels
+                    )
                 }
 
                 sectionTitle("home.popularCountries", systemImage: "flag")
                 LazyVGrid(
-                    columns: [GridItem(.adaptive(minimum: 400), spacing: DesignTokens.contentSpacing)],
+                    columns: [
+                        GridItem(
+                            .adaptive(minimum: DesignTokens.countryGridMinimum),
+                            spacing: DesignTokens.contentSpacing
+                        )
+                    ],
                     spacing: DesignTokens.contentSpacing
                 ) {
                     ForEach(content.popularCountries) { item in
                         NavigationLink(value: AppRoute.country(item.country.code)) {
                             CountryCard(item: item)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(FocusedCardButtonStyle())
                     }
                 }
 
@@ -84,7 +88,7 @@ struct HomeView: View {
                     categoryChips(content.categories)
                 }
             }
-            .padding(28)
+            .padding(DesignTokens.pagePadding)
         }
         .navigationTitle("app.name")
     }
@@ -103,6 +107,27 @@ struct HomeView: View {
     private func sectionTitle(_ title: LocalizedStringKey, systemImage: String) -> some View {
         Label(title, systemImage: systemImage)
             .font(.title2.bold())
+    }
+
+    @ViewBuilder
+    private func channelCarousel(
+        title: LocalizedStringKey,
+        systemImage: String,
+        channels: [ChannelCatalogItem]
+    ) -> some View {
+        sectionTitle(title, systemImage: systemImage)
+        ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: DesignTokens.contentSpacing) {
+                ForEach(channels) { item in
+                    NavigationLink(value: AppRoute.player(item.id)) {
+                        ChannelCard(item: item, imageLoader: imageLoader)
+                            .frame(width: DesignTokens.cardWidth)
+                    }
+                    .buttonStyle(FocusedCardButtonStyle())
+                }
+            }
+            .padding(.vertical, 14)
+        }
     }
 
     private func categoryChips(_ categories: [ChannelCategory]) -> some View {

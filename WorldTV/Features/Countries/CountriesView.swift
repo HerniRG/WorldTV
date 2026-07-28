@@ -36,17 +36,22 @@ struct CountriesView: View {
     private var countryGrid: some View {
         ScrollView {
             LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: 400), spacing: DesignTokens.contentSpacing)],
+                columns: [
+                    GridItem(
+                        .adaptive(minimum: DesignTokens.countryGridMinimum),
+                        spacing: DesignTokens.contentSpacing
+                    )
+                ],
                 spacing: DesignTokens.contentSpacing
             ) {
                 ForEach(viewModel.filteredCountries) { item in
                     NavigationLink(value: AppRoute.country(item.country.code)) {
                         CountryCard(item: item)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(FocusedCardButtonStyle())
                 }
             }
-            .padding(24)
+            .padding(DesignTokens.pagePadding)
         }
         .overlay {
             if viewModel.filteredCountries.isEmpty {

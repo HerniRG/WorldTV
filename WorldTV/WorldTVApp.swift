@@ -17,7 +17,9 @@ struct WorldTVApp: App {
                 loadHomeContent: container.loadHomeContent,
                 loadCountries: container.loadCountries,
                 loadChannels: container.loadChannelsByCountry,
-                imageLoader: container.imageLoader
+                imageLoader: container.imageLoader,
+                resolvePlaybackSources: container.resolvePlaybackSources,
+                recordRecentlyWatched: container.recordRecentlyWatched
             )
         }
     }

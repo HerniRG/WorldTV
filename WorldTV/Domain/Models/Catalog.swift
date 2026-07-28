@@ -54,6 +54,7 @@ struct ChannelCatalogItem: Identifiable, Hashable, Sendable {
 
 struct HomeContent: Sendable {
     let summary: CatalogSummary
+    let recentlyWatched: [ChannelCatalogItem]
     let featuredChannels: [ChannelCatalogItem]
     let popularCountries: [CountryCatalogItem]
     let categories: [ChannelCategory]

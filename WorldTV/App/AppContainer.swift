@@ -5,6 +5,8 @@ struct AppContainer {
     let loadCountries: LoadCountriesUseCase
     let loadChannelsByCountry: LoadChannelsByCountryUseCase
     let imageLoader: any ImageLoading
+    let resolvePlaybackSources: ResolvePlayableStreamUseCase
+    let recordRecentlyWatched: RecordRecentlyWatchedUseCase
 
     static func live() -> AppContainer {
         let configuration = URLSessionConfiguration.default
@@ -29,12 +31,20 @@ struct AppContainer {
                 .appendingPathComponent("catalog.json")
         )
         let repository = DefaultCatalogRepository(apiClient: apiClient, cache: cache)
+        let recentlyWatchedRepository = UserDefaultsRecentlyWatchedRepository()
 
         return AppContainer(
-            loadHomeContent: LoadHomeContentUseCase(repository: repository),
+            loadHomeContent: LoadHomeContentUseCase(
+                repository: repository,
+                recentlyWatchedRepository: recentlyWatchedRepository
+            ),
             loadCountries: LoadCountriesUseCase(repository: repository),
             loadChannelsByCountry: LoadChannelsByCountryUseCase(repository: repository),
-            imageLoader: imageLoader
+            imageLoader: imageLoader,
+            resolvePlaybackSources: ResolvePlayableStreamUseCase(repository: repository),
+            recordRecentlyWatched: RecordRecentlyWatchedUseCase(
+                repository: recentlyWatchedRepository
+            )
         )
     }
 }

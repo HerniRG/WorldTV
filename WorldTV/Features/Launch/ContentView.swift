@@ -12,12 +12,16 @@ struct ContentView: View {
     private let loadCountries: LoadCountriesUseCase
     private let loadChannels: LoadChannelsByCountryUseCase
     private let imageLoader: any ImageLoading
+    private let resolvePlaybackSources: ResolvePlayableStreamUseCase
+    private let recordRecentlyWatched: RecordRecentlyWatchedUseCase
 
     init(
         loadHomeContent: LoadHomeContentUseCase,
         loadCountries: LoadCountriesUseCase,
         loadChannels: LoadChannelsByCountryUseCase,
-        imageLoader: any ImageLoading
+        imageLoader: any ImageLoading,
+        resolvePlaybackSources: ResolvePlayableStreamUseCase,
+        recordRecentlyWatched: RecordRecentlyWatchedUseCase
     ) {
         _homeViewModel = State(
             initialValue: HomeViewModel(loadHomeContent: loadHomeContent)
@@ -25,6 +29,8 @@ struct ContentView: View {
         self.loadCountries = loadCountries
         self.loadChannels = loadChannels
         self.imageLoader = imageLoader
+        self.resolvePlaybackSources = resolvePlaybackSources
+        self.recordRecentlyWatched = recordRecentlyWatched
     }
 
     var body: some View {
@@ -39,6 +45,12 @@ struct ContentView: View {
                             countryCode: code,
                             loadChannels: loadChannels,
                             imageLoader: imageLoader
+                        )
+                    case .player(let channelID):
+                        PlayerView(
+                            channelID: channelID,
+                            resolveSources: resolvePlaybackSources,
+                            recordRecentlyWatched: recordRecentlyWatched
                         )
                     }
                 }

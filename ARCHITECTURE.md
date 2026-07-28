@@ -1,6 +1,6 @@
 # WorldTV Architecture
 
-WorldTV uses pragmatic Clean Architecture. Phase 2 keeps the dependency direction established by Phase 1 and adds indexed catalog access, persistent caching, and catalog features.
+WorldTV uses pragmatic Clean Architecture. Phase 3 keeps the dependency direction established by Phase 1 and adds indexed catalog access, persistent caching, playback, and local viewing history.
 
 ```text
 SwiftUI feature
@@ -16,9 +16,9 @@ Data repository → IPTVOrg API client → HTTP client
 
 - `App`: constructs dependencies explicitly in `AppContainer`.
 - `Domain`: contains `Sendable` entities, repository contracts, load state, and use cases. It does not import SwiftUI, AVKit, or networking implementations.
-- `Data`: contains the HTTP client, iptv-org DTOs, mapping rules, filtering, joins, persistent cache, and the repository actor.
+- `Data`: contains the HTTP client, iptv-org DTOs, mapping rules, filtering, joins, persistent cache, viewing history, and repository actors.
 - `Features`: contains UI state and SwiftUI presentation. UI ViewModels are explicitly isolated with `@MainActor`.
-- `Platform`: contains the cancellable image loader and platform image conversion.
+- `Platform`: contains the cancellable image loader, platform image conversion, and native player adapters.
 - `Resources`: contains localized English and Spanish UI strings.
 
 ## Catalog loading
@@ -37,6 +37,12 @@ The repository is an actor because it owns mutable in-memory catalog state. It r
 
 Logos are loaded through an injected actor backed by a dedicated `URLSession` and `URLCache`. SwiftUI tasks cancel image requests when cards leave the screen.
 
+## Playback
+
+`ResolvePlayableStreamUseCase` resolves a channel into a bounded list of sources. HLS sources are preferred, followed by numeric quality. `PlayerViewModel` owns `AVPlayer`, observes item and time-control state, forwards required HTTP headers, and advances to the next source after a failure or a 15-second preparation timeout.
+
+Successful preparation records the channel through an injected history repository. Home maps those identifiers back through the current catalog index, so removed channels disappear safely and recent channels retain current logos and availability.
+
 ## Concurrency
 
 The project compiles in Swift 6 mode with complete strict-concurrency checking. Domain values and DTOs are `Sendable`. Networking uses structured concurrency, and UI ViewModels are explicitly isolated to `@MainActor`.
@@ -44,6 +50,5 @@ The project compiles in Swift 6 mode with complete strict-concurrency checking. 
 ## Current trade-offs
 
 - The mapper accepts HTTPS only. Any narrowly scoped transport exception must be justified and documented later.
-- Catalog cards are informational until playback arrives in Phase 3.
 - The shared `NavigationStack` is intentional at this stage; final platform-specific roots belong to Phase 4.
 - tvOS still needs final App Icon and Top Shelf assets before distribution.

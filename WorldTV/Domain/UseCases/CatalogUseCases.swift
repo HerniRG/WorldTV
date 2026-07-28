@@ -2,13 +2,24 @@ import Foundation
 
 struct LoadHomeContentUseCase: Sendable {
     private let repository: any ChannelRepository
+    private let recentlyWatchedRepository: any RecentlyWatchedRepository
 
-    init(repository: any ChannelRepository) {
+    init(
+        repository: any ChannelRepository,
+        recentlyWatchedRepository: any RecentlyWatchedRepository
+    ) {
         self.repository = repository
+        self.recentlyWatchedRepository = recentlyWatchedRepository
     }
 
     func execute(forceRefresh: Bool = false) async throws -> HomeContent {
         let catalog = try await repository.loadCatalog(forceRefresh: forceRefresh)
+        let history: [RecentlyWatchedChannel]
+        do {
+            history = try await recentlyWatchedRepository.load()
+        } catch {
+            history = []
+        }
         let countries = catalog.countries.compactMap { country -> CountryCatalogItem? in
             let count = catalog.index.channels(countryCode: country.code).count
             return count == 0 ? nil : CountryCatalogItem(country: country, channelCount: count)
@@ -25,9 +36,14 @@ struct LoadHomeContentUseCase: Sendable {
             .filter { catalog.index.preferredLogoByChannelID[$0.id] != nil }
             .prefix(20)
             .map { makeChannelItem($0, catalog: catalog) }
+        let recentlyWatched = history.compactMap { entry in
+            catalog.index.channelsByID[entry.channelID]
+        }
+        .map { makeChannelItem($0, catalog: catalog) }
 
         return HomeContent(
             summary: catalog.summary,
+            recentlyWatched: recentlyWatched,
             featuredChannels: Array(featured),
             popularCountries: Array(countries.prefix(12)),
             categories: Array(catalog.categories.prefix(12))

@@ -53,14 +53,27 @@ struct ChannelGridView: View {
     private func channelGrid(title: String) -> some View {
         ScrollView {
             LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: 190), spacing: DesignTokens.contentSpacing)],
+                columns: [
+                    GridItem(
+                        .adaptive(minimum: DesignTokens.channelGridMinimum),
+                        spacing: DesignTokens.contentSpacing
+                    )
+                ],
                 spacing: DesignTokens.contentSpacing
             ) {
                 ForEach(viewModel.filteredChannels) { item in
-                    ChannelCard(item: item, imageLoader: imageLoader)
+                    if item.isAvailable {
+                        NavigationLink(value: AppRoute.player(item.id)) {
+                            ChannelCard(item: item, imageLoader: imageLoader)
+                        }
+                        .buttonStyle(FocusedCardButtonStyle())
+                    } else {
+                        ChannelCard(item: item, imageLoader: imageLoader)
+                            .opacity(0.62)
+                    }
                 }
             }
-            .padding(24)
+            .padding(DesignTokens.pagePadding)
         }
         .navigationTitle(title)
         .overlay {
