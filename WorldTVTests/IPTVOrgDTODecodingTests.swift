@@ -33,5 +33,6 @@ struct IPTVOrgDTODecodingTests {
         #expect(stream.url == "https://example.com/live.m3u8")
         #expect(stream.quality == "1080p")
         #expect(stream.title == "News HD")
+        #expect(stream.referrer == "https://example.com/")
     }
 }
