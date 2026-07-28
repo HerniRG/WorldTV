@@ -28,9 +28,18 @@ final class HomeViewModel {
         load(forceRefresh: false)
     }
 
-    private func load(forceRefresh: Bool) {
+    func reloadVisibleContent() {
+        guard case .loaded = state else {
+            return
+        }
+        load(forceRefresh: false, showsLoading: false)
+    }
+
+    private func load(forceRefresh: Bool, showsLoading: Bool = true) {
         loadTask?.cancel()
-        state = .loading
+        if showsLoading {
+            state = .loading
+        }
         loadTask = Task { [weak self] in
             guard let self else {
                 return

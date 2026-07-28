@@ -26,6 +26,9 @@ struct CountryCard: View {
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: DesignTokens.cardCornerRadius))
+        .background(
+            Color.primary.opacity(0.07),
+            in: RoundedRectangle(cornerRadius: DesignTokens.cardCornerRadius)
+        )
     }
 }
