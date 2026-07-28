@@ -23,7 +23,7 @@ enum IPTVOrgFixtures {
         "feed": null,
         "title": "News HD",
         "url": "https://example.com/live.m3u8",
-        "http_referrer": null,
+        "referrer": "https://example.com/",
         "user_agent": null,
         "quality": "1080p",
         "label": null

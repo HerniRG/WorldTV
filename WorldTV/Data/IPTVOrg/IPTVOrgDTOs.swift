@@ -35,7 +35,7 @@ struct IPTVOrgStreamDTO: Decodable, Sendable {
         case feed
         case title
         case url
-        case referrer = "http_referrer"
+        case referrer
         case userAgent = "user_agent"
         case quality
         case label
