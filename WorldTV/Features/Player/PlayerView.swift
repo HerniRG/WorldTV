@@ -2,6 +2,8 @@ import SwiftUI
 
 struct PlayerView: View {
     @State private var viewModel: PlayerViewModel
+    @AppStorage("autoplayChannels") private var autoplayChannels = true
+    @AppStorage("preferredQuality") private var preferredQuality = "automatic"
 
     init(
         channelID: String,
@@ -39,7 +41,10 @@ struct PlayerView: View {
         .navigationTitle(viewModel.channelName)
         .modifier(PlayerNavigationStyle())
         .task {
-            viewModel.loadIfNeeded()
+            viewModel.loadIfNeeded(
+                autoplay: autoplayChannels,
+                preferredQuality: Int(preferredQuality)
+            )
         }
         .onDisappear {
             viewModel.stop()

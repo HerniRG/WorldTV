@@ -18,10 +18,31 @@ struct AppSectionNavigationStack: View {
         case .home:
             HomeView(
                 viewModel: homeViewModel,
-                imageLoader: container.imageLoader
+                imageLoader: container.imageLoader,
+                favoritesStore: container.favoritesStore
             )
         case .countries:
             CountriesView(loadCountries: container.loadCountries)
+        case .search:
+            SearchView(
+                searchChannels: container.searchChannels,
+                imageLoader: container.imageLoader,
+                favoritesStore: container.favoritesStore
+            )
+        case .favorites:
+            FavoritesView(
+                loadFavoriteChannels: container.loadFavoriteChannels,
+                imageLoader: container.imageLoader,
+                favoritesStore: container.favoritesStore
+            )
+        case .settings:
+            SettingsView(
+                refreshCatalog: container.refreshCatalog,
+                clearRecentlyWatched: container.clearRecentlyWatched,
+                clearCatalogCache: container.clearCatalogCache,
+                loadCatalogCacheDate: container.loadCatalogCacheDate,
+                favoritesStore: container.favoritesStore
+            )
         }
     }
 }
@@ -55,11 +76,33 @@ private struct AppRouteDestinationModifier: ViewModifier {
         switch route {
         case .countries:
             CountriesView(loadCountries: container.loadCountries)
+        case .favorites:
+            FavoritesView(
+                loadFavoriteChannels: container.loadFavoriteChannels,
+                imageLoader: container.imageLoader,
+                favoritesStore: container.favoritesStore
+            )
+        case .search:
+            SearchView(
+                searchChannels: container.searchChannels,
+                imageLoader: container.imageLoader,
+                favoritesStore: container.favoritesStore
+            )
+        case .searchCategory(let categoryID):
+            SearchView(
+                searchChannels: container.searchChannels,
+                imageLoader: container.imageLoader,
+                favoritesStore: container.favoritesStore,
+                initialCategoryID: categoryID
+            )
+        case .about:
+            AboutView()
         case .country(let code):
             ChannelGridView(
                 countryCode: code,
                 loadChannels: container.loadChannelsByCountry,
-                imageLoader: container.imageLoader
+                imageLoader: container.imageLoader,
+                favoritesStore: container.favoritesStore
             )
         case .player(let channelID):
             PlayerView(

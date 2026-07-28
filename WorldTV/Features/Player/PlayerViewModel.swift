@@ -23,6 +23,8 @@ final class PlayerViewModel {
     private var itemStatusObservation: NSKeyValueObservation?
     private var timeControlObservation: NSKeyValueObservation?
     private var didRecordPlayback = false
+    private var autoplay = true
+    private var preferredQuality: Int?
 
     init(
         channelID: String,
@@ -34,11 +36,13 @@ final class PlayerViewModel {
         self.recordRecentlyWatched = recordRecentlyWatched
     }
 
-    func loadIfNeeded() {
+    func loadIfNeeded(autoplay: Bool = true, preferredQuality: Int? = nil) {
         guard case .idle = state else {
             return
         }
 
+        self.autoplay = autoplay
+        self.preferredQuality = preferredQuality
         state = .resolving
         loadTask = Task { [weak self] in
             guard let self else {
@@ -46,7 +50,10 @@ final class PlayerViewModel {
             }
 
             do {
-                let context = try await resolveSources.execute(channelID: channelID)
+                let context = try await resolveSources.execute(
+                    channelID: channelID,
+                    preferredQuality: preferredQuality
+                )
                 guard !Task.isCancelled else {
                     return
                 }
@@ -66,7 +73,7 @@ final class PlayerViewModel {
     func retry() {
         guard !sources.isEmpty else {
             state = .idle
-            loadIfNeeded()
+            loadIfNeeded(autoplay: autoplay, preferredQuality: preferredQuality)
             return
         }
         currentSourceIndex = 0
@@ -147,12 +154,10 @@ final class PlayerViewModel {
         case .unknown:
             state = .preparing
         case .readyToPlay:
-            player.play()
-            if !didRecordPlayback {
-                didRecordPlayback = true
-                Task {
-                    await recordRecentlyWatched.execute(channelID: channelID)
-                }
+            if autoplay {
+                player.play()
+            } else {
+                state = .paused
             }
         case .failed:
             sourceTimeoutTask?.cancel()
@@ -174,6 +179,12 @@ final class PlayerViewModel {
         case .playing:
             sourceTimeoutTask?.cancel()
             state = .playing
+            if !didRecordPlayback {
+                didRecordPlayback = true
+                Task {
+                    await recordRecentlyWatched.execute(channelID: channelID)
+                }
+            }
         @unknown default:
             state = .failed(.unavailable)
         }

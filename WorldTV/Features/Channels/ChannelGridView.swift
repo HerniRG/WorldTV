@@ -3,11 +3,13 @@ import SwiftUI
 struct ChannelGridView: View {
     @State private var viewModel: ChannelGridViewModel
     private let imageLoader: any ImageLoading
+    private let favoritesStore: FavoritesStore
 
     init(
         countryCode: String,
         loadChannels: LoadChannelsByCountryUseCase,
-        imageLoader: any ImageLoading
+        imageLoader: any ImageLoading,
+        favoritesStore: FavoritesStore
     ) {
         _viewModel = State(
             initialValue: ChannelGridViewModel(
@@ -16,6 +18,7 @@ struct ChannelGridView: View {
             )
         )
         self.imageLoader = imageLoader
+        self.favoritesStore = favoritesStore
     }
 
     var body: some View {
@@ -62,15 +65,11 @@ struct ChannelGridView: View {
                 spacing: DesignTokens.contentSpacing
             ) {
                 ForEach(viewModel.filteredChannels) { item in
-                    if item.isAvailable {
-                        NavigationLink(value: AppRoute.player(item.id)) {
-                            ChannelCard(item: item, imageLoader: imageLoader)
-                        }
-                        .buttonStyle(FocusedCardButtonStyle())
-                    } else {
-                        ChannelCard(item: item, imageLoader: imageLoader)
-                            .opacity(0.62)
-                    }
+                    ChannelTile(
+                        item: item,
+                        imageLoader: imageLoader,
+                        favoritesStore: favoritesStore
+                    )
                 }
             }
             .padding(DesignTokens.pagePadding)

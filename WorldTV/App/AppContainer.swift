@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 struct AppContainer {
     let loadHomeContent: LoadHomeContentUseCase
     let loadCountries: LoadCountriesUseCase
@@ -7,6 +8,13 @@ struct AppContainer {
     let imageLoader: any ImageLoading
     let resolvePlaybackSources: ResolvePlayableStreamUseCase
     let recordRecentlyWatched: RecordRecentlyWatchedUseCase
+    let loadFavoriteChannels: LoadFavoriteChannelsUseCase
+    let searchChannels: SearchChannelsUseCase
+    let favoritesStore: FavoritesStore
+    let refreshCatalog: RefreshCatalogUseCase
+    let clearRecentlyWatched: ClearRecentlyWatchedUseCase
+    let clearCatalogCache: ClearCatalogCacheUseCase
+    let loadCatalogCacheDate: LoadCatalogCacheDateUseCase
 
     static func live() -> AppContainer {
         let configuration = URLSessionConfiguration.default
@@ -32,11 +40,18 @@ struct AppContainer {
         )
         let repository = DefaultCatalogRepository(apiClient: apiClient, cache: cache)
         let recentlyWatchedRepository = UserDefaultsRecentlyWatchedRepository()
+        let favoritesRepository = UserDefaultsFavoritesRepository()
+        let favoritesStore = FavoritesStore(
+            loadFavorites: LoadFavoriteChannelIDsUseCase(repository: favoritesRepository),
+            toggleFavorite: ToggleFavoriteUseCase(repository: favoritesRepository),
+            clearFavorites: ClearFavoritesUseCase(repository: favoritesRepository)
+        )
 
         return AppContainer(
             loadHomeContent: LoadHomeContentUseCase(
                 repository: repository,
-                recentlyWatchedRepository: recentlyWatchedRepository
+                recentlyWatchedRepository: recentlyWatchedRepository,
+                favoritesRepository: favoritesRepository
             ),
             loadCountries: LoadCountriesUseCase(repository: repository),
             loadChannelsByCountry: LoadChannelsByCountryUseCase(repository: repository),
@@ -44,7 +59,22 @@ struct AppContainer {
             resolvePlaybackSources: ResolvePlayableStreamUseCase(repository: repository),
             recordRecentlyWatched: RecordRecentlyWatchedUseCase(
                 repository: recentlyWatchedRepository
-            )
+            ),
+            loadFavoriteChannels: LoadFavoriteChannelsUseCase(
+                channelRepository: repository,
+                favoritesRepository: favoritesRepository
+            ),
+            searchChannels: SearchChannelsUseCase(
+                channelRepository: repository,
+                favoritesRepository: favoritesRepository
+            ),
+            favoritesStore: favoritesStore,
+            refreshCatalog: RefreshCatalogUseCase(repository: repository),
+            clearRecentlyWatched: ClearRecentlyWatchedUseCase(
+                repository: recentlyWatchedRepository
+            ),
+            clearCatalogCache: ClearCatalogCacheUseCase(cache: cache),
+            loadCatalogCacheDate: LoadCatalogCacheDateUseCase(cache: cache)
         )
     }
 }

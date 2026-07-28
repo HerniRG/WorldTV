@@ -4,7 +4,10 @@ import Testing
 struct AppSectionTests {
     @Test
     func sectionsHaveStablePersistentIdentifiers() {
-        #expect(AppSection.allCases.map(\.rawValue) == ["home", "countries"])
+        #expect(
+            AppSection.allCases.map(\.rawValue)
+                == ["home", "countries", "search", "favorites", "settings"]
+        )
         #expect(AppSection(rawValue: "home") == .home)
         #expect(AppSection(rawValue: "countries") == .countries)
     }

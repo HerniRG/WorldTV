@@ -3,6 +3,9 @@ import Foundation
 enum AppSection: String, CaseIterable, Hashable, Identifiable {
     case home
     case countries
+    case search
+    case favorites
+    case settings
 
     var id: String { rawValue }
 
@@ -12,6 +15,12 @@ enum AppSection: String, CaseIterable, Hashable, Identifiable {
             "navigation.home"
         case .countries:
             "countries.title"
+        case .search:
+            "search.title"
+        case .favorites:
+            "favorites.title"
+        case .settings:
+            "settings.title"
         }
     }
 
@@ -21,6 +30,12 @@ enum AppSection: String, CaseIterable, Hashable, Identifiable {
             "house"
         case .countries:
             "globe.europe.africa"
+        case .search:
+            "magnifyingglass"
+        case .favorites:
+            "star"
+        case .settings:
+            "gear"
         }
     }
 }

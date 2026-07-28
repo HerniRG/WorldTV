@@ -9,7 +9,10 @@ struct ResolvePlayableStreamUseCase: Sendable {
         self.maximumAttempts = maximumAttempts
     }
 
-    func execute(channelID: String) async throws -> PlaybackContext {
+    func execute(
+        channelID: String,
+        preferredQuality: Int? = nil
+    ) async throws -> PlaybackContext {
         let catalog = try await repository.loadCatalog()
         guard let channel = catalog.index.channelsByID[channelID] else {
             throw PlaybackError.channelNotFound
@@ -17,7 +20,13 @@ struct ResolvePlayableStreamUseCase: Sendable {
 
         let sources = (catalog.streamsByChannelID[channelID] ?? [])
             .map(Self.makeSource)
-            .sorted(by: Self.isPreferred)
+            .sorted {
+                Self.isPreferred(
+                    $0,
+                    $1,
+                    preferredQuality: preferredQuality
+                )
+            }
 
         guard !sources.isEmpty else {
             throw PlaybackError.noSources
@@ -37,13 +46,24 @@ struct ResolvePlayableStreamUseCase: Sendable {
         )
     }
 
-    private static func isPreferred(_ lhs: PlaybackSource, _ rhs: PlaybackSource) -> Bool {
+    private static func isPreferred(
+        _ lhs: PlaybackSource,
+        _ rhs: PlaybackSource,
+        preferredQuality: Int?
+    ) -> Bool {
         if lhs.isHLS != rhs.isHLS {
             return lhs.isHLS
         }
 
         let lhsQuality = qualityValue(lhs.quality)
         let rhsQuality = qualityValue(rhs.quality)
+        if let preferredQuality {
+            let lhsDistance = abs(lhsQuality - preferredQuality)
+            let rhsDistance = abs(rhsQuality - preferredQuality)
+            if lhsDistance != rhsDistance {
+                return lhsDistance < rhsDistance
+            }
+        }
         if lhsQuality != rhsQuality {
             return lhsQuality > rhsQuality
         }

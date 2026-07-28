@@ -1,6 +1,6 @@
 # WorldTV Architecture
 
-WorldTV uses pragmatic Clean Architecture. Phase 4 keeps the dependency direction established by Phase 1 and adds indexed catalog access, persistent caching, playback, local viewing history, and platform-native roots.
+WorldTV uses pragmatic Clean Architecture. Phase 5 keeps the dependency direction established by Phase 1 and adds indexed catalog access, persistent caching, playback, local personalization, search, settings, and platform-native roots.
 
 ```text
 SwiftUI feature
@@ -16,7 +16,7 @@ Data repository → IPTVOrg API client → HTTP client
 
 - `App`: constructs dependencies explicitly in `AppContainer`.
 - `Domain`: contains `Sendable` entities, repository contracts, load state, and use cases. It does not import SwiftUI, AVKit, or networking implementations.
-- `Data`: contains the HTTP client, iptv-org DTOs, mapping rules, filtering, joins, persistent cache, viewing history, and repository actors.
+- `Data`: contains the HTTP client, iptv-org DTOs, mapping rules, filtering, joins, persistent cache, viewing history, favorites, and repository actors.
 - `Features`: contains UI state and SwiftUI presentation. UI ViewModels are explicitly isolated with `@MainActor`.
 - `Platform`: contains the cancellable image loader, platform image conversion, and native player adapters.
 - `Resources`: contains localized English and Spanish UI strings.
@@ -41,7 +41,15 @@ Logos are loaded through an injected actor backed by a dedicated `URLSession` an
 
 `ResolvePlayableStreamUseCase` resolves a channel into a bounded list of sources. HLS sources are preferred, followed by numeric quality. `PlayerViewModel` owns `AVPlayer`, observes item and time-control state, forwards required HTTP headers, and advances to the next source after a failure or a 15-second preparation timeout.
 
-Successful preparation records the channel through an injected history repository. Home maps those identifiers back through the current catalog index, so removed channels disappear safely and recent channels retain current logos and availability.
+Playback settings are read at the presentation boundary and passed explicitly to the resolver. The resolver prefers HLS and then the stream closest to the selected quality. History is recorded only after playback actually starts. Home maps those identifiers back through the current catalog index, so removed channels disappear safely and recent channels retain current logos and availability.
+
+## Personalization and search
+
+Favorites are stored as stable channel identifiers behind an actor-backed repository. A shared `@MainActor` store keeps all visible feature screens consistent while persistence remains outside the UI layer.
+
+Search runs locally against the indexed catalog and matches channel names, alternative names, countries, categories, and stream titles. `SearchViewModel` debounces text changes for 300 milliseconds and sends an immutable criteria value to the use case. Country, category, minimum quality, availability, geoblocking, and favorites are filters rather than view concerns.
+
+Settings use small use cases for catalog refresh, cache removal, history removal, and cache metadata. User preferences use `AppStorage` because they are simple device-local values; repositories remain reserved for collections and operations that require explicit concurrency or mapping.
 
 ## Navigation
 
@@ -51,6 +59,8 @@ Successful preparation records the channel through an injected history repositor
 - iPad switches to `NavigationSplitView` in regular horizontal size classes.
 - macOS uses a resizable `NavigationSplitView` sidebar.
 - tvOS uses its native top-level `TabView`; the selected section is restored with scene storage, while each tab retains its navigation and focus context.
+
+Cards share semantic content but adapt interaction by platform: tvOS exposes an explicit focus ring and stable scale, macOS adds a restrained hover response, and Reduce Motion removes nonessential scaling animations.
 
 Platform conditionals are confined to the launch boundary and platform root files. Feature views and domain logic remain shared.
 
