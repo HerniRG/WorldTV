@@ -11,13 +11,15 @@ struct CatalogUseCaseTests {
             repository: StubChannelRepository(catalog: catalog),
             recentlyWatchedRepository: StubRecentlyWatchedRepository(
                 items: [RecentlyWatchedChannel(channelID: "News.es", watchedAt: .now)]
-            )
+            ),
+            favoritesRepository: StubFavoritesRepository(items: ["News.es"])
         )
 
         let content = try await useCase.execute()
 
         #expect(content.summary.channelCount == 1)
         #expect(content.featuredChannels.map(\.id) == ["News.es"])
+        #expect(content.favoriteChannels.map(\.id) == ["News.es"])
         #expect(content.recentlyWatched.map(\.id) == ["News.es"])
         #expect(content.popularCountries.map(\.id) == ["ES"])
     }
@@ -34,6 +36,20 @@ struct CatalogUseCaseTests {
         #expect(result.channels.map(\.id) == ["News.es"])
         #expect(result.channels.first?.isAvailable == true)
     }
+}
+
+private struct StubFavoritesRepository: FavoritesRepository {
+    let items: [String]
+
+    func load() async throws -> [String] {
+        items
+    }
+
+    func toggle(channelID: String) async throws -> Bool {
+        !items.contains(channelID)
+    }
+
+    func clear() async throws {}
 }
 
 private struct StubRecentlyWatchedRepository: RecentlyWatchedRepository {

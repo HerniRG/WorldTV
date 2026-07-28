@@ -48,12 +48,15 @@ struct ChannelCatalogItem: Identifiable, Hashable, Sendable {
 
     let channel: Channel
     let logo: ChannelLogo?
+    let countryName: String
     let isAvailable: Bool
+    let isGeoBlocked: Bool
     let quality: String?
 }
 
 struct HomeContent: Sendable {
     let summary: CatalogSummary
+    let favoriteChannels: [ChannelCatalogItem]
     let recentlyWatched: [ChannelCatalogItem]
     let featuredChannels: [ChannelCatalogItem]
     let popularCountries: [CountryCatalogItem]

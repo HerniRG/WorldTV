@@ -16,12 +16,29 @@ struct ChannelCard: View {
                 .font(.headline)
                 .lineLimit(2)
 
-            HStack {
+            Text(
+                Locale.current.localizedString(
+                    forRegionCode: item.channel.countryCode
+                ) ?? item.countryName
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
+
+            HStack(spacing: 10) {
                 if let quality = item.quality {
                     Text(quality)
                         .font(.caption.weight(.semibold))
+                        .lineLimit(1)
                 }
-                Spacer()
+
+                if item.isGeoBlocked {
+                    Image(systemName: "location.slash")
+                        .accessibilityLabel(Text("channel.geoblocked"))
+                }
+
+                Spacer(minLength: 0)
+
                 Image(systemName: item.isAvailable ? "play.circle.fill" : "exclamationmark.circle")
                     .foregroundStyle(item.isAvailable ? Color.accentColor : Color.secondary)
                     .accessibilityLabel(
@@ -30,6 +47,7 @@ struct ChannelCard: View {
                             : Text("channel.unavailable")
                     )
             }
+            .font(.caption)
             .foregroundStyle(.secondary)
         }
         .padding()
@@ -39,5 +57,13 @@ struct ChannelCard: View {
             in: RoundedRectangle(cornerRadius: DesignTokens.cardCornerRadius)
         )
         .contentShape(RoundedRectangle(cornerRadius: DesignTokens.cardCornerRadius))
+        .modifier(CardInteractionEffect())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(item.channel.name)
+        .accessibilityValue(
+            item.isAvailable
+                ? Text("channel.available")
+                : Text("channel.unavailable")
+        )
     }
 }

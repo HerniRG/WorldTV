@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @Bindable var viewModel: HomeViewModel
     let imageLoader: any ImageLoading
+    let favoritesStore: FavoritesStore
 
     var body: some View {
         Group {
@@ -31,6 +32,7 @@ struct HomeView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .task {
+            await favoritesStore.loadIfNeeded()
             viewModel.loadIfNeeded()
         }
         .onAppear {
@@ -43,6 +45,15 @@ struct HomeView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: DesignTokens.sectionSpacing) {
                 header(content.summary)
+
+                let favoriteChannels = visibleFavorites(in: content)
+                if !favoriteChannels.isEmpty {
+                    channelCarousel(
+                        title: "favorites.title",
+                        systemImage: "star.fill",
+                        channels: favoriteChannels
+                    )
+                }
 
                 if !content.recentlyWatched.isEmpty {
                     channelCarousel(
@@ -83,6 +94,11 @@ struct HomeView: View {
                 }
                 .buttonStyle(.borderedProminent)
 
+                NavigationLink(value: AppRoute.favorites) {
+                    Label("favorites.open", systemImage: "star")
+                }
+                .buttonStyle(.bordered)
+
                 if !content.categories.isEmpty {
                     sectionTitle("home.categories", systemImage: "square.grid.2x2")
                     categoryChips(content.categories)
@@ -119,14 +135,27 @@ struct HomeView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: DesignTokens.contentSpacing) {
                 ForEach(channels) { item in
-                    NavigationLink(value: AppRoute.player(item.id)) {
-                        ChannelCard(item: item, imageLoader: imageLoader)
-                            .frame(width: DesignTokens.cardWidth)
-                    }
-                    .buttonStyle(FocusedCardButtonStyle())
+                    ChannelTile(
+                        item: item,
+                        imageLoader: imageLoader,
+                        favoritesStore: favoritesStore,
+                        width: DesignTokens.cardWidth
+                    )
                 }
             }
             .padding(.vertical, 14)
+        }
+    }
+
+    private func visibleFavorites(in content: HomeContent) -> [ChannelCatalogItem] {
+        var seen: Set<String> = []
+        return (
+            content.favoriteChannels
+                + content.recentlyWatched
+                + content.featuredChannels
+        )
+        .filter { item in
+            favoritesStore.contains(item.id) && seen.insert(item.id).inserted
         }
     }
 
@@ -134,11 +163,13 @@ struct HomeView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
                 ForEach(categories) { category in
-                    Text(category.name)
-                        .font(.headline)
-                        .padding(.horizontal, 18)
-                        .padding(.vertical, 10)
-                        .background(.regularMaterial, in: Capsule())
+                    NavigationLink(value: AppRoute.searchCategory(category.id)) {
+                        Text(category.name)
+                            .font(.headline)
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 10)
+                    }
+                    .buttonStyle(.bordered)
                 }
             }
         }

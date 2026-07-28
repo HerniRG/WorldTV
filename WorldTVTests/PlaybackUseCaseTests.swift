@@ -43,6 +43,27 @@ struct PlaybackUseCaseTests {
     }
 
     @Test
+    func preferredQualityIsTriedBeforeHigherQuality() async throws {
+        let catalog = makeCatalog(
+            streams: [
+                stream("https://example.com/uhd.m3u8", quality: "2160p"),
+                stream("https://example.com/hd.m3u8", quality: "720p"),
+                stream("https://example.com/fullhd.m3u8", quality: "1080p")
+            ]
+        )
+        let useCase = ResolvePlayableStreamUseCase(
+            repository: PlaybackStubChannelRepository(catalog: catalog)
+        )
+
+        let context = try await useCase.execute(
+            channelID: "news",
+            preferredQuality: 720
+        )
+
+        #expect(context.sources.first?.quality == "720p")
+    }
+
+    @Test
     func reportsChannelWithoutSources() async throws {
         let useCase = ResolvePlayableStreamUseCase(
             repository: PlaybackStubChannelRepository(catalog: makeCatalog(streams: []))

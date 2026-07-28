@@ -4,7 +4,7 @@ WorldTV is a SwiftUI application for discovering free, publicly accessible telev
 
 ## Project status
 
-Phase 4 provides catalog discovery, live playback, and platform-native navigation:
+Phase 5 provides a complete discovery and personalization experience:
 
 - iOS and iPadOS
 - macOS
@@ -22,6 +22,11 @@ Phase 4 provides catalog discovery, live playback, and platform-native navigatio
 - Ordered HLS/quality source selection with automatic fallback and timeout
 - Referrer and user-agent forwarding when a stream requires them
 - Recently watched channels persisted locally and shown on Home
+- Favorites persisted locally and available from Home, channel grids, search, and a dedicated section
+- Debounced channel search with country, category, quality, availability, and favorite filters
+- Settings for autoplay, preferred playback quality, geoblocked visibility, catalog refresh, cache, and history
+- English and Spanish localization
+- Accessibility labels, Reduce Motion support, and platform-adaptive interaction effects
 - tvOS-specific card sizing and an explicit, shadow-free focus treatment
 - Bottom tabs on iPhone and a persistent sidebar on iPad
 - A resizable macOS sidebar
@@ -29,7 +34,7 @@ Phase 4 provides catalog discovery, live playback, and platform-native navigatio
 - Shared typed destinations across every platform root
 - Unit tests based on local fixtures
 
-Favorites, advanced filters, settings, and final platform-specific navigation belong to later phases.
+Distribution assets, CI, and the final legal documentation remain for the repository release phase.
 
 ## Requirements
 
