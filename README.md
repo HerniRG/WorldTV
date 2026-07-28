@@ -35,7 +35,9 @@ The current deployment target is 26.5 for iOS/iPadOS, macOS, and tvOS.
 
 ## Screenshots
 
-The repository contains a [capture checklist](docs/screenshots/README.md) with the required iPhone, iPad, Apple TV, and Mac views. Final release screenshots are intentionally pending until the app icon and visual identity are approved.
+![WorldTV Home on Apple TV](docs/screenshots/tvos-home.png)
+
+The visual identity, cross-platform App Icon, layered Apple TV icon, and Top Shelf artwork are now part of the asset catalog. The repository also contains the remaining [release screenshot checklist](docs/screenshots/README.md).
 
 ## Requirements
 
@@ -106,7 +108,7 @@ Rights holders can use the documented [channel-removal process](DISCLAIMER.md#ch
 
 ## Project status
 
-The core product is feature-complete for its first open-source milestone. Distribution still requires approved App Icon and tvOS Top Shelf artwork, final screenshots, device testing, and any store-specific privacy or legal metadata.
+The core product is feature-complete for its first open-source milestone. Distribution assets are in place and the app has been installed and launched on a physical Apple TV. Distribution still requires the remaining release screenshots, the full physical-device test matrix, and store-specific privacy or legal metadata.
 
 See [CHANGELOG.md](CHANGELOG.md) and the [roadmap](docs/ROADMAP.md) for release status and planned work.
 

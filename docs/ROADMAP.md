@@ -13,14 +13,15 @@ The roadmap communicates intent, not a release guarantee.
 - Native iPhone, iPad, Apple TV, and Mac navigation
 - English and Spanish localization and core accessibility
 - Open-source documentation and continuous integration
+- Approved WorldTV visual identity and complete iOS/macOS App Icon sizes
+- Layered Apple TV App Icon and standard/wide Top Shelf artwork
+- Signed build, installation, and launch on a physical Apple TV
+- Apple TV Home release screenshot
 
 ## Before the first distribution build
 
-- Approve a final visual identity
-- Supply complete App Icon variants
-- Supply Apple TV Top Shelf assets
-- Capture the release screenshot matrix
-- Test playback, focus, VoiceOver, rotation, and window resizing on physical devices
+- Capture the remaining release screenshot matrix
+- Complete playback, focus, VoiceOver, rotation, and window-resizing checks across physical devices
 - Confirm store privacy details and legal metadata
 - Review channel-removal handling with appropriate legal advice
 - Tag the first release after CI is green

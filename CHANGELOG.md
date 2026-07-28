@@ -19,5 +19,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - GitHub Actions builds for iOS Simulator, tvOS Simulator, and macOS
 - Offline unit-test workflow and cross-platform UI launch smoke test
 - Channel-removal issue template and screenshot capture checklist
+- Final WorldTV visual identity with complete iOS and macOS App Icon sizes
+- Layered Apple TV App Icon with parallax foreground/background artwork
+- Standard and wide Apple TV Top Shelf images
+- Real 1920×1080 Apple TV Home screenshot and README preview
+- Signed physical Apple TV build validation, installation, and launch
 
 [Unreleased]: https://github.com/HerniRG/WorldTV/commits/main
