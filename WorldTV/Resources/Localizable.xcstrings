@@ -409,6 +409,22 @@
         }
       }
     },
+    "navigation.home" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicio"
+          }
+        }
+      }
+    },
     "player.buffering" : {
       "localizations" : {
         "en" : {
