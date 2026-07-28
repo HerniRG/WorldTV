@@ -1,6 +1,10 @@
 import Foundation
 
-struct IPTVOrgAPIClient: Sendable {
+protocol IPTVOrgCatalogProviding: Sendable {
+    func fetchCatalog() async throws -> IPTVOrgCatalogPayload
+}
+
+struct IPTVOrgAPIClient: IPTVOrgCatalogProviding {
     private let httpClient: any HTTPClient
     private let decoder: JSONDecoder
 

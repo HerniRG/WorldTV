@@ -13,7 +13,12 @@ struct WorldTVApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(loadCatalogSummary: container.loadCatalogSummary)
+            ContentView(
+                loadHomeContent: container.loadHomeContent,
+                loadCountries: container.loadCountries,
+                loadChannels: container.loadChannelsByCountry,
+                imageLoader: container.imageLoader
+            )
         }
     }
 }

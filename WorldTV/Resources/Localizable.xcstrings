@@ -3,178 +3,140 @@
   "strings" : {
     "action.retry" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Try Again"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reintentar"
-          }
-        }
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Try Again" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Reintentar" } }
       }
     },
     "app.name" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "WorldTV"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "WorldTV"
-          }
-        }
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "WorldTV" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "WorldTV" } }
       }
     },
-    "launch.empty.message" : {
+    "catalog.empty.message" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The data source did not return any available channels."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La fuente de datos no devolvió canales disponibles."
-          }
-        }
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No available channels were found." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se encontraron canales disponibles." } }
       }
     },
-    "launch.empty.title" : {
+    "catalog.empty.title" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No Channels"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No hay canales"
-          }
-        }
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Empty Catalog" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Catálogo vacío" } }
       }
     },
-    "launch.error.message" : {
+    "catalog.error.message" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Check your connection and try loading the catalog again."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Comprueba tu conexión e intenta cargar de nuevo el catálogo."
-          }
-        }
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Check your connection and try again." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Comprueba tu conexión e inténtalo de nuevo." } }
       }
     },
-    "launch.error.title" : {
+    "catalog.error.title" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Catalog Unavailable"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Catálogo no disponible"
-          }
-        }
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Catalog Unavailable" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Catálogo no disponible" } }
       }
     },
-    "launch.loading" : {
+    "catalog.loading" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Loading the catalog…"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cargando el catálogo…"
-          }
-        }
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Loading catalog…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cargando catálogo…" } }
       }
     },
-    "launch.metric.channels" : {
+    "catalog.refresh" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Channels"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Canales"
-          }
-        }
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Refresh Catalog" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Actualizar catálogo" } }
       }
     },
-    "launch.metric.countries" : {
+    "channel.available" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Countries"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Países"
-          }
-        }
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Available" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Disponible" } }
       }
     },
-    "launch.metric.playable" : {
+    "channel.unavailable" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Playable"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reproducibles"
-          }
-        }
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unavailable" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No disponible" } }
       }
     },
-    "launch.ready" : {
+    "channels.empty" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The first catalog foundation is ready"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La primera base del catálogo está preparada"
-          }
-        }
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No channels in this country" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No hay canales en este país" } }
+      }
+    },
+    "channels.search" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Search channels" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Buscar canales" } }
+      }
+    },
+    "countries.empty" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No countries available" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No hay países disponibles" } }
+      }
+    },
+    "countries.search" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Search countries" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Buscar países" } }
+      }
+    },
+    "countries.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Countries" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Países" } }
+      }
+    },
+    "country.channels" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "channels" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "canales" } }
+      }
+    },
+    "home.allCountries" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Explore all countries" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Explorar todos los países" } }
+      }
+    },
+    "home.categories" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Browse by category" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Explorar por categoría" } }
+      }
+    },
+    "home.channelCount" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "channels" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "canales" } }
+      }
+    },
+    "home.countryCount" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "countries" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "países" } }
+      }
+    },
+    "home.featured" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Featured channels" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Canales destacados" } }
+      }
+    },
+    "home.popularCountries" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Countries with more channels" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Países con más canales" } }
+      }
+    },
+    "home.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Television from around the world" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Televisión de todo el mundo" } }
       }
     }
   },

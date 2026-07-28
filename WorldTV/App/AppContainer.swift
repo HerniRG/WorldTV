@@ -1,7 +1,10 @@
 import Foundation
 
 struct AppContainer {
-    let loadCatalogSummary: LoadCatalogSummaryUseCase
+    let loadHomeContent: LoadHomeContentUseCase
+    let loadCountries: LoadCountriesUseCase
+    let loadChannelsByCountry: LoadChannelsByCountryUseCase
+    let imageLoader: any ImageLoading
 
     static func live() -> AppContainer {
         let configuration = URLSessionConfiguration.default
@@ -15,10 +18,23 @@ struct AppContainer {
 
         let httpClient = URLSessionHTTPClient(session: URLSession(configuration: configuration))
         let apiClient = IPTVOrgAPIClient(httpClient: httpClient)
-        let repository = DefaultCatalogRepository(apiClient: apiClient)
+        let imageLoader = URLSessionImageLoader(session: URLSession(configuration: configuration))
+        let baseDirectory = FileManager.default.urls(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask
+        ).first ?? FileManager.default.temporaryDirectory
+        let cache = FileCatalogCache(
+            fileURL: baseDirectory
+                .appendingPathComponent("WorldTV", isDirectory: true)
+                .appendingPathComponent("catalog.json")
+        )
+        let repository = DefaultCatalogRepository(apiClient: apiClient, cache: cache)
 
         return AppContainer(
-            loadCatalogSummary: LoadCatalogSummaryUseCase(repository: repository)
+            loadHomeContent: LoadHomeContentUseCase(repository: repository),
+            loadCountries: LoadCountriesUseCase(repository: repository),
+            loadChannelsByCountry: LoadChannelsByCountryUseCase(repository: repository),
+            imageLoader: imageLoader
         )
     }
 }
