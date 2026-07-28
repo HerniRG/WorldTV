@@ -68,7 +68,19 @@ Platform conditionals are confined to the launch boundary and platform root file
 
 The project compiles in Swift 6 mode with complete strict-concurrency checking. Domain values and DTOs are `Sendable`. Networking uses structured concurrency, and UI ViewModels are explicitly isolated to `@MainActor`.
 
+## State management
+
+Feature ViewModels use Observation and publish a single `Loadable<Value>` state for mutually exclusive idle, loading, loaded, empty, and failed conditions. Simple device preferences use `AppStorage`; identifier collections and dated records use injected actor-backed repositories. Views start cancellable tasks but do not perform networking or catalog joins.
+
+## Testing and continuous integration
+
+Swift Testing covers DTO decoding, mapping and exclusion rules, indexes, cache freshness and fallback, playback source ordering, search filters, favorites, and history. Fixtures are local values under `WorldTVTests/Fixtures`, so unit tests do not depend on iptv-org availability.
+
+The GitHub Actions workflow selects Xcode 26.6 on `macos-26`, performs unsigned iOS Simulator, tvOS Simulator, and macOS builds, and runs only the unit-test target. UI automation remains a separate smoke suite because simulator window automation can be less deterministic on hosted runners.
+
 ## Current trade-offs
 
 - The mapper accepts HTTPS only. Any narrowly scoped transport exception must be justified and documented later.
 - tvOS still needs final App Icon and Top Shelf assets before distribution.
+- Search works against the locally loaded catalog and intentionally caps one result page to keep presentation work bounded.
+- Channel availability and rights are third-party properties; a successful catalog entry is not a guarantee that playback will work in every location.

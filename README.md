@@ -1,54 +1,119 @@
 # WorldTV
 
-WorldTV is a SwiftUI application for discovering free, publicly accessible television channels by using the structured JSON datasets published by [iptv-org](https://github.com/iptv-org/iptv).
+[![CI](https://github.com/HerniRG/WorldTV/actions/workflows/ci.yml/badge.svg)](https://github.com/HerniRG/WorldTV/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Swift 6](https://img.shields.io/badge/Swift-6-orange.svg)](https://www.swift.org)
 
-## Project status
+WorldTV is a native SwiftUI application for discovering and playing free, publicly accessible television streams from around the world. It uses the structured datasets published by [iptv-org](https://github.com/iptv-org/iptv) and shares its domain and data layers across Apple platforms.
 
-Phase 5 provides a complete discovery and personalization experience:
+WorldTV does not host, mirror, or retransmit channels.
 
-- iOS and iPadOS
-- macOS
-- tvOS
-- Swift 6 strict concurrency
-- Typed networking with `URLSession` and `async/await`
-- DTO decoding and catalog mapping
-- Filtering for NSFW, blocked, closed, orphaned, and insecure entries
-- Home with featured channels, countries, and categories
-- Searchable country browser and channel mosaics
-- Asynchronous logos with controlled HTTP caching and cancellation
-- Precomputed catalog indexes for large datasets
-- A 24-hour persistent catalog cache with stale fallback when the network fails
-- Native `AVPlayer` playback from channel cards
-- Ordered HLS/quality source selection with automatic fallback and timeout
-- Referrer and user-agent forwarding when a stream requires them
-- Recently watched channels persisted locally and shown on Home
-- Favorites persisted locally and available from Home, channel grids, search, and a dedicated section
-- Debounced channel search with country, category, quality, availability, and favorite filters
-- Settings for autoplay, preferred playback quality, geoblocked visibility, catalog refresh, cache, and history
+## Platforms
+
+| Platform | Navigation and presentation |
+| --- | --- |
+| iPhone | Bottom tabs, adaptive channel grids, native full-screen player |
+| iPad | `NavigationSplitView`, sidebar, adaptive grids |
+| Apple TV | Top-level tabs, large cards, explicit focus treatment, native player |
+| Mac | Resizable sidebar, toolbar actions, integrated player |
+
+The current deployment target is 26.5 for iOS/iPadOS, macOS, and tvOS.
+
+## Features
+
+- Home with featured channels, popular countries, categories, favorites, and recent channels
+- Country browser with localized region names and channel counts
+- Local channel search across names, countries, categories, and stream titles
+- Country, category, quality, availability, favorite, and geoblocking filters
+- Local favorites and recently watched history
+- `AVPlayer` playback with ordered source fallback and bounded timeouts
+- Preferred playback quality, autoplay, catalog refresh, and local data controls
 - English and Spanish localization
-- Accessibility labels, Reduce Motion support, and platform-adaptive interaction effects
-- tvOS-specific card sizing and an explicit, shadow-free focus treatment
-- Bottom tabs on iPhone and a persistent sidebar on iPad
-- A resizable macOS sidebar
-- Persistent top-level tabs on tvOS
-- Shared typed destinations across every platform root
-- Unit tests based on local fixtures
+- VoiceOver labels, Reduce Motion support, Dynamic Type, and platform-specific focus or hover
+- Persistent 24-hour catalog cache with stale fallback
+- Swift 6 strict concurrency and offline unit tests
 
-Distribution assets, CI, and the final legal documentation remain for the repository release phase.
+## Screenshots
+
+The repository contains a [capture checklist](docs/screenshots/README.md) with the required iPhone, iPad, Apple TV, and Mac views. Final release screenshots are intentionally pending until the app icon and visual identity are approved.
 
 ## Requirements
 
+- macOS 26.5 or newer
 - Xcode 26.6 or newer
-- iOS/iPadOS 26.5, macOS 26.5, or tvOS 26.5 SDK
+- No third-party dependencies
+- An internet connection for the initial catalog load and live playback
 
-Open `WorldTV.xcodeproj`, select the `WorldTV` scheme and choose an iPhone, iPad, Mac, or Apple TV destination.
+## Run locally
 
-## Data source and limitations
+1. Clone the repository:
 
-WorldTV currently reads the channels, streams, logos, countries, categories, and blocklist endpoints from iptv-org. Availability is controlled by third parties. WorldTV does not host, retransmit, or guarantee individual streams.
+   ```sh
+   git clone https://github.com/HerniRG/WorldTV.git
+   cd WorldTV
+   ```
 
-Formal attribution, takedown information, licensing, and the complete legal disclaimer are scheduled for the repository documentation phase and are required before distribution.
+2. Open `WorldTV.xcodeproj`.
+3. Select the `WorldTV` scheme.
+4. Choose an iPhone, iPad, Apple TV, or Mac destination.
+5. Build and run.
+
+No API keys, accounts, signing credentials, analytics configuration, or private services are required. A personal development team may be needed when installing on physical devices.
+
+## Tests
+
+Unit tests use Swift Testing and small local fixtures. They never contact live endpoints.
+
+```sh
+xcodebuild \
+  -project WorldTV.xcodeproj \
+  -scheme WorldTV \
+  -destination 'platform=macOS' \
+  -only-testing:WorldTVTests \
+  test
+```
+
+The cross-platform UI target contains a launch smoke test. The GitHub workflow runs unsigned builds for every supported platform and the complete unit-test target.
 
 ## Architecture
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the current dependency flow and concurrency decisions.
+WorldTV follows pragmatic Clean Architecture:
+
+```text
+SwiftUI feature → use case → repository protocol → data implementation
+```
+
+Dependencies are constructed explicitly in `AppContainer`. Domain types do not depend on SwiftUI, AVKit, or networking implementations. Repository actors own shared mutable state, while UI ViewModels use Observation and are isolated to `MainActor`.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for catalog indexing, concurrency, playback, persistence, and platform decisions.
+
+## Data source and privacy
+
+Catalog metadata comes from public [iptv-org API datasets](docs/DATA_SOURCES.md). Availability is controlled by third parties and individual links may stop working, be restricted by location, or have rights that vary by jurisdiction.
+
+WorldTV:
+
+- accepts HTTPS catalog resources and streams by default;
+- excludes NSFW, blocklisted, closed, orphaned, and invalid entries;
+- stores preferences, favorites, history, and catalog cache only on the device;
+- includes no accounts, analytics, advertisements, or tracking.
+
+## Legal notice and channel removal
+
+Read [DISCLAIMER.md](DISCLAIMER.md) before distributing or using the app. Channel names, logos, streams, and trademarks belong to their respective owners and are not licensed under this repository's MIT license.
+
+Rights holders can use the documented [channel-removal process](DISCLAIMER.md#channel-removal-requests). Security reports must follow [SECURITY.md](SECURITY.md), not the public removal form.
+
+## Project status
+
+The core product is feature-complete for its first open-source milestone. Distribution still requires approved App Icon and tvOS Top Shelf artwork, final screenshots, device testing, and any store-specific privacy or legal metadata.
+
+See [CHANGELOG.md](CHANGELOG.md) and the [roadmap](docs/ROADMAP.md) for release status and planned work.
+
+## Contributing
+
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening an issue or pull request.
+
+## License
+
+WorldTV source code is available under the [MIT License](LICENSE). The license does not grant rights to third-party channel metadata, logos, trademarks, or streams.

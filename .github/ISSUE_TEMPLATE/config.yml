@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/HerniRG/WorldTV/security/advisories/new
+    about: Report security issues privately.
+  - name: iptv-org catalog
+    url: https://github.com/iptv-org/iptv/issues
+    about: Report issues with the upstream channel catalog.
