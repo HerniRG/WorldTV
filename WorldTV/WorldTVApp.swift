@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct WorldTVApp: App {
+    private let container = AppContainer.live()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(loadCatalogSummary: container.loadCatalogSummary)
         }
     }
 }
