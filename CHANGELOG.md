@@ -24,5 +24,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Standard and wide Apple TV Top Shelf images
 - Real 1920×1080 Apple TV Home screenshot and README preview
 - Signed physical Apple TV build validation, installation, and launch
+- Privacy manifest with the required reason for app-local preferences
+- Bilingual privacy and support documents linked from the app
+- Copy-ready App Store metadata and release-readiness checklist
 
 [Unreleased]: https://github.com/HerniRG/WorldTV/commits/main

@@ -42,6 +42,14 @@ jobs:
       - name: Show toolchain
         run: xcodebuild -version
 
+      - name: Validate release metadata
+        run: |
+          plutil -lint WorldTV/PrivacyInfo.xcprivacy
+          jq empty WorldTV/Resources/Localizable.xcstrings
+          test -s PRIVACY.md
+          test -s SUPPORT.md
+          test -s docs/APP_STORE_METADATA.md
+
       - name: Build
         run: |
           set -o pipefail

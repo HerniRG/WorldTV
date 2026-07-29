@@ -16,10 +16,16 @@ struct AboutView: View {
                 if let destination = AboutDestination.sourceCode.url {
                     Link("about.sourceCode", destination: destination)
                 }
+                if let destination = AboutDestination.support.url {
+                    Link("about.support", destination: destination)
+                }
             }
 
             Section("about.legal") {
                 Text("about.legalNotice")
+                if let destination = AboutDestination.privacy.url {
+                    Link("about.privacy", destination: destination)
+                }
                 if let destination = AboutDestination.disclaimer.url {
                     Link("about.disclaimer", destination: destination)
                 }
@@ -32,9 +38,11 @@ struct AboutView: View {
     }
 }
 
-private enum AboutDestination: String {
+enum AboutDestination: String, CaseIterable {
     case iptvOrg = "https://github.com/iptv-org"
     case sourceCode = "https://github.com/HerniRG/WorldTV"
+    case support = "https://github.com/HerniRG/WorldTV/blob/main/SUPPORT.md"
+    case privacy = "https://github.com/HerniRG/WorldTV/blob/main/PRIVACY.md"
     case disclaimer = "https://github.com/HerniRG/WorldTV/blob/main/DISCLAIMER.md"
     case channelRemoval =
         "https://github.com/HerniRG/WorldTV/issues/new?template=channel-removal.yml"

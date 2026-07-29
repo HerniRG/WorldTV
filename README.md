@@ -100,6 +100,8 @@ WorldTV:
 - stores preferences, favorites, history, and catalog cache only on the device;
 - includes no accounts, analytics, advertisements, or tracking.
 
+Read the complete [privacy policy](PRIVACY.md) and [support guide](SUPPORT.md). The bundled privacy manifest declares no tracking or collected data and documents the app-local `UserDefaults` usage required for preferences, favorites, and history.
+
 ## Legal notice and channel removal
 
 Read [DISCLAIMER.md](DISCLAIMER.md) before distributing or using the app. Channel names, logos, streams, and trademarks belong to their respective owners and are not licensed under this repository's MIT license.
@@ -111,6 +113,7 @@ Rights holders can use the documented [channel-removal process](DISCLAIMER.md#ch
 The core product is feature-complete for its first open-source milestone. Distribution assets are in place and the app has been installed and launched on a physical Apple TV. Distribution still requires the remaining release screenshots, the full physical-device test matrix, and store-specific privacy or legal metadata.
 
 See [CHANGELOG.md](CHANGELOG.md) and the [roadmap](docs/ROADMAP.md) for release status and planned work.
+The copy-ready App Store fields and release gates are tracked in [App Store metadata](docs/APP_STORE_METADATA.md) and the [release checklist](docs/RELEASE_CHECKLIST.md).
 
 ## Contributing
 

@@ -17,12 +17,13 @@ The roadmap communicates intent, not a release guarantee.
 - Layered Apple TV App Icon and standard/wide Top Shelf artwork
 - Signed build, installation, and launch on a physical Apple TV
 - Apple TV Home release screenshot
+- Privacy manifest, bilingual privacy/support policies, and App Store metadata draft
 
 ## Before the first distribution build
 
 - Capture the remaining release screenshot matrix
 - Complete playback, focus, VoiceOver, rotation, and window-resizing checks across physical devices
-- Confirm store privacy details and legal metadata
+- Publish the prepared privacy details and metadata in App Store Connect
 - Review channel-removal handling with appropriate legal advice
 - Tag the first release after CI is green
 
