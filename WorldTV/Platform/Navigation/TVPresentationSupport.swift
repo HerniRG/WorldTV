@@ -4,6 +4,16 @@ private struct PlayChannelActionKey: EnvironmentKey {
     static let defaultValue: @MainActor (String) -> Void = { _ in }
 }
 
+enum TVTopLevelDestination {
+    case section(AppSection)
+    case searchCategory(String)
+}
+
+struct TVSearchRequest {
+    let id = UUID()
+    let categoryID: String
+}
+
 extension EnvironmentValues {
     var playChannel: @MainActor (String) -> Void {
         get { self[PlayChannelActionKey.self] }

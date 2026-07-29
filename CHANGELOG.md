@@ -27,7 +27,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Scroll-aware tvOS screen headers, native card focus, and view-aligned channel shelves
 - Full-screen tvOS playback with native transport controls and Siri Remote back behavior
 - tvOS UI regression coverage for scrolling headers, full-screen playback, and focus restoration
-- Focusable unavailable tvOS channels and a fixed Search filter action with a bounded filter panel
+- Focusable unavailable tvOS channels and a scroll-aligned Search filter action with a bounded filter panel
+- tvOS Home shortcuts now select the Countries, Search, and Favorites tabs while preserving category intent
 - Privacy manifest with the required reason for app-local preferences
 - Bilingual privacy and support documents linked from the app
 - Copy-ready App Store metadata and release-readiness checklist

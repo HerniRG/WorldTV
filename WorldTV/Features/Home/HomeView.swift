@@ -4,6 +4,7 @@ struct HomeView: View {
     @Bindable var viewModel: HomeViewModel
     let imageLoader: any ImageLoading
     let favoritesStore: FavoritesStore
+    var openTVTopLevelDestination: @MainActor (TVTopLevelDestination) -> Void = { _ in }
 
     var body: some View {
         Group {
@@ -89,15 +90,8 @@ struct HomeView: View {
                     }
                 }
 
-                NavigationLink(value: AppRoute.countries) {
-                    Label("home.allCountries", systemImage: "globe")
-                }
-                .buttonStyle(.borderedProminent)
-
-                NavigationLink(value: AppRoute.favorites) {
-                    Label("favorites.open", systemImage: "star")
-                }
-                .buttonStyle(.bordered)
+                allCountriesAction
+                favoritesAction
 
                 if !content.categories.isEmpty {
                     sectionTitle("home.categories", systemImage: "square.grid.2x2")
@@ -167,17 +161,67 @@ struct HomeView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
                 ForEach(categories) { category in
-                    NavigationLink(value: AppRoute.searchCategory(category.id)) {
-                        Text(category.name)
-                            .font(.headline)
-                            .padding(.horizontal, 18)
-                            .padding(.vertical, 10)
+                    #if os(tvOS)
+                    Button {
+                        openTVTopLevelDestination(.searchCategory(category.id))
+                    } label: {
+                        categoryLabel(category)
                     }
                     .buttonStyle(.bordered)
+                    .accessibilityIdentifier("home.open.category.\(category.id)")
+                    #else
+                    NavigationLink(value: AppRoute.searchCategory(category.id)) {
+                        categoryLabel(category)
+                    }
+                    .buttonStyle(.bordered)
+                    #endif
                 }
             }
             .scrollTargetLayout()
         }
         .tvShelfBehavior()
+    }
+
+    @ViewBuilder
+    private var allCountriesAction: some View {
+        #if os(tvOS)
+        Button {
+            openTVTopLevelDestination(.section(.countries))
+        } label: {
+            Label("home.allCountries", systemImage: "globe")
+        }
+        .buttonStyle(.borderedProminent)
+        .accessibilityIdentifier("home.open.countries")
+        #else
+        NavigationLink(value: AppRoute.countries) {
+            Label("home.allCountries", systemImage: "globe")
+        }
+        .buttonStyle(.borderedProminent)
+        #endif
+    }
+
+    @ViewBuilder
+    private var favoritesAction: some View {
+        #if os(tvOS)
+        Button {
+            openTVTopLevelDestination(.section(.favorites))
+        } label: {
+            Label("favorites.open", systemImage: "star")
+        }
+        .buttonStyle(.bordered)
+        .accessibilityIdentifier("home.open.favorites")
+        #else
+        NavigationLink(value: AppRoute.favorites) {
+            Label("favorites.open", systemImage: "star")
+        }
+        .buttonStyle(.bordered)
+        #endif
+    }
+
+    private func categoryLabel(_ category: ChannelCategory) -> some View {
+        Text(category.name)
+            .font(.headline)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 10)
     }
 }

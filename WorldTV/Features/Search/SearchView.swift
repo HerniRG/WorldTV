@@ -27,11 +27,6 @@ struct SearchView: View {
     var body: some View {
         #if os(tvOS)
         searchContent
-            .overlay(alignment: .topTrailing) {
-                filtersButton
-                    .buttonStyle(.borderedProminent)
-                    .padding(DesignTokens.pagePadding)
-            }
             .fullScreenCover(isPresented: $presentsFilters) {
                 SearchFiltersView(viewModel: viewModel, options: viewModel.options)
             }
@@ -99,7 +94,18 @@ struct SearchView: View {
     private func results(_ channels: [ChannelCatalogItem]) -> some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: DesignTokens.sectionSpacing) {
+                #if os(tvOS)
+                HStack(alignment: .center, spacing: DesignTokens.contentSpacing) {
+                    TVScreenHeader("search.title", systemImage: "magnifyingglass")
+
+                    Spacer()
+
+                    filtersButton
+                        .buttonStyle(.borderedProminent)
+                }
+                #else
                 TVScreenHeader("search.title", systemImage: "magnifyingglass")
+                #endif
 
                 LazyVGrid(
                     columns: [

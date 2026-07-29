@@ -31,30 +31,34 @@ struct SearchFiltersView: View {
             Color.black
                 .ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                HStack(spacing: 24) {
-                    Label(
-                        "search.filters",
-                        systemImage: "line.3.horizontal.decrease.circle"
-                    )
-                    .font(.system(size: 46, weight: .bold))
+            NavigationStack {
+                VStack(spacing: 0) {
+                    HStack(spacing: 24) {
+                        Label(
+                            "search.filters",
+                            systemImage: "line.3.horizontal.decrease.circle"
+                        )
+                        .font(.system(size: 46, weight: .bold))
 
-                    Spacer()
+                        Spacer()
 
-                    Button("action.done") {
-                        dismiss()
+                        Button("action.done") {
+                            dismiss()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .accessibilityIdentifier("search.filters.done")
                     }
-                    .buttonStyle(.borderedProminent)
-                    .accessibilityIdentifier("search.filters.done")
-                }
-                .padding(.horizontal, 48)
-                .padding(.vertical, 32)
-                .background(Color(white: 0.15))
+                    .padding(.horizontal, 48)
+                    .padding(.vertical, 32)
+                    .background(Color(white: 0.15))
 
-                Form {
-                    filterControls
+                    Form {
+                        filterControls
+                    }
+                    .padding(.horizontal, 36)
+                    .padding(.vertical, 20)
+                    .background(Color(white: 0.11))
                 }
-                .background(Color(white: 0.11))
             }
             .background(Color(white: 0.11))
             .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
@@ -67,9 +71,6 @@ struct SearchFiltersView: View {
             .padding(80)
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("search.filters.panel")
-        }
-        .onExitCommand {
-            dismiss()
         }
     }
     #endif

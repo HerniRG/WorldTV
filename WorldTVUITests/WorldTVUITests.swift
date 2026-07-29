@@ -87,7 +87,7 @@ final class WorldTVUITests: XCTestCase {
     }
 
     @MainActor
-    func testSearchFiltersStayFixedAndKeepDoneOutsideScroll() {
+    func testSearchFiltersScrollWithHeaderAndPickersRemainInteractive() {
         let app = XCUIApplication()
         app.launch()
 
@@ -101,19 +101,11 @@ final class WorldTVUITests: XCTestCase {
             "The filters button did not appear."
         )
 
-        for _ in 0..<5 {
-            XCUIRemote.shared.press(.down)
-        }
-        XCTAssertTrue(
-            filtersButton.isHittable,
-            "The filters button scrolled away with the search results."
-        )
-
         for _ in 0..<6 {
             if filtersButton.hasFocus {
                 break
             }
-            XCUIRemote.shared.press(.up)
+            XCUIRemote.shared.press(.down)
         }
         for _ in 0..<6 {
             if filtersButton.hasFocus {
@@ -136,6 +128,9 @@ final class WorldTVUITests: XCTestCase {
         XCTAssertTrue(panel.exists, "The filters panel did not appear.")
         XCTAssertGreaterThanOrEqual(panel.frame.minX, 80)
         XCTAssertGreaterThanOrEqual(panel.frame.minY, 80)
+        XCTAssertTrue(app.buttons["País"].isEnabled)
+        XCTAssertTrue(app.buttons["Categoría"].isEnabled)
+        XCTAssertTrue(app.buttons["Calidad mínima"].isEnabled)
         XCTAssertLessThanOrEqual(
             doneButton.frame.maxY,
             app.tables.firstMatch.frame.minY,
@@ -152,6 +147,44 @@ final class WorldTVUITests: XCTestCase {
             .completed,
             "Menu did not close the filters modal."
         )
+
+        for _ in 0..<7 {
+            XCUIRemote.shared.press(.down)
+        }
+        XCTAssertFalse(
+            filtersButton.isHittable,
+            "The filters button remained fixed instead of scrolling with the title."
+        )
+    }
+
+    @MainActor
+    func testHomeFavoritesActionSelectsFavoritesTab() {
+        let app = XCUIApplication()
+        app.launch()
+
+        let favoritesAction = app.buttons["home.open.favorites"]
+        XCUIRemote.shared.press(.down)
+        for _ in 0..<14 {
+            if favoritesAction.exists && favoritesAction.hasFocus {
+                break
+            }
+            XCUIRemote.shared.press(.down)
+        }
+
+        XCTAssertTrue(
+            favoritesAction.hasFocus,
+            "Focus did not reach the Home favorites action."
+        )
+        XCUIRemote.shared.press(.select)
+
+        let favoritesScreen = app.descendants(matching: .any).matching(
+            identifier: "favorites.screen"
+        ).firstMatch
+        XCTAssertTrue(
+            favoritesScreen.waitForExistence(timeout: 10),
+            "The Home favorites action pushed content inside Home instead of selecting its tab."
+        )
+        XCTAssertTrue(app.tabBars.buttons["Favoritos"].hasFocus)
     }
     #endif
 }

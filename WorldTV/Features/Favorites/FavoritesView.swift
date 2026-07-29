@@ -42,6 +42,7 @@ struct FavoritesView: View {
                 }
             }
         }
+        .accessibilityIdentifier("favorites.screen")
         .platformNavigationTitle("favorites.title")
         .task {
             await favoritesStore.loadIfNeeded()

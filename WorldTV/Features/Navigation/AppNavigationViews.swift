@@ -6,6 +6,8 @@ struct AppSectionNavigationStack: View {
     let section: AppSection
     let homeViewModel: HomeViewModel
     let container: AppContainer
+    var tvSearchRequest: TVSearchRequest?
+    var tvOpenTopLevelDestination: @MainActor (TVTopLevelDestination) -> Void = { _ in }
 
     var body: some View {
         #if os(tvOS)
@@ -40,7 +42,8 @@ struct AppSectionNavigationStack: View {
             HomeView(
                 viewModel: homeViewModel,
                 imageLoader: container.imageLoader,
-                favoritesStore: container.favoritesStore
+                favoritesStore: container.favoritesStore,
+                openTVTopLevelDestination: tvOpenTopLevelDestination
             )
         case .countries:
             CountriesView(loadCountries: container.loadCountries)
@@ -48,8 +51,10 @@ struct AppSectionNavigationStack: View {
             SearchView(
                 searchChannels: container.searchChannels,
                 imageLoader: container.imageLoader,
-                favoritesStore: container.favoritesStore
+                favoritesStore: container.favoritesStore,
+                initialCategoryID: tvSearchRequest?.categoryID
             )
+            .id(tvSearchRequest?.id)
         case .favorites:
             FavoritesView(
                 loadFavoriteChannels: container.loadFavoriteChannels,
