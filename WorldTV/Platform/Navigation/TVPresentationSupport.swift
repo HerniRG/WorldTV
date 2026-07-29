@@ -1,0 +1,86 @@
+import SwiftUI
+
+private struct PlayChannelActionKey: EnvironmentKey {
+    static let defaultValue: @MainActor (String) -> Void = { _ in }
+}
+
+extension EnvironmentValues {
+    var playChannel: @MainActor (String) -> Void {
+        get { self[PlayChannelActionKey.self] }
+        set { self[PlayChannelActionKey.self] = newValue }
+    }
+}
+
+struct TVScreenHeader: View {
+    private let title: Text
+    private let systemImage: String
+
+    init(_ title: LocalizedStringKey, systemImage: String) {
+        self.title = Text(title)
+        self.systemImage = systemImage
+    }
+
+    init(verbatim title: String, systemImage: String) {
+        self.title = Text(verbatim: title)
+        self.systemImage = systemImage
+    }
+
+    var body: some View {
+        #if os(tvOS)
+        Label {
+            title
+        } icon: {
+            Image(systemName: systemImage)
+        }
+        .font(.system(size: 52, weight: .bold))
+        .foregroundStyle(.primary)
+        .accessibilityAddTraits(.isHeader)
+        #else
+        EmptyView()
+        #endif
+    }
+}
+
+private struct PlatformNavigationTitleModifier: ViewModifier {
+    let title: Text
+
+    func body(content: Content) -> some View {
+        #if os(tvOS)
+        content
+        #else
+        content.navigationTitle(title)
+        #endif
+    }
+}
+
+extension View {
+    func platformNavigationTitle(_ title: LocalizedStringKey) -> some View {
+        modifier(PlatformNavigationTitleModifier(title: Text(title)))
+    }
+
+    func platformNavigationTitle(verbatim title: String) -> some View {
+        modifier(
+            PlatformNavigationTitleModifier(title: Text(verbatim: title))
+        )
+    }
+
+    @ViewBuilder
+    func worldTVCardButtonStyle() -> some View {
+        #if os(tvOS)
+        buttonStyle(.card)
+        #else
+        buttonStyle(FocusedCardButtonStyle())
+        #endif
+    }
+
+    @ViewBuilder
+    func tvShelfBehavior() -> some View {
+        #if os(tvOS)
+        scrollClipDisabled()
+            .scrollTargetBehavior(.viewAligned)
+            .focusSection()
+        #else
+        self
+        #endif
+    }
+}

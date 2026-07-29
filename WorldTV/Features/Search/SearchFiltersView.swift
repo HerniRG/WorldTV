@@ -8,6 +8,11 @@ struct SearchFiltersView: View {
     var body: some View {
         NavigationStack {
             Form {
+                #if os(tvOS)
+                TVScreenHeader("search.filters", systemImage: "line.3.horizontal.decrease.circle")
+                    .listRowBackground(Color.clear)
+                #endif
+
                 Picker("search.filter.country", selection: $viewModel.selectedCountryCode) {
                     Text("search.filter.any").tag(String?.none)
                     ForEach(options.countries) { country in
@@ -41,7 +46,7 @@ struct SearchFiltersView: View {
                     viewModel.resetFilters()
                 }
             }
-            .navigationTitle("search.filters")
+            .platformNavigationTitle("search.filters")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("action.done") {

@@ -1,11 +1,32 @@
 import SwiftUI
 
 struct AppSectionNavigationStack: View {
+    @State private var presentedPlayer: PresentedPlayer?
+
     let section: AppSection
     let homeViewModel: HomeViewModel
     let container: AppContainer
 
     var body: some View {
+        #if os(tvOS)
+        navigationStack
+            .environment(\.playChannel) { channelID in
+                presentedPlayer = PresentedPlayer(channelID: channelID)
+            }
+            .fullScreenCover(item: $presentedPlayer) { presentation in
+                PlayerView(
+                    channelID: presentation.channelID,
+                    resolveSources: container.resolvePlaybackSources,
+                    recordRecentlyWatched: container.recordRecentlyWatched
+                )
+                .id(presentation.id)
+            }
+        #else
+        navigationStack
+        #endif
+    }
+
+    private var navigationStack: some View {
         NavigationStack {
             sectionRoot
                 .modifier(AppRouteDestinationModifier(container: container))
@@ -44,6 +65,14 @@ struct AppSectionNavigationStack: View {
                 favoritesStore: container.favoritesStore
             )
         }
+    }
+}
+
+private struct PresentedPlayer: Identifiable {
+    let channelID: String
+
+    var id: String {
+        channelID
     }
 }
 

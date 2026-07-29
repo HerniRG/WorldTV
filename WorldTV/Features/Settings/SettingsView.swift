@@ -29,6 +29,11 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            #if os(tvOS)
+            TVScreenHeader("settings.title", systemImage: "gearshape")
+                .listRowBackground(Color.clear)
+            #endif
+
             Section("settings.section.playback") {
                 Toggle("settings.autoplay", isOn: $autoplayChannels)
                 Picker("settings.quality", selection: $preferredQuality) {
@@ -84,7 +89,7 @@ struct SettingsView: View {
                     .accessibilityAddTraits(.isStaticText)
             }
         }
-        .navigationTitle("settings.title")
+        .platformNavigationTitle("settings.title")
         .task {
             await favoritesStore.loadIfNeeded()
             await viewModel.load()

@@ -55,26 +55,30 @@ struct ChannelGridView: View {
 
     private func channelGrid(title: String) -> some View {
         ScrollView {
-            LazyVGrid(
-                columns: [
-                    GridItem(
-                        .adaptive(minimum: DesignTokens.channelGridMinimum),
-                        spacing: DesignTokens.contentSpacing
-                    )
-                ],
-                spacing: DesignTokens.contentSpacing
-            ) {
-                ForEach(viewModel.filteredChannels) { item in
-                    ChannelTile(
-                        item: item,
-                        imageLoader: imageLoader,
-                        favoritesStore: favoritesStore
-                    )
+            LazyVStack(alignment: .leading, spacing: DesignTokens.sectionSpacing) {
+                TVScreenHeader(verbatim: title, systemImage: "play.tv")
+
+                LazyVGrid(
+                    columns: [
+                        GridItem(
+                            .adaptive(minimum: DesignTokens.channelGridMinimum),
+                            spacing: DesignTokens.contentSpacing
+                        )
+                    ],
+                    spacing: DesignTokens.contentSpacing
+                ) {
+                    ForEach(viewModel.filteredChannels) { item in
+                        ChannelTile(
+                            item: item,
+                            imageLoader: imageLoader,
+                            favoritesStore: favoritesStore
+                        )
+                    }
                 }
             }
             .padding(DesignTokens.pagePadding)
         }
-        .navigationTitle(title)
+        .platformNavigationTitle(verbatim: title)
         .overlay {
             if viewModel.filteredChannels.isEmpty {
                 ContentUnavailableView.search(text: viewModel.searchText)

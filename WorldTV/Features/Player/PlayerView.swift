@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct PlayerView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var viewModel: PlayerViewModel
     @AppStorage("autoplayChannels") private var autoplayChannels = true
     @AppStorage("preferredQuality") private var preferredQuality = "automatic"
@@ -32,13 +33,22 @@ struct PlayerView: View {
             case .failed(let error):
                 errorView(error)
             case .ended:
-                ContentUnavailableView("player.ended", systemImage: "stop.circle")
+                ContentUnavailableView {
+                    Label("player.ended", systemImage: "stop.circle")
+                } actions: {
+                    Button("player.close") {
+                        dismiss()
+                    }
+                }
                     .foregroundStyle(.white)
             case .playing, .paused:
                 EmptyView()
             }
         }
-        .navigationTitle(viewModel.channelName)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea()
+        .accessibilityIdentifier("player.fullscreen")
+        .platformNavigationTitle(verbatim: viewModel.channelName)
         .modifier(PlayerNavigationStyle())
         .task {
             viewModel.loadIfNeeded(
@@ -49,6 +59,11 @@ struct PlayerView: View {
         .onDisappear {
             viewModel.stop()
         }
+        #if os(tvOS)
+        .onExitCommand {
+            dismiss()
+        }
+        #endif
     }
 
     private func progress(_ title: LocalizedStringKey) -> some View {
@@ -81,6 +96,9 @@ struct PlayerView: View {
                     Button("player.tryAnother") {
                         viewModel.tryAnotherSource()
                     }
+                }
+                Button("player.close") {
+                    dismiss()
                 }
             }
         }

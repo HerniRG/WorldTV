@@ -43,7 +43,7 @@ struct SearchView: View {
                 }
             }
         }
-        .navigationTitle("search.title")
+        .platformNavigationTitle("search.title")
         .searchable(text: $viewModel.query, prompt: "search.prompt")
         .toolbar {
             ToolbarItem {
@@ -77,21 +77,25 @@ struct SearchView: View {
 
     private func results(_ channels: [ChannelCatalogItem]) -> some View {
         ScrollView {
-            LazyVGrid(
-                columns: [
-                    GridItem(
-                        .adaptive(minimum: DesignTokens.channelGridMinimum),
-                        spacing: DesignTokens.contentSpacing
-                    )
-                ],
-                spacing: DesignTokens.contentSpacing
-            ) {
-                ForEach(channels) { item in
-                    ChannelTile(
-                        item: item,
-                        imageLoader: imageLoader,
-                        favoritesStore: favoritesStore
-                    )
+            LazyVStack(alignment: .leading, spacing: DesignTokens.sectionSpacing) {
+                TVScreenHeader("search.title", systemImage: "magnifyingglass")
+
+                LazyVGrid(
+                    columns: [
+                        GridItem(
+                            .adaptive(minimum: DesignTokens.channelGridMinimum),
+                            spacing: DesignTokens.contentSpacing
+                        )
+                    ],
+                    spacing: DesignTokens.contentSpacing
+                ) {
+                    ForEach(channels) { item in
+                        ChannelTile(
+                            item: item,
+                            imageLoader: imageLoader,
+                            favoritesStore: favoritesStore
+                        )
+                    }
                 }
             }
             .padding(DesignTokens.pagePadding)

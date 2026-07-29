@@ -42,7 +42,7 @@ struct FavoritesView: View {
                 }
             }
         }
-        .navigationTitle("favorites.title")
+        .platformNavigationTitle("favorites.title")
         .task {
             await favoritesStore.loadIfNeeded()
             await viewModel.loadIfNeeded()
@@ -54,21 +54,25 @@ struct FavoritesView: View {
 
     private func grid(_ channels: [ChannelCatalogItem]) -> some View {
         ScrollView {
-            LazyVGrid(
-                columns: [
-                    GridItem(
-                        .adaptive(minimum: DesignTokens.channelGridMinimum),
-                        spacing: DesignTokens.contentSpacing
-                    )
-                ],
-                spacing: DesignTokens.contentSpacing
-            ) {
-                ForEach(channels) { item in
-                    ChannelTile(
-                        item: item,
-                        imageLoader: imageLoader,
-                        favoritesStore: favoritesStore
-                    )
+            LazyVStack(alignment: .leading, spacing: DesignTokens.sectionSpacing) {
+                TVScreenHeader("favorites.title", systemImage: "star.fill")
+
+                LazyVGrid(
+                    columns: [
+                        GridItem(
+                            .adaptive(minimum: DesignTokens.channelGridMinimum),
+                            spacing: DesignTokens.contentSpacing
+                        )
+                    ],
+                    spacing: DesignTokens.contentSpacing
+                ) {
+                    ForEach(channels) { item in
+                        ChannelTile(
+                            item: item,
+                            imageLoader: imageLoader,
+                            favoritesStore: favoritesStore
+                        )
+                    }
                 }
             }
             .padding(DesignTokens.pagePadding)

@@ -24,6 +24,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Standard and wide Apple TV Top Shelf images
 - Real 1920×1080 Apple TV Home screenshot and README preview
 - Signed physical Apple TV build validation, installation, and launch
+- Scroll-aware tvOS screen headers, native card focus, and view-aligned channel shelves
+- Full-screen tvOS playback with native transport controls and Siri Remote back behavior
+- tvOS UI regression coverage for scrolling headers, full-screen playback, and focus restoration
 - Privacy manifest with the required reason for app-local preferences
 - Bilingual privacy and support documents linked from the app
 - Copy-ready App Store metadata and release-readiness checklist

@@ -1,18 +1,78 @@
 import SwiftUI
 
 struct ChannelTile: View {
+    @Environment(\.playChannel) private var playChannel
+
     let item: ChannelCatalogItem
     let imageLoader: any ImageLoading
     let favoritesStore: FavoritesStore
     var width: CGFloat?
 
     var body: some View {
+        #if os(tvOS)
+        tvOSCard
+        #else
+        standardCard
+        #endif
+    }
+
+    #if os(tvOS)
+    private var tvOSCard: some View {
+        Button {
+            playChannel(item.id)
+        } label: {
+            card
+                .overlay(alignment: .topTrailing) {
+                    if favoritesStore.contains(item.id) {
+                        favoriteStatus
+                    }
+                }
+        }
+        .worldTVCardButtonStyle()
+        .contextMenu {
+            Button {
+                Task {
+                    await favoritesStore.toggle(item.id)
+                }
+            } label: {
+                Label(
+                    favoritesStore.contains(item.id)
+                        ? "favorites.remove"
+                        : "favorites.add",
+                    systemImage: favoritesStore.contains(item.id)
+                        ? "star.slash"
+                        : "star"
+                )
+            }
+        }
+        .disabled(!item.isAvailable)
+        .opacity(item.isAvailable ? 1 : 0.62)
+        .frame(width: width)
+        .accessibilityIdentifier("channel.\(item.id)")
+        .accessibilityHint(Text("channel.play.hint"))
+    }
+
+    private var favoriteStatus: some View {
+        Image(systemName: "star.fill")
+            .font(.system(size: DesignTokens.favoriteIconSize, weight: .semibold))
+            .foregroundStyle(.yellow)
+            .frame(
+                width: DesignTokens.favoriteButtonSize,
+                height: DesignTokens.favoriteButtonSize
+            )
+            .background(.black.opacity(0.78), in: Circle())
+            .padding(DesignTokens.favoriteButtonInset)
+            .accessibilityHidden(true)
+    }
+    #endif
+
+    private var standardCard: some View {
         ZStack(alignment: .topTrailing) {
             if item.isAvailable {
                 NavigationLink(value: AppRoute.player(item.id)) {
                     card
                 }
-                .buttonStyle(FocusedCardButtonStyle())
+                .worldTVCardButtonStyle()
             } else {
                 card.opacity(0.62)
             }

@@ -18,6 +18,13 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
         let controller = AVPlayerViewController()
         controller.player = player
         controller.showsPlaybackControls = true
+        controller.videoGravity = .resizeAspect
+        controller.view.backgroundColor = .black
+        #if os(tvOS)
+        controller.appliesPreferredDisplayCriteriaAutomatically = true
+        controller.playbackControlsIncludeTransportBar = true
+        controller.transportBarIncludesTitleView = false
+        #endif
         return controller
     }
 

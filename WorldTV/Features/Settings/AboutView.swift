@@ -3,6 +3,11 @@ import SwiftUI
 struct AboutView: View {
     var body: some View {
         Form {
+            #if os(tvOS)
+            TVScreenHeader("settings.about", systemImage: "info.circle")
+                .listRowBackground(Color.clear)
+            #endif
+
             Section("about.worldtv") {
                 Text("about.description")
                 Text("about.availability")
@@ -34,7 +39,7 @@ struct AboutView: View {
                 }
             }
         }
-        .navigationTitle("settings.about")
+        .platformNavigationTitle("settings.about")
     }
 }
 

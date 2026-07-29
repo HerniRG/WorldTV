@@ -85,7 +85,7 @@ struct HomeView: View {
                         NavigationLink(value: AppRoute.country(item.country.code)) {
                             CountryCard(item: item)
                         }
-                        .buttonStyle(FocusedCardButtonStyle())
+                        .worldTVCardButtonStyle()
                     }
                 }
 
@@ -106,7 +106,7 @@ struct HomeView: View {
             }
             .padding(DesignTokens.pagePadding)
         }
-        .navigationTitle("app.name")
+        .platformNavigationTitle("app.name")
     }
 
     private func header(_ summary: CatalogSummary) -> some View {
@@ -118,6 +118,8 @@ struct HomeView: View {
             )
             .foregroundStyle(.secondary)
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("home.header")
     }
 
     private func sectionTitle(_ title: LocalizedStringKey, systemImage: String) -> some View {
@@ -144,7 +146,9 @@ struct HomeView: View {
                 }
             }
             .padding(.vertical, 14)
+            .scrollTargetLayout()
         }
+        .tvShelfBehavior()
     }
 
     private func visibleFavorites(in content: HomeContent) -> [ChannelCatalogItem] {
@@ -172,6 +176,8 @@ struct HomeView: View {
                     .buttonStyle(.bordered)
                 }
             }
+            .scrollTargetLayout()
         }
+        .tvShelfBehavior()
     }
 }

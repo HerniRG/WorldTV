@@ -14,7 +14,7 @@ struct ChannelCard: View {
 
             Text(item.channel.name)
                 .font(.headline)
-                .lineLimit(2)
+                .lineLimit(2, reservesSpace: true)
 
             Text(
                 Locale.current.localizedString(

@@ -26,7 +26,7 @@ struct CountriesView: View {
                 }
             }
         }
-        .navigationTitle("countries.title")
+        .platformNavigationTitle("countries.title")
         .searchable(text: $viewModel.searchText, prompt: "countries.search")
         .task(id: viewModel.state.isIdle) {
             await viewModel.loadIfNeeded()
@@ -35,20 +35,24 @@ struct CountriesView: View {
 
     private var countryGrid: some View {
         ScrollView {
-            LazyVGrid(
-                columns: [
-                    GridItem(
-                        .adaptive(minimum: DesignTokens.countryGridMinimum),
-                        spacing: DesignTokens.contentSpacing
-                    )
-                ],
-                spacing: DesignTokens.contentSpacing
-            ) {
-                ForEach(viewModel.filteredCountries) { item in
-                    NavigationLink(value: AppRoute.country(item.country.code)) {
-                        CountryCard(item: item)
+            LazyVStack(alignment: .leading, spacing: DesignTokens.sectionSpacing) {
+                TVScreenHeader("countries.title", systemImage: "flag")
+
+                LazyVGrid(
+                    columns: [
+                        GridItem(
+                            .adaptive(minimum: DesignTokens.countryGridMinimum),
+                            spacing: DesignTokens.contentSpacing
+                        )
+                    ],
+                    spacing: DesignTokens.contentSpacing
+                ) {
+                    ForEach(viewModel.filteredCountries) { item in
+                        NavigationLink(value: AppRoute.country(item.country.code)) {
+                            CountryCard(item: item)
+                        }
+                        .worldTVCardButtonStyle()
                     }
-                    .buttonStyle(FocusedCardButtonStyle())
                 }
             }
             .padding(DesignTokens.pagePadding)

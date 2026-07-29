@@ -75,7 +75,10 @@ xcodebuild \
   test
 ```
 
-The cross-platform UI target contains a launch smoke test. The GitHub workflow runs unsigned builds for every supported platform and the complete unit-test target.
+The cross-platform UI target contains a launch smoke test. On tvOS it also verifies
+scrolling headers, Siri Remote focus, full-screen playback, and focus restoration.
+The GitHub workflow runs unsigned builds for every supported platform and the
+complete unit-test target.
 
 ## Architecture
 
