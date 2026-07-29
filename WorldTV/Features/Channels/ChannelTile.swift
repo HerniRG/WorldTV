@@ -76,44 +76,51 @@ struct ChannelTile: View {
     private var standardCard: some View {
         ZStack(alignment: .topTrailing) {
             if item.isAvailable {
-                NavigationLink(value: AppRoute.player(item.id)) {
+                Button {
+                    playChannel(item.id)
+                } label: {
                     card
                 }
                 .worldTVCardButtonStyle()
+                .accessibilityIdentifier("channel.\(item.id).available")
             } else {
                 card.opacity(0.62)
             }
 
-            Button {
-                Task {
-                    await favoritesStore.toggle(item.id)
-                }
-            } label: {
-                Image(
-                    systemName: favoritesStore.contains(item.id)
-                        ? "star.fill"
-                        : "star"
-                )
-                .font(.system(size: DesignTokens.favoriteIconSize, weight: .semibold))
-                .foregroundStyle(
-                    favoritesStore.contains(item.id) ? Color.yellow : Color.primary
-                )
-                .frame(
-                    width: DesignTokens.favoriteButtonSize,
-                    height: DesignTokens.favoriteButtonSize
-                )
-                .background(Color.black.opacity(0.72), in: Circle())
-            }
-            .buttonStyle(FocusedIconButtonStyle())
-            .padding(DesignTokens.favoriteButtonInset)
-            .accessibilityLabel(
-                favoritesStore.contains(item.id)
-                    ? Text("favorites.remove")
-                    : Text("favorites.add")
-            )
+            favoriteButton
         }
         .frame(width: width)
         .accessibilityElement(children: .contain)
+    }
+
+    private var favoriteButton: some View {
+        Button {
+            Task {
+                await favoritesStore.toggle(item.id)
+            }
+        } label: {
+            Image(
+                systemName: favoritesStore.contains(item.id)
+                    ? "star.fill"
+                    : "star"
+            )
+            .font(.system(size: DesignTokens.favoriteIconSize, weight: .semibold))
+            .foregroundStyle(
+                favoritesStore.contains(item.id) ? Color.yellow : Color.primary
+            )
+            .frame(
+                width: DesignTokens.favoriteButtonSize,
+                height: DesignTokens.favoriteButtonSize
+            )
+            .background(Color.black.opacity(0.72), in: Circle())
+        }
+        .buttonStyle(FocusedIconButtonStyle())
+        .padding(DesignTokens.favoriteButtonInset)
+        .accessibilityLabel(
+            favoritesStore.contains(item.id)
+                ? Text("favorites.remove")
+                : Text("favorites.add")
+        )
     }
 
     private var card: some View {

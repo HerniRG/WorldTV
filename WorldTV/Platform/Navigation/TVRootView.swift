@@ -35,6 +35,16 @@ struct TVRootView: View {
         .onChange(of: selectedSection) {
             selectedSectionRawValue = selectedSection.rawValue
         }
+        .onExitCommand(perform: exitCommand)
+    }
+
+    private var exitCommand: (() -> Void)? {
+        guard selectedSection != .home else {
+            return nil
+        }
+        return {
+            selectedSection = .home
+        }
     }
 
     private func openTopLevelDestination(_ destination: TVTopLevelDestination) {

@@ -87,7 +87,6 @@ extension View {
     func tvShelfBehavior() -> some View {
         #if os(tvOS)
         scrollClipDisabled()
-            .scrollTargetBehavior(.viewAligned)
             .focusSection()
         #else
         self

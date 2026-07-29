@@ -7,5 +7,4 @@ enum AppRoute: Hashable {
     case searchCategory(String)
     case about
     case country(String)
-    case player(String)
 }

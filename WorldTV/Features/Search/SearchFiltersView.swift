@@ -4,6 +4,9 @@ struct SearchFiltersView: View {
     @Bindable var viewModel: SearchViewModel
     let options: ChannelSearchOptions
     @Environment(\.dismiss) private var dismiss
+    #if os(tvOS)
+    @State private var path = NavigationPath()
+    #endif
 
     var body: some View {
         #if os(tvOS)
@@ -28,10 +31,10 @@ struct SearchFiltersView: View {
     #if os(tvOS)
     private var tvOSFilters: some View {
         ZStack {
-            Color.black
+            Color.clear
                 .ignoresSafeArea()
 
-            NavigationStack {
+            NavigationStack(path: $path) {
                 VStack(spacing: 0) {
                     HStack(spacing: 24) {
                         Label(
@@ -50,18 +53,27 @@ struct SearchFiltersView: View {
                     }
                     .padding(.horizontal, 48)
                     .padding(.vertical, 32)
-                    .background(Color(white: 0.15))
+                    .background(
+                        Color(white: 0.15),
+                        in: UnevenRoundedRectangle(
+                            topLeadingRadius: 34,
+                            topTrailingRadius: 34
+                        )
+                    )
 
                     Form {
-                        filterControls
+                        tvOSFilterControls
                     }
-                    .padding(.horizontal, 36)
+                    .padding(.horizontal, 64)
                     .padding(.vertical, 20)
                     .background(Color(white: 0.11))
                 }
             }
-            .background(Color(white: 0.11))
-            .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
+            .contentMargins(.horizontal, 64, for: .scrollContent)
+            .background(
+                Color(white: 0.11),
+                in: RoundedRectangle(cornerRadius: 34, style: .continuous)
+            )
             .overlay {
                 RoundedRectangle(cornerRadius: 34, style: .continuous)
                     .stroke(Color(white: 0.25), lineWidth: 2)
@@ -72,6 +84,128 @@ struct SearchFiltersView: View {
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("search.filters.panel")
         }
+        .onExitCommand {
+            if path.isEmpty {
+                dismiss()
+            } else {
+                path.removeLast()
+            }
+        }
+    }
+    #endif
+
+    #if os(tvOS)
+    @ViewBuilder
+    private var tvOSFilterControls: some View {
+        NavigationLink {
+            TVFilterSelectionView(
+                title: "search.filter.country",
+                selection: $viewModel.selectedCountryCode,
+                options: countryOptions
+            )
+        } label: {
+            LabeledContent("search.filter.country") {
+                Text(selectedCountryName)
+            }
+        }
+        .accessibilityIdentifier("search.filter.country")
+
+        NavigationLink {
+            TVFilterSelectionView(
+                title: "search.filter.category",
+                selection: $viewModel.selectedCategoryID,
+                options: categoryOptions
+            )
+        } label: {
+            LabeledContent("search.filter.category") {
+                Text(selectedCategoryName)
+            }
+        }
+        .accessibilityIdentifier("search.filter.category")
+
+        NavigationLink {
+            TVFilterSelectionView(
+                title: "search.filter.quality",
+                selection: $viewModel.minimumQuality,
+                options: qualityOptions
+            )
+        } label: {
+            LabeledContent("search.filter.quality") {
+                Text(selectedQualityName)
+            }
+        }
+        .accessibilityIdentifier("search.filter.quality")
+
+        commonFilterControls
+    }
+
+    private var countryOptions: [TVFilterOption<String?>] {
+        [
+            TVFilterOption(
+                id: "any",
+                title: String(localized: "search.filter.any"),
+                value: nil
+            )
+        ] + options.countries.map { country in
+            TVFilterOption(
+                id: country.code,
+                title: Locale.current.localizedString(forRegionCode: country.code)
+                    ?? country.name,
+                value: country.code
+            )
+        }
+    }
+
+    private var categoryOptions: [TVFilterOption<String?>] {
+        [
+            TVFilterOption(
+                id: "any",
+                title: String(localized: "search.filter.any"),
+                value: nil
+            )
+        ] + options.categories.map { category in
+            TVFilterOption(
+                id: category.id,
+                title: category.name,
+                value: category.id
+            )
+        }
+    }
+
+    private var qualityOptions: [TVFilterOption<Int?>] {
+        [
+            TVFilterOption(
+                id: "any",
+                title: String(localized: "search.filter.any"),
+                value: nil
+            ),
+            TVFilterOption(id: "720", title: "720p", value: 720),
+            TVFilterOption(id: "1080", title: "1080p", value: 1080),
+            TVFilterOption(id: "2160", title: "2160p", value: 2160)
+        ]
+    }
+
+    private var selectedCountryName: String {
+        guard let code = viewModel.selectedCountryCode else {
+            return String(localized: "search.filter.any")
+        }
+        return Locale.current.localizedString(forRegionCode: code)
+            ?? options.countries.first(where: { $0.code == code })?.name
+            ?? code
+    }
+
+    private var selectedCategoryName: String {
+        guard let id = viewModel.selectedCategoryID else {
+            return String(localized: "search.filter.any")
+        }
+        return options.categories.first(where: { $0.id == id })?.name ?? id
+    }
+
+    private var selectedQualityName: String {
+        guard let quality = viewModel.minimumQuality else {
+            return String(localized: "search.filter.any")
+        }
+        return "\(quality)p"
     }
     #endif
 
@@ -102,6 +236,11 @@ struct SearchFiltersView: View {
             Text("2160p").tag(Optional(2160))
         }
 
+        commonFilterControls
+    }
+
+    @ViewBuilder
+    private var commonFilterControls: some View {
         Toggle("search.filter.favorites", isOn: $viewModel.favoritesOnly)
         Toggle("search.filter.available", isOn: $viewModel.availableOnly)
         Toggle("search.filter.geoblocked", isOn: $viewModel.includeGeoBlocked)
@@ -111,3 +250,60 @@ struct SearchFiltersView: View {
         }
     }
 }
+
+#if os(tvOS)
+private struct TVFilterOption<Value: Hashable>: Identifiable {
+    let id: String
+    let title: String
+    let value: Value
+}
+
+private struct TVFilterSelectionView<Value: Hashable>: View {
+    let title: LocalizedStringKey
+    @Binding var selection: Value
+    let options: [TVFilterOption<Value>]
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Label(title, systemImage: "line.3.horizontal.decrease.circle")
+                .font(.system(size: 46, weight: .bold))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 48)
+                .padding(.vertical, 32)
+                .background(
+                    Color(white: 0.15),
+                    in: UnevenRoundedRectangle(
+                        topLeadingRadius: 34,
+                        topTrailingRadius: 34
+                    )
+                )
+
+            List(options) { option in
+                Button {
+                    selection = option.value
+                    dismiss()
+                } label: {
+                    HStack {
+                        Text(option.title)
+
+                        Spacer()
+
+                        if selection == option.value {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                    .contentShape(Rectangle())
+                }
+                .accessibilityIdentifier("search.filter.option.\(option.id)")
+            }
+            .padding(.horizontal, 64)
+            .padding(.vertical, 20)
+        }
+        .background(
+            Color(white: 0.11),
+            in: RoundedRectangle(cornerRadius: 34, style: .continuous)
+        )
+    }
+}
+#endif

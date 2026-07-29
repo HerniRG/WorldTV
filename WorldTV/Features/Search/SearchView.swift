@@ -29,6 +29,7 @@ struct SearchView: View {
         searchContent
             .fullScreenCover(isPresented: $presentsFilters) {
                 SearchFiltersView(viewModel: viewModel, options: viewModel.options)
+                    .presentationBackground(.clear)
             }
         #else
         searchContent
@@ -124,6 +125,9 @@ struct SearchView: View {
                         )
                     }
                 }
+                #if os(tvOS)
+                .focusSection()
+                #endif
             }
             .padding(DesignTokens.pagePadding)
         }

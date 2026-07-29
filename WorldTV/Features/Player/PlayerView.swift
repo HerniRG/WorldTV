@@ -5,6 +5,10 @@ struct PlayerView: View {
     @State private var viewModel: PlayerViewModel
     @AppStorage("autoplayChannels") private var autoplayChannels = true
     @AppStorage("preferredQuality") private var preferredQuality = "automatic"
+    #if os(tvOS)
+    @State private var transportBarIsVisible = true
+    @State private var hidePlaybackControlsRequest = 0
+    #endif
 
     init(
         channelID: String,
@@ -22,8 +26,18 @@ struct PlayerView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.black
+                .ignoresSafeArea()
+                .accessibilityIdentifier("player.fullscreen")
+            #if os(tvOS)
+            PlatformPlayerView(
+                player: viewModel.player,
+                transportBarIsVisible: $transportBarIsVisible,
+                hidePlaybackControlsRequest: hidePlaybackControlsRequest
+            )
+            #else
             PlatformPlayerView(player: viewModel.player)
+            #endif
 
             switch viewModel.state {
             case .idle, .resolving, .preparing:
@@ -45,9 +59,24 @@ struct PlayerView: View {
                 EmptyView()
             }
         }
+        #if os(iOS) || os(macOS)
+        .overlay(alignment: .topLeading) {
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.headline.bold())
+                    .frame(width: 44, height: 44)
+                    .background(.ultraThinMaterial, in: Circle())
+            }
+            .buttonStyle(.plain)
+            .padding()
+            .accessibilityLabel(Text("player.close"))
+            .accessibilityIdentifier("player.close")
+        }
+        #endif
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea()
-        .accessibilityIdentifier("player.fullscreen")
         .platformNavigationTitle(verbatim: viewModel.channelName)
         .modifier(PlayerNavigationStyle())
         .task {
@@ -61,7 +90,11 @@ struct PlayerView: View {
         }
         #if os(tvOS)
         .onExitCommand {
-            dismiss()
+            if transportBarIsVisible {
+                hidePlaybackControlsRequest += 1
+            } else {
+                dismiss()
+            }
         }
         #endif
     }

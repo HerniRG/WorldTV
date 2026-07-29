@@ -10,7 +10,21 @@ struct AppSectionNavigationStack: View {
     var tvOpenTopLevelDestination: @MainActor (TVTopLevelDestination) -> Void = { _ in }
 
     var body: some View {
-        #if os(tvOS)
+        #if os(macOS)
+        navigationStack
+            .environment(\.playChannel) { channelID in
+                presentedPlayer = PresentedPlayer(channelID: channelID)
+            }
+            .sheet(item: $presentedPlayer) { presentation in
+                PlayerView(
+                    channelID: presentation.channelID,
+                    resolveSources: container.resolvePlaybackSources,
+                    recordRecentlyWatched: container.recordRecentlyWatched
+                )
+                .id(presentation.id)
+                .frame(minWidth: 900, minHeight: 600)
+            }
+        #else
         navigationStack
             .environment(\.playChannel) { channelID in
                 presentedPlayer = PresentedPlayer(channelID: channelID)
@@ -23,8 +37,6 @@ struct AppSectionNavigationStack: View {
                 )
                 .id(presentation.id)
             }
-        #else
-        navigationStack
         #endif
     }
 
@@ -137,12 +149,6 @@ private struct AppRouteDestinationModifier: ViewModifier {
                 loadChannels: container.loadChannelsByCountry,
                 imageLoader: container.imageLoader,
                 favoritesStore: container.favoritesStore
-            )
-        case .player(let channelID):
-            PlayerView(
-                channelID: channelID,
-                resolveSources: container.resolvePlaybackSources,
-                recordRecentlyWatched: container.recordRecentlyWatched
             )
         }
     }

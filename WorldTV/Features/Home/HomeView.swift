@@ -142,6 +142,16 @@ struct HomeView: View {
             .padding(.vertical, 14)
             .scrollTargetLayout()
         }
+        .scrollTargetBehavior(.viewAligned)
+        .accessibilityIdentifier("home.channel.carousel")
+        #if !os(tvOS)
+        .contentMargins(
+            .horizontal,
+            DesignTokens.pagePadding,
+            for: .scrollContent
+        )
+        .padding(.horizontal, -DesignTokens.pagePadding)
+        #endif
         .tvShelfBehavior()
     }
 
@@ -179,6 +189,16 @@ struct HomeView: View {
             }
             .scrollTargetLayout()
         }
+        .scrollTargetBehavior(.viewAligned)
+        .accessibilityIdentifier("home.category.carousel")
+        #if !os(tvOS)
+        .contentMargins(
+            .horizontal,
+            DesignTokens.pagePadding,
+            for: .scrollContent
+        )
+        .padding(.horizontal, -DesignTokens.pagePadding)
+        #endif
         .tvShelfBehavior()
     }
 
