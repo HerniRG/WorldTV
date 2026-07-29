@@ -85,5 +85,73 @@ final class WorldTVUITests: XCTestCase {
             "Focus was not restored to the channel shelf."
         )
     }
+
+    @MainActor
+    func testSearchFiltersStayFixedAndKeepDoneOutsideScroll() {
+        let app = XCUIApplication()
+        app.launch()
+
+        XCUIRemote.shared.press(.right)
+        XCUIRemote.shared.press(.right)
+        XCUIRemote.shared.press(.select)
+
+        let filtersButton = app.buttons["search.filters.button"]
+        XCTAssertTrue(
+            filtersButton.waitForExistence(timeout: 30),
+            "The filters button did not appear."
+        )
+
+        for _ in 0..<5 {
+            XCUIRemote.shared.press(.down)
+        }
+        XCTAssertTrue(
+            filtersButton.isHittable,
+            "The filters button scrolled away with the search results."
+        )
+
+        for _ in 0..<6 {
+            if filtersButton.hasFocus {
+                break
+            }
+            XCUIRemote.shared.press(.up)
+        }
+        for _ in 0..<6 {
+            if filtersButton.hasFocus {
+                break
+            }
+            XCUIRemote.shared.press(.right)
+        }
+        XCTAssertTrue(
+            filtersButton.hasFocus,
+            "Focus could not return to the fixed filters button."
+        )
+        XCUIRemote.shared.press(.select)
+
+        let doneButton = app.buttons["search.filters.done"]
+        let panel = app.otherElements["search.filters.panel"]
+        XCTAssertTrue(
+            doneButton.waitForExistence(timeout: 10),
+            "The filters modal did not open."
+        )
+        XCTAssertTrue(panel.exists, "The filters panel did not appear.")
+        XCTAssertGreaterThanOrEqual(panel.frame.minX, 80)
+        XCTAssertGreaterThanOrEqual(panel.frame.minY, 80)
+        XCTAssertLessThanOrEqual(
+            doneButton.frame.maxY,
+            app.tables.firstMatch.frame.minY,
+            "The filter list scrolls underneath the Done button."
+        )
+
+        XCUIRemote.shared.press(.menu)
+        let modalDismissed = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == false"),
+            object: doneButton
+        )
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [modalDismissed], timeout: 10),
+            .completed,
+            "Menu did not close the filters modal."
+        )
+    }
     #endif
 }

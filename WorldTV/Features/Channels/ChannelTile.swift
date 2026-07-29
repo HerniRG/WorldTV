@@ -19,7 +19,9 @@ struct ChannelTile: View {
     #if os(tvOS)
     private var tvOSCard: some View {
         Button {
-            playChannel(item.id)
+            if item.isAvailable {
+                playChannel(item.id)
+            }
         } label: {
             card
                 .overlay(alignment: .topTrailing) {
@@ -45,11 +47,16 @@ struct ChannelTile: View {
                 )
             }
         }
-        .disabled(!item.isAvailable)
         .opacity(item.isAvailable ? 1 : 0.62)
         .frame(width: width)
-        .accessibilityIdentifier("channel.\(item.id)")
-        .accessibilityHint(Text("channel.play.hint"))
+        .accessibilityIdentifier(
+            "channel.\(item.id).\(item.isAvailable ? "available" : "unavailable")"
+        )
+        .accessibilityHint(
+            item.isAvailable
+                ? Text("channel.play.hint")
+                : Text("channel.unavailable")
+        )
     }
 
     private var favoriteStatus: some View {

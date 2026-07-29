@@ -25,6 +25,30 @@ struct SearchView: View {
     }
 
     var body: some View {
+        #if os(tvOS)
+        searchContent
+            .overlay(alignment: .topTrailing) {
+                filtersButton
+                    .buttonStyle(.borderedProminent)
+                    .padding(DesignTokens.pagePadding)
+            }
+            .fullScreenCover(isPresented: $presentsFilters) {
+                SearchFiltersView(viewModel: viewModel, options: viewModel.options)
+            }
+        #else
+        searchContent
+            .toolbar {
+                ToolbarItem {
+                    filtersButton
+                }
+            }
+            .sheet(isPresented: $presentsFilters) {
+                SearchFiltersView(viewModel: viewModel, options: viewModel.options)
+            }
+        #endif
+    }
+
+    private var searchContent: some View {
         Group {
             switch viewModel.state {
             case .idle, .loading:
@@ -45,21 +69,6 @@ struct SearchView: View {
         }
         .platformNavigationTitle("search.title")
         .searchable(text: $viewModel.query, prompt: "search.prompt")
-        .toolbar {
-            ToolbarItem {
-                Button {
-                    presentsFilters = true
-                } label: {
-                    HStack {
-                        Label("search.filters", systemImage: "line.3.horizontal.decrease")
-                        if viewModel.activeFilterCount > 0 {
-                            Text(viewModel.activeFilterCount.formatted())
-                                .font(.caption.monospacedDigit())
-                        }
-                    }
-                }
-            }
-        }
         .task {
             await favoritesStore.loadIfNeeded()
             viewModel.includeGeoBlocked = showGeoBlockedChannels
@@ -70,9 +79,21 @@ struct SearchView: View {
                 viewModel.refresh()
             }
         }
-        .sheet(isPresented: $presentsFilters) {
-            SearchFiltersView(viewModel: viewModel, options: viewModel.options)
+    }
+
+    private var filtersButton: some View {
+        Button {
+            presentsFilters = true
+        } label: {
+            HStack {
+                Label("search.filters", systemImage: "line.3.horizontal.decrease")
+                if viewModel.activeFilterCount > 0 {
+                    Text(viewModel.activeFilterCount.formatted())
+                        .font(.caption.monospacedDigit())
+                }
+            }
         }
+        .accessibilityIdentifier("search.filters.button")
     }
 
     private func results(_ channels: [ChannelCatalogItem]) -> some View {
