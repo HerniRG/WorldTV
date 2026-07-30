@@ -224,7 +224,7 @@ final class WorldTVUITests: XCTestCase {
     }
 
     @MainActor
-    func testMenuFromSecondaryTabReturnsHome() {
+    func testMenuFromSecondaryContentFocusesItsTabBeforeReturningHome() {
         let app = XCUIApplication()
         app.launch()
 
@@ -238,12 +238,34 @@ final class WorldTVUITests: XCTestCase {
             "The Search tab did not open."
         )
 
+        for _ in 0..<6 {
+            if filtersButton.hasFocus {
+                break
+            }
+            XCUIRemote.shared.press(.down)
+        }
+        XCTAssertTrue(
+            filtersButton.hasFocus,
+            "Focus did not enter the Search content."
+        )
+
+        XCUIRemote.shared.press(.menu)
+
+        XCTAssertTrue(
+            app.tabBars.buttons["Buscar"].hasFocus,
+            "The first Menu press did not return focus to the current Search tab."
+        )
+        XCTAssertTrue(
+            filtersButton.exists,
+            "The first Menu press left Search instead of preserving its content."
+        )
+
         XCUIRemote.shared.press(.menu)
 
         let homeHeader = app.otherElements["home.header"]
         XCTAssertTrue(
             homeHeader.waitForExistence(timeout: 30),
-            "Menu from a secondary tab did not return to Home."
+            "Menu from the focused Search tab did not return to Home."
         )
         XCTAssertTrue(app.tabBars.buttons["Inicio"].hasFocus)
     }

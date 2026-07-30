@@ -1,11 +1,13 @@
 #if os(tvOS)
 import SwiftUI
+import UIKit
 
 struct TVRootView: View {
     @SceneStorage("tvos.selectedSection") private var selectedSectionRawValue =
         AppSection.home.rawValue
     @State private var selectedSection = AppSection.home
     @State private var searchRequest: TVSearchRequest?
+    @State private var tabBarHasFocus = true
 
     let homeViewModel: HomeViewModel
     let container: AppContainer
@@ -35,16 +37,41 @@ struct TVRootView: View {
         .onChange(of: selectedSection) {
             selectedSectionRawValue = selectedSection.rawValue
         }
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: UIFocusSystem.didUpdateNotification
+            )
+        ) { notification in
+            guard
+                let context = notification.userInfo?[
+                    UIFocusSystem.focusUpdateContextUserInfoKey
+                ] as? UIFocusUpdateContext
+            else {
+                return
+            }
+            tabBarHasFocus = isTabBarFocus(context.nextFocusedItem)
+        }
         .onExitCommand(perform: exitCommand)
     }
 
     private var exitCommand: (() -> Void)? {
-        guard selectedSection != .home else {
+        guard selectedSection != .home, tabBarHasFocus else {
             return nil
         }
         return {
             selectedSection = .home
         }
+    }
+
+    private func isTabBarFocus(_ item: (any UIFocusItem)?) -> Bool {
+        var view = item as? UIView
+        while let currentView = view {
+            if currentView is UITabBar {
+                return true
+            }
+            view = currentView.superview
+        }
+        return false
     }
 
     private func openTopLevelDestination(_ destination: TVTopLevelDestination) {

@@ -29,7 +29,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - tvOS UI regression coverage for scrolling headers, full-screen playback, and focus restoration
 - Focusable unavailable tvOS channels and a scroll-aligned Search filter action with a bounded filter panel
 - tvOS Home shortcuts now select the Countries, Search, and Favorites tabs while preserving category intent
-- tvOS Menu returns secondary tabs to Home, preserves playback while controls are visible, and adds focus-safe filter selection lists
+- tvOS Menu first restores focus to a secondary tab before returning Home, preserves playback while controls are visible, and adds focus-safe filter selection lists
 - Full-screen iPhone and iPad playback, modal Mac playback, and edge-to-edge horizontal shelves with aligned content margins
 - Privacy manifest with the required reason for app-local preferences
 - Bilingual privacy and support documents linked from the app
