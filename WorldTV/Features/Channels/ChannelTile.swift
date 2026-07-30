@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ChannelTile: View {
     @Environment(\.playChannel) private var playChannel
+    @Environment(\.colorScheme) private var colorScheme
     #if os(tvOS)
     @Environment(\.playerServices) private var playerServices
     @State private var presentsPlayer = false
@@ -126,25 +127,39 @@ struct ChannelTile: View {
     }
 
     private var favoriteButton: some View {
-        Button {
+        let isFavorite = favoritesStore.contains(item.id)
+
+        return Button {
             Task {
                 await favoritesStore.toggle(item.id)
             }
         } label: {
             Image(
-                systemName: favoritesStore.contains(item.id)
-                    ? "star.fill"
-                    : "star"
+                systemName: isFavorite ? "star.fill" : "star"
             )
             .font(.system(size: DesignTokens.favoriteIconSize, weight: .semibold))
             .foregroundStyle(
-                favoritesStore.contains(item.id) ? Color.yellow : Color.primary
+                isFavorite ? favoriteAccentColor : Color.primary
             )
             .frame(
                 width: DesignTokens.favoriteButtonSize,
                 height: DesignTokens.favoriteButtonSize
             )
-            .background(Color.black.opacity(0.72), in: Circle())
+            .background(.regularMaterial, in: Circle())
+            .overlay {
+                Circle()
+                    .stroke(
+                        Color.primary.opacity(
+                            colorScheme == .dark ? 0.18 : 0.10
+                        ),
+                        lineWidth: 1
+                    )
+            }
+            .shadow(
+                color: .black.opacity(colorScheme == .dark ? 0.28 : 0.12),
+                radius: 4,
+                y: 2
+            )
         }
         .buttonStyle(FocusedIconButtonStyle())
         .padding(DesignTokens.favoriteButtonInset)
@@ -153,6 +168,10 @@ struct ChannelTile: View {
                 ? Text("favorites.remove")
                 : Text("favorites.add")
         )
+    }
+
+    private var favoriteAccentColor: Color {
+        colorScheme == .dark ? .yellow : .orange
     }
 
     private var card: some View {

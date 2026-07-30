@@ -33,6 +33,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - tvOS Menu first restores focus to a secondary tab before returning Home, filter sublists return to their parent with unclipped focus effects, and grids restore the originating item after navigation or playback
 - Native AVKit overlay timing and a single player-error action that returns to the originating screen
 - Full-screen iPhone and iPad playback, modal Mac playback, and edge-to-edge horizontal shelves with aligned content margins
+- Adaptive light/dark favorite controls and uninterrupted iPhone playback when rotating between compact and split layouts
 - Privacy manifest with the required reason for app-local preferences
 - Bilingual privacy and support documents linked from the app
 - Copy-ready App Store metadata and release-readiness checklist

@@ -468,6 +468,11 @@ final class WorldTVUITests: XCTestCase {
     #elseif os(iOS)
     @MainActor
     func testChannelPlayerCoversTabBarAndCanClose() {
+        XCUIDevice.shared.orientation = .portrait
+        defer {
+            XCUIDevice.shared.orientation = .portrait
+        }
+
         let app = XCUIApplication()
         app.launch()
 
@@ -497,6 +502,19 @@ final class WorldTVUITests: XCTestCase {
                 "The iPhone tab bar remains interactive over the player."
             )
         }
+
+        XCUIDevice.shared.orientation = .landscapeLeft
+        Thread.sleep(forTimeInterval: 1)
+
+        XCTAssertTrue(
+            player.exists,
+            "Rotating to landscape dismissed the iPhone player."
+        )
+        let landscapeFrame = app.windows.firstMatch.frame
+        XCTAssertEqual(player.frame.minX, landscapeFrame.minX, accuracy: 1)
+        XCTAssertEqual(player.frame.minY, landscapeFrame.minY, accuracy: 1)
+        XCTAssertEqual(player.frame.maxX, landscapeFrame.maxX, accuracy: 1)
+        XCTAssertEqual(player.frame.maxY, landscapeFrame.maxY, accuracy: 1)
 
         let closeButton = app.descendants(matching: .any)["player.close"]
         XCTAssertTrue(closeButton.waitForExistence(timeout: 5))

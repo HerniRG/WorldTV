@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct AppSectionNavigationStack: View {
+    #if os(macOS)
     @State private var presentedPlayer: PresentedPlayer?
+    #endif
     @State private var path: [AppRoute] = []
     @State private var countryFocusReturn = CountryFocusReturn()
 
@@ -37,17 +39,6 @@ struct AppSectionNavigationStack: View {
             )
         #else
         navigationStack
-            .environment(\.playChannel) { channelID in
-                presentedPlayer = PresentedPlayer(channelID: channelID)
-            }
-            .fullScreenCover(item: $presentedPlayer) { presentation in
-                PlayerView(
-                    channelID: presentation.channelID,
-                    resolveSources: container.resolvePlaybackSources,
-                    recordRecentlyWatched: container.recordRecentlyWatched
-                )
-                .id(presentation.id)
-            }
         #endif
     }
 

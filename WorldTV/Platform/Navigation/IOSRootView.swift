@@ -6,15 +6,29 @@ struct IOSRootView: View {
     @SceneStorage("ios.selectedSection") private var selectedSectionRawValue =
         AppSection.home.rawValue
     @State private var sidebarSelection: AppSection? = .home
+    @State private var presentedPlayer: IOSPresentedPlayer?
 
     let homeViewModel: HomeViewModel
     let container: AppContainer
 
     var body: some View {
-        if horizontalSizeClass == .regular {
-            splitRoot
-        } else {
-            tabRoot
+        Group {
+            if horizontalSizeClass == .regular {
+                splitRoot
+            } else {
+                tabRoot
+            }
+        }
+        .environment(\.playChannel) { channelID in
+            presentedPlayer = IOSPresentedPlayer(channelID: channelID)
+        }
+        .fullScreenCover(item: $presentedPlayer) { presentation in
+            PlayerView(
+                channelID: presentation.channelID,
+                resolveSources: container.resolvePlaybackSources,
+                recordRecentlyWatched: container.recordRecentlyWatched
+            )
+            .id(presentation.id)
         }
     }
 
@@ -55,6 +69,14 @@ struct IOSRootView: View {
                 container: container
             )
         }
+    }
+}
+
+private struct IOSPresentedPlayer: Identifiable {
+    let channelID: String
+
+    var id: String {
+        channelID
     }
 }
 #endif
