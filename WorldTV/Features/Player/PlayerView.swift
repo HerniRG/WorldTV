@@ -28,14 +28,7 @@ struct PlayerView: View {
             Color.black
                 .ignoresSafeArea()
                 .accessibilityIdentifier("player.fullscreen")
-            #if os(iOS)
-            PlatformPlayerView(
-                player: viewModel.player,
-                onDismiss: close
-            )
-            #else
             PlatformPlayerView(player: viewModel.player)
-            #endif
 
             switch viewModel.state {
             case .idle, .resolving, .preparing:
@@ -57,7 +50,7 @@ struct PlayerView: View {
                 EmptyView()
             }
         }
-        #if os(macOS)
+        #if os(iOS) || os(macOS)
         .overlay(alignment: .topLeading) {
             Button {
                 close()
