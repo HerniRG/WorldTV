@@ -2,7 +2,8 @@ import SwiftUI
 
 struct AppSectionNavigationStack: View {
     #if os(macOS)
-    @State private var presentedPlayer: PresentedPlayer?
+    @State private var presentsPlayer = false
+    @State private var pendingChannelID: String?
     #endif
     @State private var path: [AppRoute] = []
     @State private var countryFocusReturn = CountryFocusReturn()
@@ -17,16 +18,21 @@ struct AppSectionNavigationStack: View {
         #if os(macOS)
         navigationStack
             .environment(\.playChannel) { channelID in
-                presentedPlayer = PresentedPlayer(channelID: channelID)
+                pendingChannelID = channelID
+                presentsPlayer = true
             }
-            .sheet(item: $presentedPlayer) { presentation in
-                PlayerView(
-                    channelID: presentation.channelID,
-                    resolveSources: container.resolvePlaybackSources,
-                    recordRecentlyWatched: container.recordRecentlyWatched
-                )
-                .id(presentation.id)
-                .frame(minWidth: 900, minHeight: 600)
+            .sheet(isPresented: $presentsPlayer) {
+                if let channelID = pendingChannelID {
+                    PlayerView(
+                        channelID: channelID,
+                        resolveSources: container.resolvePlaybackSources,
+                        recordRecentlyWatched: container.recordRecentlyWatched,
+                        closePresentation: {
+                            presentsPlayer = false
+                        }
+                    )
+                    .frame(minWidth: 900, minHeight: 600)
+                }
             }
         #elseif os(tvOS)
         navigationStack
@@ -128,14 +134,6 @@ extension EnvironmentValues {
     var countryFocusReturn: CountryFocusReturn {
         get { self[CountryFocusReturnKey.self] }
         set { self[CountryFocusReturnKey.self] = newValue }
-    }
-}
-
-private struct PresentedPlayer: Identifiable {
-    let channelID: String
-
-    var id: String {
-        channelID
     }
 }
 
