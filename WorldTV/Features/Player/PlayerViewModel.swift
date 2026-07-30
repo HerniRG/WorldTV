@@ -22,9 +22,11 @@ final class PlayerViewModel {
     private var sourceTimeoutTask: Task<Void, Never>?
     private var itemStatusObservation: NSKeyValueObservation?
     private var timeControlObservation: NSKeyValueObservation?
+    private var interruptionObserver: NSObjectProtocol?
     private var didRecordPlayback = false
     private var autoplay = true
     private var preferredQuality: Int?
+    private var didConfigureAudio = false
 
     init(
         channelID: String,
@@ -40,6 +42,9 @@ final class PlayerViewModel {
         guard case .idle = state else {
             return
         }
+
+        configureAudioSession()
+        observeInterruptions()
 
         self.autoplay = autoplay
         self.preferredQuality = preferredQuality
@@ -90,6 +95,7 @@ final class PlayerViewModel {
     }
 
     func stop() {
+        interruptionObserver = nil
         loadTask?.cancel()
         endTask?.cancel()
         sourceTimeoutTask?.cancel()
@@ -232,24 +238,58 @@ final class PlayerViewModel {
             }
         }
     }
-}
 
-extension PlayerViewModel {
-    var showsPlayerSurface: Bool {
-        switch state {
-        case .playing, .buffering, .paused:
-            true
-        default:
-            false
-        }
+    private func configureAudioSession() {
+        #if os(iOS)
+        guard !didConfigureAudio else { return }
+        didConfigureAudio = true
+
+        let session = AVAudioSession.sharedInstance()
+        try? session.setCategory(.playback, mode: .default)
+        try? session.setActive(true)
+        #endif
     }
 
-    var showsOverlayClose: Bool {
-        switch state {
-        case .failed, .ended:
-            false
-        default:
-            true
+    private func observeInterruptions() {
+        #if os(iOS)
+        guard interruptionObserver == nil else { return }
+
+        interruptionObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.interruptionNotification,
+            object: AVAudioSession.sharedInstance(),
+            queue: .main
+        ) { [weak self] notification in
+            guard
+                let userInfo = notification.userInfo,
+                let typeValue = userInfo[
+                    AVAudioSessionInterruptionTypeKey
+                ] as? UInt,
+                let type = AVAudioSession.InterruptionType(rawValue: typeValue)
+            else {
+                return
+            }
+
+            switch type {
+            case .began:
+                self?.player.pause()
+            case .ended:
+                guard
+                    let optionsValue = userInfo[
+                        AVAudioSessionInterruptionOptionKey
+                    ] as? UInt
+                else {
+                    return
+                }
+                let options = AVAudioSession.InterruptionOptions(
+                    rawValue: optionsValue
+                )
+                if options.contains(.shouldResume) {
+                    self?.player.play()
+                }
+            default:
+                break
+            }
         }
+        #endif
     }
 }

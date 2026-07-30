@@ -6,7 +6,7 @@ struct IOSRootView: View {
     @SceneStorage("ios.selectedSection") private var selectedSectionRawValue =
         AppSection.home.rawValue
     @State private var sidebarSelection: AppSection? = .home
-    @State private var presentedPlayer: IOSPresentedPlayer?
+    @State private var presentedPlayer: PresentedPlayer?
 
     let homeViewModel: HomeViewModel
     let container: AppContainer
@@ -20,7 +20,7 @@ struct IOSRootView: View {
             }
         }
         .environment(\.playChannel) { channelID in
-            presentedPlayer = IOSPresentedPlayer(channelID: channelID)
+            presentedPlayer = PresentedPlayer(channelID: channelID)
         }
         .fullScreenCover(item: $presentedPlayer) { presentation in
             PlayerView(
@@ -75,7 +75,7 @@ struct IOSRootView: View {
     }
 }
 
-private struct IOSPresentedPlayer: Identifiable {
+private struct PresentedPlayer: Identifiable {
     let channelID: String
 
     var id: String {

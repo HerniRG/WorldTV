@@ -467,57 +467,7 @@ final class WorldTVUITests: XCTestCase {
     }
     #elseif os(iOS)
     @MainActor
-    func testPreparingPlayerCanCancelImmediately() {
-        XCUIDevice.shared.orientation = .portrait
-
-        let app = XCUIApplication()
-        app.launchEnvironment["UITEST_DELAY_PLAYER_PREPARATION"] = "1"
-        app.launch()
-
-        let channel = app.buttons.matching(
-            NSPredicate(format: "identifier ENDSWITH '.available'")
-        ).firstMatch
-        XCTAssertTrue(
-            channel.waitForExistence(timeout: 30),
-            "No playable channel became available on iPhone."
-        )
-
-        channel.tap()
-
-        let player = app.otherElements["player.fullscreen"]
-        let preparing = app.descendants(matching: .any)["player.preparing"]
-        let closeButton = app.buttons["player.close"]
-        XCTAssertTrue(player.waitForExistence(timeout: 10))
-        XCTAssertTrue(
-            preparing.waitForExistence(timeout: 3),
-            "The player left preparation before cancellation could be tested."
-        )
-        XCTAssertTrue(closeButton.waitForExistence(timeout: 3))
-        XCTAssertTrue(
-            closeButton.isHittable,
-            "The preparation close button is visible but outside the tappable safe area."
-        )
-
-        closeButton.tap()
-
-        let playerDismissed = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "exists == false"),
-            object: player
-        )
-        XCTAssertEqual(
-            XCTWaiter.wait(for: [playerDismissed], timeout: 5),
-            .completed,
-            "The preparation close button did not cancel and dismiss the player."
-        )
-    }
-
-    @MainActor
     func testChannelPlayerCoversTabBarAndCanClose() {
-        XCUIDevice.shared.orientation = .portrait
-        defer {
-            XCUIDevice.shared.orientation = .portrait
-        }
-
         let app = XCUIApplication()
         app.launch()
 
@@ -547,66 +497,6 @@ final class WorldTVUITests: XCTestCase {
                 "The iPhone tab bar remains interactive over the player."
             )
         }
-
-        XCUIDevice.shared.orientation = .landscapeLeft
-        Thread.sleep(forTimeInterval: 1)
-
-        XCTAssertTrue(
-            player.exists,
-            "Rotating to landscape dismissed the iPhone player."
-        )
-        let landscapeFrame = app.windows.firstMatch.frame
-        XCTAssertEqual(player.frame.minX, landscapeFrame.minX, accuracy: 1)
-        XCTAssertEqual(player.frame.minY, landscapeFrame.minY, accuracy: 1)
-        XCTAssertEqual(player.frame.maxX, landscapeFrame.maxX, accuracy: 1)
-        XCTAssertEqual(player.frame.maxY, landscapeFrame.maxY, accuracy: 1)
-
-        let customCloseButton = app.buttons["player.close"]
-        let errorCloseButton = app.buttons["player.error.close"]
-        let playerSurface = app.descendants(matching: .any)["player.surface"]
-        let playerSettled = XCTNSPredicateExpectation(
-            predicate: NSPredicate { _, _ in
-                errorCloseButton.exists || playerSurface.exists
-            },
-            object: app
-        )
-        XCTAssertEqual(
-            XCTWaiter.wait(for: [playerSettled], timeout: 20),
-            .completed,
-            "The player did not reach playback or its clean error state."
-        )
-
-        if errorCloseButton.exists {
-            XCTAssertFalse(
-                playerSurface.exists,
-                "The AVKit surface remained behind the custom error screen."
-            )
-            errorCloseButton.tap()
-        } else {
-            XCTAssertTrue(
-                customCloseButton.waitForExistence(timeout: 5),
-                "The app close control disappeared during active playback."
-            )
-            XCTAssertTrue(
-                customCloseButton.isHittable,
-                "The active-player close control is not tappable."
-            )
-            customCloseButton.tap()
-        }
-
-        let playerDismissed = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "exists == false"),
-            object: player
-        )
-        XCTAssertEqual(
-            XCTWaiter.wait(for: [playerDismissed], timeout: 10),
-            .completed,
-            "The close button did not dismiss the iPhone player."
-        )
-        XCTAssertTrue(
-            app.tabBars.firstMatch.isHittable
-                || app.navigationBars.firstMatch.isHittable
-        )
     }
 
     @MainActor

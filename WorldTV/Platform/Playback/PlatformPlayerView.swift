@@ -1,7 +1,7 @@
 import AVKit
 import SwiftUI
 
-#if os(iOS) || os(macOS)
+#if os(macOS)
 struct PlatformPlayerView: View {
     let player: AVPlayer
 
@@ -10,26 +10,101 @@ struct PlatformPlayerView: View {
             .ignoresSafeArea()
     }
 }
-#elseif os(tvOS)
+#else
 struct PlatformPlayerView: UIViewControllerRepresentable {
     let player: AVPlayer
+    let onDismiss: (@MainActor () -> Void)?
 
-    func makeUIViewController(context: Context) -> AVPlayerViewController {
-        let controller = AVPlayerViewController()
+    init(
+        player: AVPlayer,
+        onDismiss: (@MainActor () -> Void)? = nil
+    ) {
+        self.player = player
+        self.onDismiss = onDismiss
+    }
+
+    func makeUIViewController(context: Context) -> NativePlayerHost {
+        NativePlayerHost()
+    }
+
+    func updateUIViewController(_ host: NativePlayerHost, context: Context) {
+        host.update(player: player, onDismiss: onDismiss)
+    }
+
+    static func dismantleUIViewController(
+        _ host: NativePlayerHost,
+        coordinator: ()
+    ) {
+        host.dismissPlayer()
+    }
+}
+
+@MainActor
+final class NativePlayerHost: UIViewController {
+    private var player: AVPlayer?
+    private var onDismiss: (@MainActor () -> Void)?
+    private var playerController: NativePlayerController?
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .black
+    }
+
+    func update(
+        player: AVPlayer,
+        onDismiss: (@MainActor () -> Void)?
+    ) {
+        self.player = player
+        self.onDismiss = onDismiss
+        if let playerController {
+            playerController.player = player
+            if player.currentItem != nil {
+                playerController.onDismiss = onDismiss
+            }
+        } else {
+            presentPlayer()
+        }
+    }
+
+    func dismissPlayer() {
+        guard let playerController else { return }
+        playerController.onDismiss = nil
+        playerController.dismiss(animated: false)
+        self.playerController = nil
+    }
+
+    private func presentPlayer() {
+        guard
+            playerController == nil,
+            presentedViewController == nil,
+            let player,
+            player.currentItem != nil
+        else {
+            return
+        }
+
+        let controller = NativePlayerController()
         controller.player = player
         controller.showsPlaybackControls = true
         controller.videoGravity = .resizeAspect
         controller.view.backgroundColor = .black
-        #if os(tvOS)
-        controller.appliesPreferredDisplayCriteriaAutomatically = true
-        controller.playbackControlsIncludeTransportBar = true
-        controller.transportBarIncludesTitleView = false
-        #endif
-        return controller
+        controller.modalPresentationStyle = .fullScreen
+        controller.onDismiss = onDismiss
+        playerController = controller
+        present(controller, animated: false)
     }
+}
 
-    func updateUIViewController(_ controller: AVPlayerViewController, context: Context) {
-        controller.player = player
+@MainActor
+final class NativePlayerController: AVPlayerViewController {
+    var onDismiss: (@MainActor () -> Void)?
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        guard isBeingDismissed else { return }
+        let callback = onDismiss
+        onDismiss = nil
+        callback?()
     }
 }
 #endif

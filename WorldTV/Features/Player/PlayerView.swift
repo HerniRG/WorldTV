@@ -1,4 +1,3 @@
-import Foundation
 import SwiftUI
 
 struct PlayerView: View {
@@ -29,17 +28,20 @@ struct PlayerView: View {
             Color.black
                 .ignoresSafeArea()
                 .accessibilityIdentifier("player.fullscreen")
-            if viewModel.showsPlayerSurface {
-                PlatformPlayerView(player: viewModel.player)
-                    .accessibilityIdentifier("player.surface")
-            }
+            #if os(iOS)
+            PlatformPlayerView(
+                player: viewModel.player,
+                onDismiss: close
+            )
+            #else
+            PlatformPlayerView(player: viewModel.player)
+            #endif
 
             switch viewModel.state {
             case .idle, .resolving, .preparing:
                 progress("player.preparing")
-                    .accessibilityIdentifier("player.preparing")
             case .buffering:
-                EmptyView()
+                progress("player.buffering")
             case .failed(let error):
                 errorView(error)
             case .ended:
@@ -49,25 +51,37 @@ struct PlayerView: View {
                     Button("player.close") {
                         close()
                     }
-                    .accessibilityIdentifier("player.ended.close")
                 }
                     .foregroundStyle(.white)
             case .playing, .paused:
                 EmptyView()
             }
         }
-        #if os(iOS) || os(macOS)
+        #if os(macOS)
         .overlay(alignment: .topLeading) {
-            if viewModel.showsOverlayClose {
-                playerCloseButton
+            Button {
+                close()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.headline.bold())
+                    .frame(width: 44, height: 44)
+                    .background(.ultraThinMaterial, in: Circle())
             }
+            .buttonStyle(.plain)
+            .padding()
+            .accessibilityLabel(Text("player.close"))
+            .accessibilityIdentifier("player.close")
         }
         #endif
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea()
         .platformNavigationTitle(verbatim: viewModel.channelName)
         .modifier(PlayerNavigationStyle())
         .task {
-            await preparePlayback()
+            viewModel.loadIfNeeded(
+                autoplay: autoplayChannels,
+                preferredQuality: Int(preferredQuality)
+            )
         }
         .onDisappear {
             viewModel.stop()
@@ -77,44 +91,6 @@ struct PlayerView: View {
             close()
         }
         #endif
-    }
-
-    private var playerCloseButton: some View {
-        Button {
-            close()
-        } label: {
-            Image(systemName: "xmark")
-                .font(.headline.bold())
-                .frame(width: 44, height: 44)
-                .background(.ultraThinMaterial, in: Circle())
-        }
-        .buttonStyle(.plain)
-        .padding()
-        .accessibilityLabel(Text("player.close"))
-        .accessibilityIdentifier("player.close")
-        .contentShape(Circle())
-        .zIndex(100)
-    }
-
-    private func preparePlayback() async {
-        #if DEBUG
-        if ProcessInfo.processInfo.environment[
-            "UITEST_DELAY_PLAYER_PREPARATION"
-        ] == "1" {
-            do {
-                try await Task.sleep(for: .seconds(10))
-            } catch {
-                return
-            }
-        }
-        #endif
-        guard !Task.isCancelled else {
-            return
-        }
-        viewModel.loadIfNeeded(
-            autoplay: autoplayChannels,
-            preferredQuality: Int(preferredQuality)
-        )
     }
 
     private func progress(_ title: LocalizedStringKey) -> some View {
@@ -142,7 +118,6 @@ struct PlayerView: View {
             Button("player.close") {
                 close()
             }
-            .accessibilityIdentifier("player.error.close")
         }
         .foregroundStyle(.white)
     }
