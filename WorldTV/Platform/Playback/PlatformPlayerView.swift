@@ -44,6 +44,7 @@ final class NativePlayerHost: UIViewController {
     private var player: AVPlayer?
     private var onDismiss: (@MainActor () -> Void)?
     private var playerController: NativePlayerController?
+    private var currentItemObservation: NSKeyValueObservation?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -56,17 +57,26 @@ final class NativePlayerHost: UIViewController {
     ) {
         self.player = player
         self.onDismiss = onDismiss
+
+        currentItemObservation = player.observe(
+            \.currentItem,
+            options: [.new]
+        ) { [weak self] _, _ in
+            Task { @MainActor [weak self] in
+                self?.presentPlayer()
+            }
+        }
+
         if let playerController {
             playerController.player = player
-            if player.currentItem != nil {
-                playerController.onDismiss = onDismiss
-            }
+            playerController.onDismiss = onDismiss
         } else {
             presentPlayer()
         }
     }
 
     func dismissPlayer() {
+        currentItemObservation = nil
         guard let playerController else { return }
         playerController.onDismiss = nil
         playerController.dismiss(animated: false)
