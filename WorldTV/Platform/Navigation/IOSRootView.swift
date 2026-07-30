@@ -26,7 +26,10 @@ struct IOSRootView: View {
             PlayerView(
                 channelID: presentation.channelID,
                 resolveSources: container.resolvePlaybackSources,
-                recordRecentlyWatched: container.recordRecentlyWatched
+                recordRecentlyWatched: container.recordRecentlyWatched,
+                closePresentation: {
+                    presentedPlayer = nil
+                }
             )
             .id(presentation.id)
         }

@@ -467,6 +467,51 @@ final class WorldTVUITests: XCTestCase {
     }
     #elseif os(iOS)
     @MainActor
+    func testPreparingPlayerCanCancelImmediately() {
+        XCUIDevice.shared.orientation = .portrait
+
+        let app = XCUIApplication()
+        app.launchEnvironment["UITEST_DELAY_PLAYER_PREPARATION"] = "1"
+        app.launch()
+
+        let channel = app.buttons.matching(
+            NSPredicate(format: "identifier ENDSWITH '.available'")
+        ).firstMatch
+        XCTAssertTrue(
+            channel.waitForExistence(timeout: 30),
+            "No playable channel became available on iPhone."
+        )
+
+        channel.tap()
+
+        let player = app.otherElements["player.fullscreen"]
+        let preparing = app.descendants(matching: .any)["player.preparing"]
+        let closeButton = app.buttons["player.close"]
+        XCTAssertTrue(player.waitForExistence(timeout: 10))
+        XCTAssertTrue(
+            preparing.waitForExistence(timeout: 3),
+            "The player left preparation before cancellation could be tested."
+        )
+        XCTAssertTrue(closeButton.waitForExistence(timeout: 3))
+        XCTAssertTrue(
+            closeButton.isHittable,
+            "The preparation close button is visible but outside the tappable safe area."
+        )
+
+        closeButton.tap()
+
+        let playerDismissed = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == false"),
+            object: player
+        )
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [playerDismissed], timeout: 5),
+            .completed,
+            "The preparation close button did not cancel and dismiss the player."
+        )
+    }
+
+    @MainActor
     func testChannelPlayerCoversTabBarAndCanClose() {
         XCUIDevice.shared.orientation = .portrait
         defer {

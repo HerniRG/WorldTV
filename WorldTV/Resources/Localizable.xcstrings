@@ -845,22 +845,6 @@
         }
       }
     },
-    "player.buffering" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Buffering…"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cargando señal…"
-          }
-        }
-      }
-    },
     "player.close" : {
       "localizations" : {
         "en" : {

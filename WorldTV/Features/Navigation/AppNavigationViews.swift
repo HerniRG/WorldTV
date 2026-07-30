@@ -23,7 +23,10 @@ struct AppSectionNavigationStack: View {
                 PlayerView(
                     channelID: presentation.channelID,
                     resolveSources: container.resolvePlaybackSources,
-                    recordRecentlyWatched: container.recordRecentlyWatched
+                    recordRecentlyWatched: container.recordRecentlyWatched,
+                    closePresentation: {
+                        presentedPlayer = nil
+                    }
                 )
                 .id(presentation.id)
                 .frame(minWidth: 900, minHeight: 600)

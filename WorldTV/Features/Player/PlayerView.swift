@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 struct PlayerView: View {
@@ -5,12 +6,15 @@ struct PlayerView: View {
     @State private var viewModel: PlayerViewModel
     @AppStorage("autoplayChannels") private var autoplayChannels = true
     @AppStorage("preferredQuality") private var preferredQuality = "automatic"
+    private let closePresentation: (@MainActor () -> Void)?
 
     init(
         channelID: String,
         resolveSources: ResolvePlayableStreamUseCase,
-        recordRecentlyWatched: RecordRecentlyWatchedUseCase
+        recordRecentlyWatched: RecordRecentlyWatchedUseCase,
+        closePresentation: (@MainActor () -> Void)? = nil
     ) {
+        self.closePresentation = closePresentation
         _viewModel = State(
             initialValue: PlayerViewModel(
                 channelID: channelID,
@@ -33,6 +37,7 @@ struct PlayerView: View {
             switch viewModel.state {
             case .idle, .resolving, .preparing:
                 progress("player.preparing")
+                    .accessibilityIdentifier("player.preparing")
             case .buffering:
                 EmptyView()
             case .failed(let error):
@@ -42,7 +47,7 @@ struct PlayerView: View {
                     Label("player.ended", systemImage: "stop.circle")
                 } actions: {
                     Button("player.close") {
-                        dismiss()
+                        close()
                     }
                     .accessibilityIdentifier("player.ended.close")
                 }
@@ -65,28 +70,24 @@ struct PlayerView: View {
         }
         #endif
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea()
         .platformNavigationTitle(verbatim: viewModel.channelName)
         .modifier(PlayerNavigationStyle())
         .task {
-            viewModel.loadIfNeeded(
-                autoplay: autoplayChannels,
-                preferredQuality: Int(preferredQuality)
-            )
+            await preparePlayback()
         }
         .onDisappear {
             viewModel.stop()
         }
         #if os(tvOS)
         .onExitCommand {
-            dismiss()
+            close()
         }
         #endif
     }
 
     private var playerCloseButton: some View {
         Button {
-            dismiss()
+            close()
         } label: {
             Image(systemName: "xmark")
                 .font(.headline.bold())
@@ -97,6 +98,29 @@ struct PlayerView: View {
         .padding()
         .accessibilityLabel(Text("player.close"))
         .accessibilityIdentifier("player.close")
+        .contentShape(Circle())
+        .zIndex(100)
+    }
+
+    private func preparePlayback() async {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment[
+            "UITEST_DELAY_PLAYER_PREPARATION"
+        ] == "1" {
+            do {
+                try await Task.sleep(for: .seconds(10))
+            } catch {
+                return
+            }
+        }
+        #endif
+        guard !Task.isCancelled else {
+            return
+        }
+        viewModel.loadIfNeeded(
+            autoplay: autoplayChannels,
+            preferredQuality: Int(preferredQuality)
+        )
     }
 
     private func progress(_ title: LocalizedStringKey) -> some View {
@@ -122,11 +146,20 @@ struct PlayerView: View {
             Text(message(for: error))
         } actions: {
             Button("player.close") {
-                dismiss()
+                close()
             }
             .accessibilityIdentifier("player.error.close")
         }
         .foregroundStyle(.white)
+    }
+
+    private func close() {
+        viewModel.stop()
+        if let closePresentation {
+            closePresentation()
+        } else {
+            dismiss()
+        }
     }
 
     private func message(for error: PlaybackError) -> LocalizedStringKey {

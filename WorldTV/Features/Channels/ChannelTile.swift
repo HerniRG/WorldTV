@@ -78,7 +78,10 @@ struct ChannelTile: View {
                     channelID: item.id,
                     resolveSources: playerServices.resolveSources,
                     recordRecentlyWatched:
-                        playerServices.recordRecentlyWatched
+                        playerServices.recordRecentlyWatched,
+                    closePresentation: {
+                        presentsPlayer = false
+                    }
                 )
             }
         }
