@@ -1,7 +1,7 @@
 import AVKit
 import SwiftUI
 
-#if os(macOS)
+#if os(iOS) || os(macOS)
 struct PlatformPlayerView: View {
     let player: AVPlayer
 
@@ -10,7 +10,7 @@ struct PlatformPlayerView: View {
             .ignoresSafeArea()
     }
 }
-#else
+#elseif os(tvOS)
 struct PlatformPlayerView: UIViewControllerRepresentable {
     let player: AVPlayer
 

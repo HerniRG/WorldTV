@@ -56,13 +56,7 @@ struct PlayerView: View {
                 EmptyView()
             }
         }
-        #if os(iOS)
-        .overlay(alignment: .topLeading) {
-            if viewModel.showsStandaloneClose {
-                playerCloseButton
-            }
-        }
-        #elseif os(macOS)
+        #if os(iOS) || os(macOS)
         .overlay(alignment: .topLeading) {
             if viewModel.showsOverlayClose {
                 playerCloseButton

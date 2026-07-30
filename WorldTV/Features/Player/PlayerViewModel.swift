@@ -244,15 +244,6 @@ extension PlayerViewModel {
         }
     }
 
-    var showsStandaloneClose: Bool {
-        switch state {
-        case .idle, .resolving, .preparing:
-            true
-        default:
-            false
-        }
-    }
-
     var showsOverlayClose: Bool {
         switch state {
         case .failed, .ended:

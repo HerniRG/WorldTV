@@ -563,9 +563,10 @@ final class WorldTVUITests: XCTestCase {
 
         let customCloseButton = app.buttons["player.close"]
         let errorCloseButton = app.buttons["player.error.close"]
+        let playerSurface = app.descendants(matching: .any)["player.surface"]
         let playerSettled = XCTNSPredicateExpectation(
             predicate: NSPredicate { _, _ in
-                errorCloseButton.exists || !customCloseButton.exists
+                errorCloseButton.exists || playerSurface.exists
             },
             object: app
         )
@@ -577,31 +578,20 @@ final class WorldTVUITests: XCTestCase {
 
         if errorCloseButton.exists {
             XCTAssertFalse(
-                app.descendants(matching: .any)["player.surface"].exists,
+                playerSurface.exists,
                 "The AVKit surface remained behind the custom error screen."
             )
             errorCloseButton.tap()
         } else {
-            player.tap()
-            let closeButton = app.buttons.matching(
-                NSPredicate(
-                    format:
-                        "label == 'Close' OR label == 'Done' OR label == 'Cerrar'"
-                )
-            ).firstMatch
             XCTAssertTrue(
-                closeButton.waitForExistence(timeout: 5),
-                "AVKit did not expose its native close control."
+                customCloseButton.waitForExistence(timeout: 5),
+                "The app close control disappeared during active playback."
             )
-            let closeFrame = closeButton.frame
-            let fullAppFrame = app.frame
-            app.coordinate(
-                withNormalizedOffset: CGVector(
-                    dx: closeFrame.midX / fullAppFrame.width,
-                    dy: closeFrame.midY / fullAppFrame.height
-                )
+            XCTAssertTrue(
+                customCloseButton.isHittable,
+                "The active-player close control is not tappable."
             )
-            .tap()
+            customCloseButton.tap()
         }
 
         let playerDismissed = XCTNSPredicateExpectation(

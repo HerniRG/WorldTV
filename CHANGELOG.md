@@ -34,7 +34,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Native AVKit overlay timing and a single player-error action that returns to the originating screen
 - Full-screen iPhone and iPad playback, modal Mac playback, and edge-to-edge horizontal shelves with aligned content margins
 - Adaptive light/dark favorite controls and uninterrupted iPhone playback when rotating between compact and split layouts
-- A single native iOS playback close control and isolated custom error screens without AVKit error overlays
+- A single app-owned iOS close control throughout preparation and playback, plus isolated custom error screens without AVKit error overlays
 - Immediate cancellation and dismissal while an iPhone, Mac, or Apple TV stream is still preparing
 - Privacy manifest with the required reason for app-local preferences
 - Bilingual privacy and support documents linked from the app
