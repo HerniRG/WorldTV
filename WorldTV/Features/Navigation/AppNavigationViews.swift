@@ -88,7 +88,8 @@ struct AppSectionNavigationStack: View {
                 searchChannels: container.searchChannels,
                 imageLoader: container.imageLoader,
                 favoritesStore: container.favoritesStore,
-                initialCategoryID: tvSearchRequest?.categoryID
+                initialCategoryID: tvSearchRequest?.categoryID,
+                initialCountryCode: tvSearchRequest?.countryCode
             )
             .id(tvSearchRequest?.id)
         case .favorites:

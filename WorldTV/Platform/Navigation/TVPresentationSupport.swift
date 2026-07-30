@@ -7,11 +7,18 @@ private struct PlayChannelActionKey: EnvironmentKey {
 enum TVTopLevelDestination {
     case section(AppSection)
     case searchCategory(String)
+    case searchCountry(String)
 }
 
 struct TVSearchRequest {
     let id = UUID()
-    let categoryID: String
+    let categoryID: String?
+    let countryCode: String?
+
+    init(categoryID: String? = nil, countryCode: String? = nil) {
+        self.categoryID = categoryID
+        self.countryCode = countryCode
+    }
 }
 
 extension EnvironmentValues {

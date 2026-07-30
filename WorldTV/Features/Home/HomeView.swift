@@ -83,11 +83,25 @@ struct HomeView: View {
                     spacing: DesignTokens.contentSpacing
                 ) {
                     ForEach(content.popularCountries) { item in
+                        #if os(tvOS)
+                        Button {
+                            openTVTopLevelDestination(
+                                .searchCountry(item.country.code)
+                            )
+                        } label: {
+                            CountryCard(item: item)
+                        }
+                        .worldTVCardButtonStyle()
+                        .accessibilityIdentifier(
+                            "home.open.country.\(item.country.code)"
+                        )
+                        #else
                         NavigationLink(value: AppRoute.country(item.country.code)) {
                             CountryCard(item: item)
                         }
                         .worldTVCardButtonStyle()
                         .accessibilityIdentifier("country.\(item.country.code)")
+                        #endif
                     }
                 }
 

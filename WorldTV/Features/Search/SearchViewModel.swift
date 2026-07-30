@@ -34,10 +34,12 @@ final class SearchViewModel {
 
     init(
         searchChannels: SearchChannelsUseCase,
-        initialCategoryID: String? = nil
+        initialCategoryID: String? = nil,
+        initialCountryCode: String? = nil
     ) {
         self.searchChannels = searchChannels
         selectedCategoryID = initialCategoryID
+        selectedCountryCode = initialCountryCode
     }
 
     var activeFilterCount: Int {

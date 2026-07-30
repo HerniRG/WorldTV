@@ -81,6 +81,9 @@ struct TVRootView: View {
         case .searchCategory(let categoryID):
             searchRequest = TVSearchRequest(categoryID: categoryID)
             selectedSection = .search
+        case .searchCountry(let countryCode):
+            searchRequest = TVSearchRequest(countryCode: countryCode)
+            selectedSection = .search
         }
     }
 }

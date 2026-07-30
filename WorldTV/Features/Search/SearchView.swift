@@ -12,12 +12,14 @@ struct SearchView: View {
         searchChannels: SearchChannelsUseCase,
         imageLoader: any ImageLoading,
         favoritesStore: FavoritesStore,
-        initialCategoryID: String? = nil
+        initialCategoryID: String? = nil,
+        initialCountryCode: String? = nil
     ) {
         _viewModel = State(
             initialValue: SearchViewModel(
                 searchChannels: searchChannels,
-                initialCategoryID: initialCategoryID
+                initialCategoryID: initialCategoryID,
+                initialCountryCode: initialCountryCode
             )
         )
         self.imageLoader = imageLoader
@@ -90,6 +92,9 @@ struct SearchView: View {
             }
         }
         .accessibilityIdentifier("search.filters.button")
+        .accessibilityValue(
+            Text(verbatim: viewModel.selectedCountryCode ?? "")
+        )
     }
 
     private func results(_ channels: [ChannelCatalogItem]) -> some View {

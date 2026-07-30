@@ -298,6 +298,58 @@ final class WorldTVUITests: XCTestCase {
     }
 
     @MainActor
+    func testHomeCountrySelectsSearchTabWithCountryFilter() {
+        let app = XCUIApplication()
+        app.launch()
+
+        let countries = app.buttons.matching(
+            NSPredicate(
+                format: "identifier BEGINSWITH 'home.open.country.'"
+            )
+        )
+        let homeHeader = app.otherElements["home.header"]
+        XCTAssertTrue(
+            homeHeader.waitForExistence(timeout: 30),
+            "Home did not load."
+        )
+
+        for _ in 0..<20 {
+            if countries.firstMatch.exists,
+               countries.allElementsBoundByIndex.contains(where: \.hasFocus) {
+                break
+            }
+            XCUIRemote.shared.press(.down)
+        }
+        guard let focusedCountry = countries.allElementsBoundByIndex.first(
+            where: \.hasFocus
+        ) else {
+            XCTFail("Focus did not enter the popular-countries grid on Home.")
+            return
+        }
+        let focusedCountryIdentifier = focusedCountry.identifier
+        let countryCode = String(
+            focusedCountryIdentifier.dropFirst("home.open.country.".count)
+        )
+
+        XCUIRemote.shared.press(.select)
+
+        let filtersButton = app.buttons["search.filters.button"]
+        XCTAssertTrue(
+            filtersButton.waitForExistence(timeout: 30),
+            "The selected Home country did not open the Search tab."
+        )
+        XCTAssertTrue(
+            app.tabBars.buttons["Buscar"].hasFocus,
+            "The selected Home country did not select the Search tab."
+        )
+        XCTAssertEqual(
+            filtersButton.value as? String,
+            countryCode,
+            "Search did not receive the country selected on Home."
+        )
+    }
+
+    @MainActor
     func testChannelGridPlayerRestoresFocusToOriginChannel() {
         let app = XCUIApplication()
         app.launch()
