@@ -516,9 +516,48 @@ final class WorldTVUITests: XCTestCase {
         XCTAssertEqual(player.frame.maxX, landscapeFrame.maxX, accuracy: 1)
         XCTAssertEqual(player.frame.maxY, landscapeFrame.maxY, accuracy: 1)
 
-        let closeButton = app.descendants(matching: .any)["player.close"]
-        XCTAssertTrue(closeButton.waitForExistence(timeout: 5))
-        closeButton.tap()
+        let customCloseButton = app.buttons["player.close"]
+        let errorCloseButton = app.buttons["player.error.close"]
+        let playerSettled = XCTNSPredicateExpectation(
+            predicate: NSPredicate { _, _ in
+                errorCloseButton.exists || !customCloseButton.exists
+            },
+            object: app
+        )
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [playerSettled], timeout: 20),
+            .completed,
+            "The player did not reach playback or its clean error state."
+        )
+
+        if errorCloseButton.exists {
+            XCTAssertFalse(
+                app.descendants(matching: .any)["player.surface"].exists,
+                "The AVKit surface remained behind the custom error screen."
+            )
+            errorCloseButton.tap()
+        } else {
+            player.tap()
+            let closeButton = app.buttons.matching(
+                NSPredicate(
+                    format:
+                        "label == 'Close' OR label == 'Done' OR label == 'Cerrar'"
+                )
+            ).firstMatch
+            XCTAssertTrue(
+                closeButton.waitForExistence(timeout: 5),
+                "AVKit did not expose its native close control."
+            )
+            let closeFrame = closeButton.frame
+            let fullAppFrame = app.frame
+            app.coordinate(
+                withNormalizedOffset: CGVector(
+                    dx: closeFrame.midX / fullAppFrame.width,
+                    dy: closeFrame.midY / fullAppFrame.height
+                )
+            )
+            .tap()
+        }
 
         let playerDismissed = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "exists == false"),

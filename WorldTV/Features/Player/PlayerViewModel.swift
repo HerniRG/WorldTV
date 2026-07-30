@@ -63,9 +63,9 @@ final class PlayerViewModel {
                 currentSourceIndex = 0
                 playCurrentSource()
             } catch let error as PlaybackError {
-                state = .failed(error)
+                fail(error)
             } catch {
-                state = .failed(.unavailable)
+                fail(.unavailable)
             }
         }
     }
@@ -82,7 +82,7 @@ final class PlayerViewModel {
 
     func tryAnotherSource() {
         guard currentSourceIndex + 1 < sources.count else {
-            state = .failed(.allSourcesFailed)
+            fail(.allSourcesFailed)
             return
         }
         currentSourceIndex += 1
@@ -101,7 +101,7 @@ final class PlayerViewModel {
 
     private func playCurrentSource() {
         guard sources.indices.contains(currentSourceIndex) else {
-            state = .failed(.allSourcesFailed)
+            fail(.allSourcesFailed)
             return
         }
 
@@ -163,7 +163,7 @@ final class PlayerViewModel {
             sourceTimeoutTask?.cancel()
             tryAnotherSource()
         @unknown default:
-            state = .failed(.unavailable)
+            fail(.unavailable)
         }
     }
 
@@ -186,8 +186,17 @@ final class PlayerViewModel {
                 }
             }
         @unknown default:
-            state = .failed(.unavailable)
+            fail(.unavailable)
         }
+    }
+
+    private func fail(_ error: PlaybackError) {
+        sourceTimeoutTask?.cancel()
+        itemStatusObservation = nil
+        timeControlObservation = nil
+        player.pause()
+        player.replaceCurrentItem(with: nil)
+        state = .failed(error)
     }
 
     private func makePlayerItem(from source: PlaybackSource) -> AVPlayerItem {
@@ -221,6 +230,35 @@ final class PlayerViewModel {
             default:
                 break
             }
+        }
+    }
+}
+
+extension PlayerViewModel {
+    var showsPlayerSurface: Bool {
+        switch state {
+        case .playing, .buffering, .paused:
+            true
+        default:
+            false
+        }
+    }
+
+    var showsStandaloneClose: Bool {
+        switch state {
+        case .idle, .resolving, .preparing:
+            true
+        default:
+            false
+        }
+    }
+
+    var showsOverlayClose: Bool {
+        switch state {
+        case .failed, .ended:
+            false
+        default:
+            true
         }
     }
 }

@@ -25,13 +25,16 @@ struct PlayerView: View {
             Color.black
                 .ignoresSafeArea()
                 .accessibilityIdentifier("player.fullscreen")
-            PlatformPlayerView(player: viewModel.player)
+            if viewModel.showsPlayerSurface {
+                PlatformPlayerView(player: viewModel.player)
+                    .accessibilityIdentifier("player.surface")
+            }
 
             switch viewModel.state {
             case .idle, .resolving, .preparing:
                 progress("player.preparing")
             case .buffering:
-                progress("player.buffering")
+                EmptyView()
             case .failed(let error):
                 errorView(error)
             case .ended:
@@ -41,26 +44,24 @@ struct PlayerView: View {
                     Button("player.close") {
                         dismiss()
                     }
+                    .accessibilityIdentifier("player.ended.close")
                 }
                     .foregroundStyle(.white)
             case .playing, .paused:
                 EmptyView()
             }
         }
-        #if os(iOS) || os(macOS)
+        #if os(iOS)
         .overlay(alignment: .topLeading) {
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.headline.bold())
-                    .frame(width: 44, height: 44)
-                    .background(.ultraThinMaterial, in: Circle())
+            if viewModel.showsStandaloneClose {
+                playerCloseButton
             }
-            .buttonStyle(.plain)
-            .padding()
-            .accessibilityLabel(Text("player.close"))
-            .accessibilityIdentifier("player.close")
+        }
+        #elseif os(macOS)
+        .overlay(alignment: .topLeading) {
+            if viewModel.showsOverlayClose {
+                playerCloseButton
+            }
         }
         #endif
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -81,6 +82,21 @@ struct PlayerView: View {
             dismiss()
         }
         #endif
+    }
+
+    private var playerCloseButton: some View {
+        Button {
+            dismiss()
+        } label: {
+            Image(systemName: "xmark")
+                .font(.headline.bold())
+                .frame(width: 44, height: 44)
+                .background(.ultraThinMaterial, in: Circle())
+        }
+        .buttonStyle(.plain)
+        .padding()
+        .accessibilityLabel(Text("player.close"))
+        .accessibilityIdentifier("player.close")
     }
 
     private func progress(_ title: LocalizedStringKey) -> some View {
@@ -108,6 +124,7 @@ struct PlayerView: View {
             Button("player.close") {
                 dismiss()
             }
+            .accessibilityIdentifier("player.error.close")
         }
         .foregroundStyle(.white)
     }
