@@ -2,6 +2,10 @@ import SwiftUI
 
 struct CountriesView: View {
     @State private var viewModel: CountriesViewModel
+    #if os(tvOS)
+    @Environment(\.countryFocusReturn) private var countryFocusReturn
+    @FocusState private var focusedCountryCode: String?
+    #endif
 
     init(loadCountries: LoadCountriesUseCase) {
         _viewModel = State(initialValue: CountriesViewModel(loadCountries: loadCountries))
@@ -51,12 +55,34 @@ struct CountriesView: View {
                         NavigationLink(value: AppRoute.country(item.country.code)) {
                             CountryCard(item: item)
                         }
+                        #if os(tvOS)
+                        .focused(
+                            $focusedCountryCode,
+                            equals: item.country.code
+                        )
+                        #endif
                         .worldTVCardButtonStyle()
+                        .accessibilityIdentifier("country.\(item.country.code)")
                     }
                 }
+                #if os(tvOS)
+                .focusSection()
+                #endif
             }
             .padding(DesignTokens.pagePadding)
         }
+        #if os(tvOS)
+        .onChange(of: countryFocusReturn) {
+            guard let code = countryFocusReturn.code else {
+                return
+            }
+            Task { @MainActor in
+                focusedCountryCode = nil
+                try? await Task.sleep(for: .milliseconds(300))
+                focusedCountryCode = code
+            }
+        }
+        #endif
         .overlay {
             if viewModel.filteredCountries.isEmpty {
                 ContentUnavailableView.search(text: viewModel.searchText)

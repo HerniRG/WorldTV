@@ -87,6 +87,7 @@ struct HomeView: View {
                             CountryCard(item: item)
                         }
                         .worldTVCardButtonStyle()
+                        .accessibilityIdentifier("country.\(item.country.code)")
                     }
                 }
 

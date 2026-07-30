@@ -5,10 +5,6 @@ struct PlayerView: View {
     @State private var viewModel: PlayerViewModel
     @AppStorage("autoplayChannels") private var autoplayChannels = true
     @AppStorage("preferredQuality") private var preferredQuality = "automatic"
-    #if os(tvOS)
-    @State private var transportBarIsVisible = true
-    @State private var hidePlaybackControlsRequest = 0
-    #endif
 
     init(
         channelID: String,
@@ -29,15 +25,7 @@ struct PlayerView: View {
             Color.black
                 .ignoresSafeArea()
                 .accessibilityIdentifier("player.fullscreen")
-            #if os(tvOS)
-            PlatformPlayerView(
-                player: viewModel.player,
-                transportBarIsVisible: $transportBarIsVisible,
-                hidePlaybackControlsRequest: hidePlaybackControlsRequest
-            )
-            #else
             PlatformPlayerView(player: viewModel.player)
-            #endif
 
             switch viewModel.state {
             case .idle, .resolving, .preparing:
@@ -90,11 +78,7 @@ struct PlayerView: View {
         }
         #if os(tvOS)
         .onExitCommand {
-            if transportBarIsVisible {
-                hidePlaybackControlsRequest += 1
-            } else {
-                dismiss()
-            }
+            dismiss()
         }
         #endif
     }
@@ -121,18 +105,8 @@ struct PlayerView: View {
         } description: {
             Text(message(for: error))
         } actions: {
-            HStack {
-                Button("action.retry") {
-                    viewModel.retry()
-                }
-                if viewModel.currentSourceNumber < viewModel.sourceCount {
-                    Button("player.tryAnother") {
-                        viewModel.tryAnotherSource()
-                    }
-                }
-                Button("player.close") {
-                    dismiss()
-                }
+            Button("player.close") {
+                dismiss()
             }
         }
         .foregroundStyle(.white)

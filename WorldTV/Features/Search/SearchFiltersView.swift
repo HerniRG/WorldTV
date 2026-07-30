@@ -4,9 +4,6 @@ struct SearchFiltersView: View {
     @Bindable var viewModel: SearchViewModel
     let options: ChannelSearchOptions
     @Environment(\.dismiss) private var dismiss
-    #if os(tvOS)
-    @State private var path = NavigationPath()
-    #endif
 
     var body: some View {
         #if os(tvOS)
@@ -34,7 +31,7 @@ struct SearchFiltersView: View {
             Color.clear
                 .ignoresSafeArea()
 
-            NavigationStack(path: $path) {
+            NavigationStack {
                 VStack(spacing: 0) {
                     HStack(spacing: 24) {
                         Label(
@@ -64,12 +61,15 @@ struct SearchFiltersView: View {
                     Form {
                         tvOSFilterControls
                     }
-                    .padding(.horizontal, 64)
-                    .padding(.vertical, 20)
+                    .scrollClipDisabled()
+                    .padding(.horizontal, 80)
+                    .contentMargins(.vertical, 36, for: .scrollContent)
                     .background(Color(white: 0.11))
                 }
+                .navigationDestination(for: TVFilterRoute.self) { route in
+                    tvOSFilterSelection(for: route)
+                }
             }
-            .contentMargins(.horizontal, 64, for: .scrollContent)
             .background(
                 Color(white: 0.11),
                 in: RoundedRectangle(cornerRadius: 34, style: .continuous)
@@ -84,52 +84,27 @@ struct SearchFiltersView: View {
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("search.filters.panel")
         }
-        .onExitCommand {
-            if path.isEmpty {
-                dismiss()
-            } else {
-                path.removeLast()
-            }
-        }
     }
     #endif
 
     #if os(tvOS)
     @ViewBuilder
     private var tvOSFilterControls: some View {
-        NavigationLink {
-            TVFilterSelectionView(
-                title: "search.filter.country",
-                selection: $viewModel.selectedCountryCode,
-                options: countryOptions
-            )
-        } label: {
+        NavigationLink(value: TVFilterRoute.country) {
             LabeledContent("search.filter.country") {
                 Text(selectedCountryName)
             }
         }
         .accessibilityIdentifier("search.filter.country")
 
-        NavigationLink {
-            TVFilterSelectionView(
-                title: "search.filter.category",
-                selection: $viewModel.selectedCategoryID,
-                options: categoryOptions
-            )
-        } label: {
+        NavigationLink(value: TVFilterRoute.category) {
             LabeledContent("search.filter.category") {
                 Text(selectedCategoryName)
             }
         }
         .accessibilityIdentifier("search.filter.category")
 
-        NavigationLink {
-            TVFilterSelectionView(
-                title: "search.filter.quality",
-                selection: $viewModel.minimumQuality,
-                options: qualityOptions
-            )
-        } label: {
+        NavigationLink(value: TVFilterRoute.quality) {
             LabeledContent("search.filter.quality") {
                 Text(selectedQualityName)
             }
@@ -137,6 +112,30 @@ struct SearchFiltersView: View {
         .accessibilityIdentifier("search.filter.quality")
 
         commonFilterControls
+    }
+
+    @ViewBuilder
+    private func tvOSFilterSelection(for route: TVFilterRoute) -> some View {
+        switch route {
+        case .country:
+            TVFilterSelectionView(
+                title: "search.filter.country",
+                selection: $viewModel.selectedCountryCode,
+                options: countryOptions
+            )
+        case .category:
+            TVFilterSelectionView(
+                title: "search.filter.category",
+                selection: $viewModel.selectedCategoryID,
+                options: categoryOptions
+            )
+        case .quality:
+            TVFilterSelectionView(
+                title: "search.filter.quality",
+                selection: $viewModel.minimumQuality,
+                options: qualityOptions
+            )
+        }
     }
 
     private var countryOptions: [TVFilterOption<String?>] {
@@ -252,6 +251,12 @@ struct SearchFiltersView: View {
 }
 
 #if os(tvOS)
+private enum TVFilterRoute: Hashable {
+    case country
+    case category
+    case quality
+}
+
 private struct TVFilterOption<Value: Hashable>: Identifiable {
     let id: String
     let title: String
@@ -278,6 +283,7 @@ private struct TVFilterSelectionView<Value: Hashable>: View {
                         topTrailingRadius: 34
                     )
                 )
+                .accessibilityIdentifier("search.filter.selection.header")
 
             List(options) { option in
                 Button {
@@ -297,8 +303,10 @@ private struct TVFilterSelectionView<Value: Hashable>: View {
                 }
                 .accessibilityIdentifier("search.filter.option.\(option.id)")
             }
-            .padding(.horizontal, 64)
-            .padding(.vertical, 20)
+            .scrollClipDisabled()
+            .padding(.horizontal, 80)
+            .contentMargins(.vertical, 36, for: .scrollContent)
+            .accessibilityIdentifier("search.filter.selection.list")
         }
         .background(
             Color(white: 0.11),

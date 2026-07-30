@@ -43,7 +43,7 @@ final class WorldTVUITests: XCTestCase {
     }
 
     @MainActor
-    func testChannelOpensFullscreenAndMenuHidesControlsBeforeClosing() {
+    func testChannelOpensFullscreenAndMenuRestoresFocus() {
         let app = XCUIApplication()
         app.launch()
 
@@ -56,8 +56,10 @@ final class WorldTVUITests: XCTestCase {
         )
 
         XCUIRemote.shared.press(.down)
-        let focusedChannel = channels.allElementsBoundByIndex.first(where: \.hasFocus)
-        XCTAssertNotNil(focusedChannel, "Down did not move focus from the tab bar to a channel.")
+        XCTAssertTrue(
+            channels.allElementsBoundByIndex.contains(where: \.hasFocus),
+            "Down did not move focus from the tab bar to a channel."
+        )
 
         XCUIRemote.shared.press(.select)
         let player = app.otherElements["player.fullscreen"]
@@ -69,19 +71,6 @@ final class WorldTVUITests: XCTestCase {
             app.tabBars.firstMatch.isHittable,
             "The tab bar remains visible or interactive over the player."
         )
-
-        XCUIRemote.shared.press(.select)
-        let nativeControls = app.cells["AVAudibleSettings"]
-        XCTAssertTrue(
-            nativeControls.waitForExistence(timeout: 5),
-            "Select did not reveal the native playback controls."
-        )
-        XCUIRemote.shared.press(.menu)
-        XCTAssertTrue(
-            player.exists,
-            "The first Menu press closed the player instead of hiding its controls."
-        )
-        Thread.sleep(forTimeInterval: 0.5)
 
         XCUIRemote.shared.press(.menu)
         let playerDismissed = XCTNSPredicateExpectation(
@@ -95,7 +84,7 @@ final class WorldTVUITests: XCTestCase {
         )
         XCTAssertTrue(
             channels.allElementsBoundByIndex.contains(where: \.hasFocus),
-            "Focus was not restored to the channel shelf."
+            "Focus was not restored to the Home channel shelf."
         )
     }
 
@@ -164,10 +153,35 @@ final class WorldTVUITests: XCTestCase {
             anyCountry.waitForExistence(timeout: 10),
             "The country options did not open."
         )
-        XCTAssertGreaterThanOrEqual(anyCountry.frame.minX, panel.frame.minX + 40)
-        XCTAssertLessThanOrEqual(anyCountry.frame.maxX, panel.frame.maxX - 40)
+        let selectionHeader = app.descendants(matching: .any).matching(
+            identifier: "search.filter.selection.header"
+        ).firstMatch
+        XCTAssertTrue(
+            selectionHeader.waitForExistence(timeout: 5),
+            "The filter-selection header did not appear."
+        )
+        XCTAssertGreaterThanOrEqual(anyCountry.frame.minX, panel.frame.minX + 60)
+        XCTAssertLessThanOrEqual(anyCountry.frame.maxX, panel.frame.maxX - 60)
+        XCTAssertGreaterThanOrEqual(
+            anyCountry.frame.minY,
+            selectionHeader.frame.maxY + 24,
+            "The first focused option is clipped against the selection header."
+        )
 
         XCUIRemote.shared.press(.menu)
+        XCTAssertTrue(
+            doneButton.waitForExistence(timeout: 10),
+            "Menu left the filters modal instead of returning to its main list."
+        )
+        XCTAssertTrue(
+            countryFilter.exists,
+            "The main filter list did not return from the country options."
+        )
+        XCTAssertFalse(
+            anyCountry.exists,
+            "The country options remained visible after Menu."
+        )
+
         XCUIRemote.shared.press(.menu)
         let modalDismissed = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "exists == false"),
@@ -221,6 +235,136 @@ final class WorldTVUITests: XCTestCase {
             "The Home favorites action pushed content inside Home instead of selecting its tab."
         )
         XCTAssertTrue(app.tabBars.buttons["Favoritos"].hasFocus)
+    }
+
+    @MainActor
+    func testCountryDetailRestoresFocusToOriginCountry() {
+        let app = XCUIApplication()
+        app.launch()
+
+        XCUIRemote.shared.press(.right)
+        XCUIRemote.shared.press(.select)
+
+        let countries = app.buttons.matching(
+            NSPredicate(format: "identifier BEGINSWITH 'country.'")
+        )
+        XCTAssertTrue(
+            countries.firstMatch.waitForExistence(timeout: 30),
+            "The Countries grid did not load."
+        )
+
+        for _ in 0..<10 {
+            if countries.allElementsBoundByIndex.contains(where: \.hasFocus) {
+                break
+            }
+            XCUIRemote.shared.press(.down)
+        }
+        guard let focusedCountry = countries.allElementsBoundByIndex.first(
+            where: \.hasFocus
+        ) else {
+            XCTFail("Focus did not enter the Countries grid.")
+            return
+        }
+        let focusedCountryIdentifier = focusedCountry.identifier
+
+        XCUIRemote.shared.press(.select)
+
+        let channel = app.buttons.matching(
+            NSPredicate(format: "identifier BEGINSWITH 'channel.'")
+        ).firstMatch
+        XCTAssertTrue(
+            channel.waitForExistence(timeout: 30),
+            "The selected country did not open its channel grid."
+        )
+
+        XCUIRemote.shared.press(.menu)
+
+        let restoredCountry = app.buttons[focusedCountryIdentifier]
+        XCTAssertTrue(
+            restoredCountry.waitForExistence(timeout: 10),
+            "Menu did not return to the Countries grid."
+        )
+        let countryFocusRestored = XCTNSPredicateExpectation(
+            predicate: NSPredicate { object, _ in
+                (object as? XCUIElement)?.hasFocus == true
+            },
+            object: restoredCountry
+        )
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [countryFocusRestored], timeout: 10),
+            .completed,
+            "Focus was not restored to the country that opened the detail."
+        )
+    }
+
+    @MainActor
+    func testChannelGridPlayerRestoresFocusToOriginChannel() {
+        let app = XCUIApplication()
+        app.launch()
+
+        XCUIRemote.shared.press(.right)
+        XCUIRemote.shared.press(.select)
+
+        let countries = app.buttons.matching(
+            NSPredicate(format: "identifier BEGINSWITH 'country.'")
+        )
+        XCTAssertTrue(countries.firstMatch.waitForExistence(timeout: 30))
+        for _ in 0..<10 {
+            if countries.allElementsBoundByIndex.contains(where: \.hasFocus) {
+                break
+            }
+            XCUIRemote.shared.press(.down)
+        }
+        guard countries.allElementsBoundByIndex.contains(where: \.hasFocus) else {
+            XCTFail("Focus did not enter the Countries grid.")
+            return
+        }
+
+        XCUIRemote.shared.press(.select)
+
+        let playableChannels = app.buttons.matching(
+            NSPredicate(format: "identifier ENDSWITH '.available'")
+        )
+        XCTAssertTrue(
+            playableChannels.firstMatch.waitForExistence(timeout: 30),
+            "The country channel grid did not load playable channels."
+        )
+        for _ in 0..<12 {
+            if playableChannels.allElementsBoundByIndex.contains(where: \.hasFocus) {
+                break
+            }
+            XCUIRemote.shared.press(.down)
+        }
+        guard let focusedChannel = playableChannels.allElementsBoundByIndex.first(
+            where: \.hasFocus
+        ) else {
+            XCTFail("Focus did not enter the country channel grid.")
+            return
+        }
+        let focusedChannelIdentifier = focusedChannel.identifier
+
+        XCUIRemote.shared.press(.select)
+
+        let player = app.otherElements["player.fullscreen"]
+        XCTAssertTrue(
+            player.waitForExistence(timeout: 15),
+            "The channel grid did not open the player."
+        )
+
+        XCUIRemote.shared.press(.menu)
+
+        let restoredChannel = app.buttons[focusedChannelIdentifier]
+        let channelFocusRestored = XCTNSPredicateExpectation(
+            predicate: NSPredicate { object, _ in
+                (object as? XCUIElement)?.hasFocus == true
+            },
+            object: restoredChannel
+        )
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [channelFocusRestored], timeout: 10),
+            .completed,
+            "Focus was not restored to the channel that opened the player."
+        )
     }
 
     @MainActor

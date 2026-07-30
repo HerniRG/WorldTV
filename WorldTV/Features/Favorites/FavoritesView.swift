@@ -75,6 +75,9 @@ struct FavoritesView: View {
                         )
                     }
                 }
+                #if os(tvOS)
+                .focusSection()
+                #endif
             }
             .padding(DesignTokens.pagePadding)
         }

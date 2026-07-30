@@ -2,6 +2,11 @@ import SwiftUI
 
 struct ChannelTile: View {
     @Environment(\.playChannel) private var playChannel
+    #if os(tvOS)
+    @Environment(\.playerServices) private var playerServices
+    @State private var presentsPlayer = false
+    @FocusState private var isFocused: Bool
+    #endif
 
     let item: ChannelCatalogItem
     let imageLoader: any ImageLoading
@@ -20,7 +25,7 @@ struct ChannelTile: View {
     private var tvOSCard: some View {
         Button {
             if item.isAvailable {
-                playChannel(item.id)
+                presentsPlayer = true
             }
         } label: {
             card
@@ -30,6 +35,12 @@ struct ChannelTile: View {
                     }
                 }
         }
+        .focused($isFocused)
+        .defaultFocus(
+            $isFocused,
+            true,
+            priority: .userInitiated
+        )
         .worldTVCardButtonStyle()
         .contextMenu {
             Button {
@@ -57,6 +68,27 @@ struct ChannelTile: View {
                 ? Text("channel.play.hint")
                 : Text("channel.unavailable")
         )
+        .fullScreenCover(
+            isPresented: $presentsPlayer,
+            onDismiss: restoreFocus
+        ) {
+            if let playerServices {
+                PlayerView(
+                    channelID: item.id,
+                    resolveSources: playerServices.resolveSources,
+                    recordRecentlyWatched:
+                        playerServices.recordRecentlyWatched
+                )
+            }
+        }
+    }
+
+    private func restoreFocus() {
+        Task { @MainActor in
+            isFocused = false
+            try? await Task.sleep(for: .milliseconds(300))
+            isFocused = true
+        }
     }
 
     private var favoriteStatus: some View {

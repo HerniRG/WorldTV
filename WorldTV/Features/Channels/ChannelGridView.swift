@@ -75,6 +75,9 @@ struct ChannelGridView: View {
                         )
                     }
                 }
+                #if os(tvOS)
+                .focusSection()
+                #endif
             }
             .padding(DesignTokens.pagePadding)
         }

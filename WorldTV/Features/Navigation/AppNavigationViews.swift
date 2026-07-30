@@ -2,6 +2,8 @@ import SwiftUI
 
 struct AppSectionNavigationStack: View {
     @State private var presentedPlayer: PresentedPlayer?
+    @State private var path: [AppRoute] = []
+    @State private var countryFocusReturn = CountryFocusReturn()
 
     let section: AppSection
     let homeViewModel: HomeViewModel
@@ -24,6 +26,15 @@ struct AppSectionNavigationStack: View {
                 .id(presentation.id)
                 .frame(minWidth: 900, minHeight: 600)
             }
+        #elseif os(tvOS)
+        navigationStack
+            .environment(
+                \.playerServices,
+                PlayerServices(
+                    resolveSources: container.resolvePlaybackSources,
+                    recordRecentlyWatched: container.recordRecentlyWatched
+                )
+            )
         #else
         navigationStack
             .environment(\.playChannel) { channelID in
@@ -41,9 +52,22 @@ struct AppSectionNavigationStack: View {
     }
 
     private var navigationStack: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             sectionRoot
                 .modifier(AppRouteDestinationModifier(container: container))
+        }
+        .environment(\.countryFocusReturn, countryFocusReturn)
+        .onChange(of: path) { oldPath, newPath in
+            guard
+                newPath.count < oldPath.count,
+                case .country(let code) = oldPath.last
+            else {
+                return
+            }
+            countryFocusReturn = CountryFocusReturn(
+                code: code,
+                generation: countryFocusReturn.generation + 1
+            )
         }
     }
 
@@ -82,6 +106,36 @@ struct AppSectionNavigationStack: View {
                 favoritesStore: container.favoritesStore
             )
         }
+    }
+}
+
+struct PlayerServices: Sendable {
+    let resolveSources: ResolvePlayableStreamUseCase
+    let recordRecentlyWatched: RecordRecentlyWatchedUseCase
+}
+
+struct CountryFocusReturn: Equatable {
+    var code: String?
+    var generation = 0
+}
+
+private struct PlayerServicesKey: EnvironmentKey {
+    static let defaultValue: PlayerServices? = nil
+}
+
+private struct CountryFocusReturnKey: EnvironmentKey {
+    static let defaultValue = CountryFocusReturn()
+}
+
+extension EnvironmentValues {
+    var playerServices: PlayerServices? {
+        get { self[PlayerServicesKey.self] }
+        set { self[PlayerServicesKey.self] = newValue }
+    }
+
+    var countryFocusReturn: CountryFocusReturn {
+        get { self[CountryFocusReturnKey.self] }
+        set { self[CountryFocusReturnKey.self] = newValue }
     }
 }
 
