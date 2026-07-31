@@ -131,33 +131,18 @@ struct HomeView: View {
         channels: [ChannelCatalogItem]
     ) -> some View {
         sectionTitle(title, systemImage: systemImage)
-        ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(spacing: DesignTokens.contentSpacing) {
-                ForEach(channels) { item in
-                    ChannelTile(
-                        item: item,
-                        favoritesStore: favoritesStore,
-                        width: DesignTokens.cardWidth
-                    )
-                }
-            }
-            .padding(.vertical, 14)
-            .scrollTargetLayout()
+        HorizontalCarousel(
+            items: channels,
+            verticalPadding: 14,
+            height: DesignTokens.channelCarouselHeight,
+            accessibilityIdentifier: "home.channel.carousel"
+        ) { item in
+            ChannelTile(
+                item: item,
+                favoritesStore: favoritesStore,
+                width: DesignTokens.cardWidth
+            )
         }
-        .scrollTargetBehavior(.viewAligned)
-        .accessibilityIdentifier("home.channel.carousel")
-        #if !os(tvOS)
-        .contentMargins(
-            .horizontal,
-            DesignTokens.pagePadding,
-            for: .scrollContent
-        )
-        .padding(.horizontal, -DesignTokens.pagePadding)
-        #endif
-        #if os(macOS)
-        .frame(height: DesignTokens.channelCarouselHeight)
-        #endif
-        .tvShelfBehavior()
     }
 
     private func visibleFavorites(in content: HomeContent) -> [ChannelCatalogItem] {
@@ -173,35 +158,22 @@ struct HomeView: View {
     }
 
     private func categoryChips(_ categories: [ChannelCategory]) -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(categories) { category in
-                    NavigationTile(
-                        route: .searchCategory(category.id),
-                        tvDestination: .searchCategory(category.id),
-                        tvAccessibilityID: "home.open.category.\(category.id)"
-                    ) {
-                        categoryLabel(category)
-                    }
-                    .buttonStyle(.bordered)
-                }
+        HorizontalCarousel(
+            items: categories,
+            spacing: 12,
+            pitch: 120,
+            height: DesignTokens.categoryChipRowHeight,
+            accessibilityIdentifier: "home.category.carousel"
+        ) { category in
+            NavigationTile(
+                route: .searchCategory(category.id),
+                tvDestination: .searchCategory(category.id),
+                tvAccessibilityID: "home.open.category.\(category.id)"
+            ) {
+                categoryLabel(category)
             }
-            .scrollTargetLayout()
+            .buttonStyle(.bordered)
         }
-        .scrollTargetBehavior(.viewAligned)
-        .accessibilityIdentifier("home.category.carousel")
-        #if !os(tvOS)
-        .contentMargins(
-            .horizontal,
-            DesignTokens.pagePadding,
-            for: .scrollContent
-        )
-        .padding(.horizontal, -DesignTokens.pagePadding)
-        #endif
-        #if os(macOS)
-        .frame(height: DesignTokens.categoryChipRowHeight)
-        #endif
-        .tvShelfBehavior()
     }
 
     private var allCountriesAction: some View {

@@ -42,6 +42,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Generic `LoadableViewModel` base shared by the Countries, Favorites, Channel Grid, and Home ViewModels
 - `NavigationTile` and `TVOSChannelTile` platform-specific interaction views
 - `AudioSessionCoordinator` for iOS audio-session interruption handling
+- macOS arrow controls on horizontal carousels for mouse-only scrolling
 
 ### Changed
 
