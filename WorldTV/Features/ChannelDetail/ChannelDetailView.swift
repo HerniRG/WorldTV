@@ -93,25 +93,24 @@ struct ChannelDetailView: View {
     }
 
     private func hero(_ content: ChannelDetailContent) -> some View {
-        HStack(alignment: .top, spacing: 16) {
-            logo(content)
-            Spacer()
-            favoriteButton(content)
-        }
-        .frame(maxWidth: .infinity)
-        .overlay(alignment: .bottomLeading) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(content.channel.name)
-                    .font(.largeTitle.bold())
-                HStack(spacing: 16) {
-                    Label(content.countryName, systemImage: "globe")
-                    if let quality = content.quality {
-                        Label(quality, systemImage: "hifispeaker")
-                    }
-                }
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: DesignTokens.contentSpacing) {
+            HStack(alignment: .top, spacing: 16) {
+                logo(content)
+                Spacer()
+                favoriteButton(content)
             }
+            .frame(maxWidth: .infinity)
+
+            Text(content.channel.name)
+                .font(.largeTitle.bold())
+            HStack(spacing: 16) {
+                Label(content.countryName, systemImage: "globe")
+                if let quality = content.quality {
+                    Label(quality, systemImage: "hifispeaker")
+                }
+            }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
         }
     }
 
