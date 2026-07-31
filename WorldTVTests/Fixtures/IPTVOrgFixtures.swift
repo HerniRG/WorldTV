@@ -47,6 +47,7 @@ enum IPTVOrgFixtures {
             ],
             logos: [
                 logo(channel: "News.es", url: "https://example.com/news.png"),
+                logo(channel: "News.es", url: "http://example.com/news-insecure.png", isInUse: false),
                 logo(channel: "Missing.es", url: "https://example.com/orphan.png")
             ],
             countries: [
@@ -92,7 +93,11 @@ enum IPTVOrgFixtures {
         )
     }
 
-    private static func logo(channel: String?, url: String) -> IPTVOrgLogoDTO {
+    private static func logo(
+        channel: String?,
+        url: String,
+        isInUse: Bool = true
+    ) -> IPTVOrgLogoDTO {
         IPTVOrgLogoDTO(
             channel: channel,
             feed: nil,
@@ -100,7 +105,7 @@ enum IPTVOrgFixtures {
             width: 512,
             height: 288,
             format: "PNG",
-            isInUse: true
+            isInUse: isInUse
         )
     }
 }

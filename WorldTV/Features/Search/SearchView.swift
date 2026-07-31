@@ -5,12 +5,10 @@ struct SearchView: View {
     @State private var presentsFilters = false
     @AppStorage("showGeoBlockedChannels") private var showGeoBlockedChannels = true
 
-    let imageLoader: any ImageLoading
     let favoritesStore: FavoritesStore
 
     init(
         searchChannels: SearchChannelsUseCase,
-        imageLoader: any ImageLoading,
         favoritesStore: FavoritesStore,
         initialCategoryID: String? = nil,
         initialCountryCode: String? = nil
@@ -22,7 +20,6 @@ struct SearchView: View {
                 initialCountryCode: initialCountryCode
             )
         )
-        self.imageLoader = imageLoader
         self.favoritesStore = favoritesStore
     }
 
@@ -125,7 +122,6 @@ struct SearchView: View {
                     ForEach(channels) { item in
                         ChannelTile(
                             item: item,
-                            imageLoader: imageLoader,
                             favoritesStore: favoritesStore
                         )
                     }

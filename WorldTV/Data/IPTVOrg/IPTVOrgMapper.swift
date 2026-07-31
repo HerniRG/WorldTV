@@ -41,7 +41,7 @@ struct IPTVOrgMapper: Sendable {
         guard
             let channelID = dto.channel,
             validChannelIDs.contains(channelID),
-            let url = secureURL(from: dto.url)
+            let url = secureStreamURL(from: dto.url)
         else {
             return nil
         }
@@ -66,7 +66,7 @@ struct IPTVOrgMapper: Sendable {
         guard
             let channelID = dto.channel,
             validChannelIDs.contains(channelID),
-            let url = secureURL(from: dto.url)
+            let url = secureLogoURL(from: dto.url)
         else {
             return nil
         }
@@ -91,7 +91,19 @@ struct IPTVOrgMapper: Sendable {
         ChannelCategory(id: dto.id, name: dto.name)
     }
 
-    private func secureURL(from value: String) -> URL? {
+    private func secureStreamURL(from value: String) -> URL? {
+        guard
+            let url = URL(string: value),
+            let scheme = url.scheme?.lowercased(),
+            scheme == "https" || scheme == "http",
+            url.host != nil
+        else {
+            return nil
+        }
+        return url
+    }
+
+    private func secureLogoURL(from value: String) -> URL? {
         guard
             let url = URL(string: value),
             url.scheme?.lowercased() == "https",

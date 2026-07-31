@@ -5,7 +5,6 @@ struct AppContainer {
     let loadHomeContent: LoadHomeContentUseCase
     let loadCountries: LoadCountriesUseCase
     let loadChannelsByCountry: LoadChannelsByCountryUseCase
-    let imageLoader: any ImageLoading
     let resolvePlaybackSources: ResolvePlayableStreamUseCase
     let recordRecentlyWatched: RecordRecentlyWatchedUseCase
     let loadFavoriteChannels: LoadFavoriteChannelsUseCase
@@ -17,18 +16,20 @@ struct AppContainer {
     let loadCatalogCacheDate: LoadCatalogCacheDateUseCase
 
     static func live() -> AppContainer {
+        let urlCache = URLCache(
+            memoryCapacity: 32 * 1_024 * 1_024,
+            diskCapacity: 128 * 1_024 * 1_024
+        )
+        URLCache.shared = urlCache
+
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = 30
         configuration.timeoutIntervalForResource = 60
         configuration.requestCachePolicy = .returnCacheDataElseLoad
-        configuration.urlCache = URLCache(
-            memoryCapacity: 32 * 1_024 * 1_024,
-            diskCapacity: 128 * 1_024 * 1_024
-        )
+        configuration.urlCache = urlCache
 
         let httpClient = URLSessionHTTPClient(session: URLSession(configuration: configuration))
         let apiClient = IPTVOrgAPIClient(httpClient: httpClient)
-        let imageLoader = URLSessionImageLoader(session: URLSession(configuration: configuration))
         let baseDirectory = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
@@ -55,7 +56,6 @@ struct AppContainer {
             ),
             loadCountries: LoadCountriesUseCase(repository: repository),
             loadChannelsByCountry: LoadChannelsByCountryUseCase(repository: repository),
-            imageLoader: imageLoader,
             resolvePlaybackSources: ResolvePlayableStreamUseCase(repository: repository),
             recordRecentlyWatched: RecordRecentlyWatchedUseCase(
                 repository: recentlyWatchedRepository

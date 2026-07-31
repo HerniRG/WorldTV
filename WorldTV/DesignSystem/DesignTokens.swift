@@ -13,6 +13,8 @@ enum DesignTokens {
     static let favoriteButtonSize: CGFloat = 54
     static let favoriteIconSize: CGFloat = 24
     static let favoriteButtonInset: CGFloat = 10
+    static let channelCarouselHeight: CGFloat = 320
+    static let categoryChipRowHeight: CGFloat = 64
     #else
     static let sectionSpacing: CGFloat = 32
     static let contentSpacing: CGFloat = 16
@@ -25,5 +27,7 @@ enum DesignTokens {
     static let favoriteButtonSize: CGFloat = 36
     static let favoriteIconSize: CGFloat = 16
     static let favoriteButtonInset: CGFloat = 8
+    static let channelCarouselHeight: CGFloat = 260
+    static let categoryChipRowHeight: CGFloat = 44
     #endif
 }

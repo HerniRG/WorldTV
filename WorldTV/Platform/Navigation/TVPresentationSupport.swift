@@ -4,6 +4,10 @@ private struct PlayChannelActionKey: EnvironmentKey {
     static let defaultValue: @MainActor (String) -> Void = { _ in }
 }
 
+private struct OpenTVTopLevelDestinationKey: EnvironmentKey {
+    static let defaultValue: @MainActor (TVTopLevelDestination) -> Void = { _ in }
+}
+
 enum TVTopLevelDestination {
     case section(AppSection)
     case searchCategory(String)
@@ -25,6 +29,11 @@ extension EnvironmentValues {
     var playChannel: @MainActor (String) -> Void {
         get { self[PlayChannelActionKey.self] }
         set { self[PlayChannelActionKey.self] = newValue }
+    }
+
+    var openTVTopLevelDestination: @MainActor (TVTopLevelDestination) -> Void {
+        get { self[OpenTVTopLevelDestinationKey.self] }
+        set { self[OpenTVTopLevelDestinationKey.self] = newValue }
     }
 }
 

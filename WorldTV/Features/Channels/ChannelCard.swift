@@ -2,14 +2,12 @@ import SwiftUI
 
 struct ChannelCard: View {
     let item: ChannelCatalogItem
-    let imageLoader: any ImageLoading
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             ChannelLogoView(
                 logo: item.logo,
-                channelName: item.channel.name,
-                imageLoader: imageLoader
+                channelName: item.channel.name
             )
 
             Text(item.channel.name)

@@ -15,18 +15,15 @@ final class PlayerViewModel {
     private let channelID: String
     private let resolveSources: ResolvePlayableStreamUseCase
     private let recordRecentlyWatched: RecordRecentlyWatchedUseCase
+    private let audioSession = AudioSessionCoordinator()
+
     private var sources: [PlaybackSource] = []
     private var currentSourceIndex = 0
     private var loadTask: Task<Void, Never>?
-    private var endTask: Task<Void, Never>?
-    private var sourceTimeoutTask: Task<Void, Never>?
-    private var itemStatusObservation: NSKeyValueObservation?
-    private var timeControlObservation: NSKeyValueObservation?
-    private var interruptionObserver: NSObjectProtocol?
+    private var attempt: PlaybackAttempt?
     private var didRecordPlayback = false
     private var autoplay = true
     private var preferredQuality: Int?
-    private var didConfigureAudio = false
 
     init(
         channelID: String,
@@ -43,8 +40,7 @@ final class PlayerViewModel {
             return
         }
 
-        configureAudioSession()
-        observeInterruptions()
+        audioSession.activate(player: player)
 
         self.autoplay = autoplay
         self.preferredQuality = preferredQuality
@@ -95,12 +91,9 @@ final class PlayerViewModel {
     }
 
     func stop() {
-        interruptionObserver = nil
         loadTask?.cancel()
-        endTask?.cancel()
-        sourceTimeoutTask?.cancel()
-        itemStatusObservation = nil
-        timeControlObservation = nil
+        attempt?.cancel()
+        attempt = nil
         player.pause()
         player.replaceCurrentItem(with: nil)
     }
@@ -111,48 +104,36 @@ final class PlayerViewModel {
             return
         }
 
-        itemStatusObservation = nil
-        timeControlObservation = nil
-        endTask?.cancel()
-        sourceTimeoutTask?.cancel()
+        attempt?.cancel()
         state = .preparing
         currentSourceNumber = currentSourceIndex + 1
 
         let item = makePlayerItem(from: sources[currentSourceIndex])
         player.replaceCurrentItem(with: item)
-        observe(item)
-        startSourceTimeout()
-    }
 
-    private func observe(_ item: AVPlayerItem) {
-        itemStatusObservation = item.observe(\.status, options: [.initial, .new]) {
-            [weak self] item, _ in
-            Task { @MainActor [weak self] in
-                self?.handleItemStatus(item.status)
-            }
-        }
-
-        timeControlObservation = player.observe(\.timeControlStatus, options: [.new]) {
-            [weak self] player, _ in
-            Task { @MainActor [weak self] in
-                self?.handleTimeControlStatus(player.timeControlStatus)
-            }
-        }
-
-        endTask = Task { [weak self, weak item] in
-            guard let item else {
-                return
-            }
-            for await _ in NotificationCenter.default.notifications(
-                named: .AVPlayerItemDidPlayToEndTime,
-                object: item
-            ) {
-                guard !Task.isCancelled else {
-                    return
-                }
+        let nextAttempt = PlaybackAttempt(
+            item: item,
+            player: player,
+            preparationTimeout: .seconds(15),
+            stallTimeout: .seconds(20),
+            onStatus: { [weak self] status in
+                self?.handleItemStatus(status)
+            },
+            onTimeControl: { [weak self] status in
+                self?.handleTimeControlStatus(status)
+            },
+            onEnded: { [weak self] in
                 self?.state = .ended
+            },
+            onPreparationTimedOut: { [weak self] in
+                self?.tryAnotherSource()
+            },
+            onStalled: { [weak self] in
+                self?.tryAnotherSource()
             }
-        }
+        )
+        attempt = nextAttempt
+        nextAttempt.start()
     }
 
     private func handleItemStatus(_ status: AVPlayerItem.Status) {
@@ -166,7 +147,8 @@ final class PlayerViewModel {
                 state = .paused
             }
         case .failed:
-            sourceTimeoutTask?.cancel()
+            attempt?.cancel()
+            attempt = nil
             tryAnotherSource()
         @unknown default:
             fail(.unavailable)
@@ -179,27 +161,38 @@ final class PlayerViewModel {
         }
         switch status {
         case .paused:
-            state = .paused
-        case .waitingToPlayAtSpecifiedRate:
-            state = .buffering
-        case .playing:
-            sourceTimeoutTask?.cancel()
-            state = .playing
-            if !didRecordPlayback {
-                didRecordPlayback = true
-                Task {
-                    await recordRecentlyWatched.execute(channelID: channelID)
-                }
+            if attempt?.hasStartedPlaying == true {
+                state = .paused
             }
+        case .waitingToPlayAtSpecifiedRate:
+            if attempt?.hasStartedPlaying == true {
+                attempt?.armStallTimeout()
+                state = .buffering
+            } else {
+                state = .buffering
+            }
+        case .playing:
+            attempt?.markStartedPlaying()
+            state = .playing
+            recordPlaybackIfNeeded()
         @unknown default:
             fail(.unavailable)
         }
     }
 
+    private func recordPlaybackIfNeeded() {
+        guard !didRecordPlayback else {
+            return
+        }
+        didRecordPlayback = true
+        Task {
+            await recordRecentlyWatched.execute(channelID: channelID)
+        }
+    }
+
     private func fail(_ error: PlaybackError) {
-        sourceTimeoutTask?.cancel()
-        itemStatusObservation = nil
-        timeControlObservation = nil
+        attempt?.cancel()
+        attempt = nil
         player.pause()
         player.replaceCurrentItem(with: nil)
         state = .failed(error)
@@ -223,73 +216,113 @@ final class PlayerViewModel {
         )
         return AVPlayerItem(asset: asset)
     }
+}
 
-    private func startSourceTimeout() {
-        sourceTimeoutTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(15))
+@MainActor
+private final class PlaybackAttempt {
+    private(set) var hasStartedPlaying = false
+
+    private let item: AVPlayerItem
+    private let preparationTimeout: Duration
+    private let stallTimeout: Duration
+    private let onStatus: @MainActor (AVPlayerItem.Status) -> Void
+    private let onTimeControl: @MainActor (AVPlayer.TimeControlStatus) -> Void
+    private let onEnded: @MainActor () -> Void
+    private let onPreparationTimedOut: @MainActor () -> Void
+    private let onStalled: @MainActor () -> Void
+
+    private var statusObservation: NSKeyValueObservation?
+    private var timeControlObservation: NSKeyValueObservation?
+    private var endTask: Task<Void, Never>?
+    private var preparationTask: Task<Void, Never>?
+    private var stallTask: Task<Void, Never>?
+
+    init(
+        item: AVPlayerItem,
+        player: AVPlayer,
+        preparationTimeout: Duration,
+        stallTimeout: Duration,
+        onStatus: @escaping @MainActor (AVPlayerItem.Status) -> Void,
+        onTimeControl: @escaping @MainActor (AVPlayer.TimeControlStatus) -> Void,
+        onEnded: @escaping @MainActor () -> Void,
+        onPreparationTimedOut: @escaping @MainActor () -> Void,
+        onStalled: @escaping @MainActor () -> Void
+    ) {
+        self.item = item
+        self.preparationTimeout = preparationTimeout
+        self.stallTimeout = stallTimeout
+        self.onStatus = onStatus
+        self.onTimeControl = onTimeControl
+        self.onEnded = onEnded
+        self.onPreparationTimedOut = onPreparationTimedOut
+        self.onStalled = onStalled
+
+        statusObservation = item.observe(\.status, options: [.initial, .new]) {
+            [weak self] item, _ in
+            Task { @MainActor [weak self] in
+                self?.onStatus(item.status)
+            }
+        }
+        timeControlObservation = player.observe(\.timeControlStatus, options: [.new]) {
+            [weak self] player, _ in
+            Task { @MainActor [weak self] in
+                self?.onTimeControl(player.timeControlStatus)
+            }
+        }
+    }
+
+    func start() {
+        endTask = Task { [weak self, weak item] in
+            guard let item else {
+                return
+            }
+            for await _ in NotificationCenter.default.notifications(
+                named: .AVPlayerItemDidPlayToEndTime,
+                object: item
+            ) {
+                guard !Task.isCancelled, let self else {
+                    return
+                }
+                self.onEnded()
+            }
+        }
+        preparationTask = Task { [weak self, preparationTimeout] in
+            try? await Task.sleep(for: preparationTimeout)
             guard !Task.isCancelled, let self else {
                 return
             }
-            switch state {
-            case .preparing, .buffering:
-                tryAnotherSource()
-            default:
-                break
-            }
+            self.onPreparationTimedOut()
         }
     }
 
-    private func configureAudioSession() {
-        #if os(iOS)
-        guard !didConfigureAudio else { return }
-        didConfigureAudio = true
-
-        let session = AVAudioSession.sharedInstance()
-        try? session.setCategory(.playback, mode: .default)
-        try? session.setActive(true)
-        #endif
+    func markStartedPlaying() {
+        hasStartedPlaying = true
+        preparationTask?.cancel()
+        preparationTask = nil
+        stallTask?.cancel()
+        stallTask = nil
     }
 
-    private func observeInterruptions() {
-        #if os(iOS)
-        guard interruptionObserver == nil else { return }
-
-        interruptionObserver = NotificationCenter.default.addObserver(
-            forName: AVAudioSession.interruptionNotification,
-            object: AVAudioSession.sharedInstance(),
-            queue: .main
-        ) { [weak self] notification in
-            guard
-                let userInfo = notification.userInfo,
-                let typeValue = userInfo[
-                    AVAudioSessionInterruptionTypeKey
-                ] as? UInt,
-                let type = AVAudioSession.InterruptionType(rawValue: typeValue)
-            else {
+    func armStallTimeout() {
+        guard stallTask == nil else {
+            return
+        }
+        stallTask = Task { [weak self, stallTimeout] in
+            try? await Task.sleep(for: stallTimeout)
+            guard !Task.isCancelled, let self else {
                 return
             }
-
-            switch type {
-            case .began:
-                self?.player.pause()
-            case .ended:
-                guard
-                    let optionsValue = userInfo[
-                        AVAudioSessionInterruptionOptionKey
-                    ] as? UInt
-                else {
-                    return
-                }
-                let options = AVAudioSession.InterruptionOptions(
-                    rawValue: optionsValue
-                )
-                if options.contains(.shouldResume) {
-                    self?.player.play()
-                }
-            default:
-                break
-            }
+            self.onStalled()
         }
-        #endif
+    }
+
+    func cancel() {
+        statusObservation?.invalidate()
+        statusObservation = nil
+        timeControlObservation?.invalidate()
+        timeControlObservation = nil
+        endTask?.cancel()
+        preparationTask?.cancel()
+        stallTask?.cancel()
     }
 }

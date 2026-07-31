@@ -39,5 +39,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Privacy manifest with the required reason for app-local preferences
 - Bilingual privacy and support documents linked from the app
 - Copy-ready App Store metadata and release-readiness checklist
+- Generic `LoadableViewModel` base shared by the Countries, Favorites, Channel Grid, and Home ViewModels
+- `NavigationTile` and `TVOSChannelTile` platform-specific interaction views
+- `AudioSessionCoordinator` for iOS audio-session interruption handling
+
+### Changed
+
+- Mapper accepts HTTP or HTTPS stream URLs while logos stay HTTPS-only, backed by a narrowly scoped `NSAllowsArbitraryLoadsForMedia` ATS exception
+- `PlayerViewModel` rewritten around a dedicated `PlaybackAttempt` with 15-second preparation and 20-second stall timeouts
+- Channel logos load through SwiftUI `AsyncImage` and the shared `URLCache`
+- iOS and macOS navigation unified under `AppRootView`; tvOS retains its focus-aware root
+- Feature ViewModels now inherit the shared load-state machinery from `LoadableViewModel`
+- macOS Home carousels use fixed heights so horizontal shelves render correctly
 
 [Unreleased]: https://github.com/HerniRG/WorldTV/commits/main

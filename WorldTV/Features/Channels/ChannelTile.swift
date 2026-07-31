@@ -3,111 +3,18 @@ import SwiftUI
 struct ChannelTile: View {
     @Environment(\.playChannel) private var playChannel
     @Environment(\.colorScheme) private var colorScheme
-    #if os(tvOS)
-    @Environment(\.playerServices) private var playerServices
-    @State private var presentsPlayer = false
-    @FocusState private var isFocused: Bool
-    #endif
 
     let item: ChannelCatalogItem
-    let imageLoader: any ImageLoading
     let favoritesStore: FavoritesStore
     var width: CGFloat?
 
     var body: some View {
         #if os(tvOS)
-        tvOSCard
+        TVOSChannelTile(item: item, favoritesStore: favoritesStore, width: width)
         #else
         standardCard
         #endif
     }
-
-    #if os(tvOS)
-    private var tvOSCard: some View {
-        Button {
-            if item.isAvailable {
-                presentsPlayer = true
-            }
-        } label: {
-            card
-                .overlay(alignment: .topTrailing) {
-                    if favoritesStore.contains(item.id) {
-                        favoriteStatus
-                    }
-                }
-        }
-        .focused($isFocused)
-        .defaultFocus(
-            $isFocused,
-            true,
-            priority: .userInitiated
-        )
-        .worldTVCardButtonStyle()
-        .contextMenu {
-            Button {
-                Task {
-                    await favoritesStore.toggle(item.id)
-                }
-            } label: {
-                Label(
-                    favoritesStore.contains(item.id)
-                        ? "favorites.remove"
-                        : "favorites.add",
-                    systemImage: favoritesStore.contains(item.id)
-                        ? "star.slash"
-                        : "star"
-                )
-            }
-        }
-        .opacity(item.isAvailable ? 1 : 0.62)
-        .frame(width: width)
-        .accessibilityIdentifier(
-            "channel.\(item.id).\(item.isAvailable ? "available" : "unavailable")"
-        )
-        .accessibilityHint(
-            item.isAvailable
-                ? Text("channel.play.hint")
-                : Text("channel.unavailable")
-        )
-        .fullScreenCover(
-            isPresented: $presentsPlayer,
-            onDismiss: restoreFocus
-        ) {
-            if let playerServices {
-                PlayerView(
-                    channelID: item.id,
-                    resolveSources: playerServices.resolveSources,
-                    recordRecentlyWatched:
-                        playerServices.recordRecentlyWatched,
-                    closePresentation: {
-                        presentsPlayer = false
-                    }
-                )
-            }
-        }
-    }
-
-    private func restoreFocus() {
-        Task { @MainActor in
-            isFocused = false
-            try? await Task.sleep(for: .milliseconds(300))
-            isFocused = true
-        }
-    }
-
-    private var favoriteStatus: some View {
-        Image(systemName: "star.fill")
-            .font(.system(size: DesignTokens.favoriteIconSize, weight: .semibold))
-            .foregroundStyle(.yellow)
-            .frame(
-                width: DesignTokens.favoriteButtonSize,
-                height: DesignTokens.favoriteButtonSize
-            )
-            .background(.black.opacity(0.78), in: Circle())
-            .padding(DesignTokens.favoriteButtonInset)
-            .accessibilityHidden(true)
-    }
-    #endif
 
     private var standardCard: some View {
         ZStack(alignment: .topTrailing) {
@@ -178,7 +85,7 @@ struct ChannelTile: View {
     }
 
     private var card: some View {
-        ChannelCard(item: item, imageLoader: imageLoader)
+        ChannelCard(item: item)
             .frame(maxWidth: .infinity)
     }
 }

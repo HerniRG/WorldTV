@@ -2,13 +2,11 @@ import SwiftUI
 
 struct ChannelGridView: View {
     @State private var viewModel: ChannelGridViewModel
-    private let imageLoader: any ImageLoading
     private let favoritesStore: FavoritesStore
 
     init(
         countryCode: String,
         loadChannels: LoadChannelsByCountryUseCase,
-        imageLoader: any ImageLoading,
         favoritesStore: FavoritesStore
     ) {
         _viewModel = State(
@@ -17,7 +15,6 @@ struct ChannelGridView: View {
                 loadChannels: loadChannels
             )
         )
-        self.imageLoader = imageLoader
         self.favoritesStore = favoritesStore
     }
 
@@ -70,7 +67,6 @@ struct ChannelGridView: View {
                     ForEach(viewModel.filteredChannels) { item in
                         ChannelTile(
                             item: item,
-                            imageLoader: imageLoader,
                             favoritesStore: favoritesStore
                         )
                     }

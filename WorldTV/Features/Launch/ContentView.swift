@@ -14,10 +14,8 @@ struct ContentView: View {
     var body: some View {
         #if os(tvOS)
         TVRootView(homeViewModel: homeViewModel, container: container)
-        #elseif os(macOS)
-        MacRootView(homeViewModel: homeViewModel, container: container)
         #else
-        IOSRootView(homeViewModel: homeViewModel, container: container)
+        AppRootView(homeViewModel: homeViewModel, container: container)
         #endif
     }
 }

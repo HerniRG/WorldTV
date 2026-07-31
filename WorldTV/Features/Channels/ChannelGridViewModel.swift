@@ -3,8 +3,7 @@ import Observation
 
 @Observable
 @MainActor
-final class ChannelGridViewModel {
-    private(set) var state: Loadable<CountryChannels> = .idle
+final class ChannelGridViewModel: LoadableViewModel<CountryChannels> {
     var searchText = ""
 
     private let countryCode: String
@@ -13,6 +12,12 @@ final class ChannelGridViewModel {
     init(countryCode: String, loadChannels: LoadChannelsByCountryUseCase) {
         self.countryCode = countryCode
         self.loadChannels = loadChannels
+        super.init(load: { [countryCode, loadChannels] _ in
+            guard let content = try await loadChannels.execute(countryCode: countryCode) else {
+                return nil
+            }
+            return content.channels.isEmpty ? nil : content
+        })
     }
 
     var filteredChannels: [ChannelCatalogItem] {
@@ -29,25 +34,5 @@ final class ChannelGridViewModel {
                     $0.localizedCaseInsensitiveContains(query)
                 }
         }
-    }
-
-    func loadIfNeeded() async {
-        guard case .idle = state else {
-            return
-        }
-        state = .loading
-        do {
-            guard let content = try await loadChannels.execute(countryCode: countryCode) else {
-                state = .empty
-                return
-            }
-            state = content.channels.isEmpty ? .empty : .loaded(content)
-        } catch {
-            state = .failed(.catalogUnavailable)
-        }
-    }
-
-    func retry() {
-        state = .idle
     }
 }

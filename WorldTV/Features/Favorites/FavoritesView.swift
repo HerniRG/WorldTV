@@ -2,12 +2,10 @@ import SwiftUI
 
 struct FavoritesView: View {
     @State private var viewModel: FavoritesViewModel
-    let imageLoader: any ImageLoading
     let favoritesStore: FavoritesStore
 
     init(
         loadFavoriteChannels: LoadFavoriteChannelsUseCase,
-        imageLoader: any ImageLoading,
         favoritesStore: FavoritesStore
     ) {
         _viewModel = State(
@@ -15,7 +13,6 @@ struct FavoritesView: View {
                 loadFavoriteChannels: loadFavoriteChannels
             )
         )
-        self.imageLoader = imageLoader
         self.favoritesStore = favoritesStore
     }
 
@@ -70,7 +67,6 @@ struct FavoritesView: View {
                     ForEach(channels) { item in
                         ChannelTile(
                             item: item,
-                            imageLoader: imageLoader,
                             favoritesStore: favoritesStore
                         )
                     }

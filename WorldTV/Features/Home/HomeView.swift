@@ -2,9 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @Bindable var viewModel: HomeViewModel
-    let imageLoader: any ImageLoading
     let favoritesStore: FavoritesStore
-    var openTVTopLevelDestination: @MainActor (TVTopLevelDestination) -> Void = { _ in }
 
     var body: some View {
         Group {
@@ -34,7 +32,7 @@ struct HomeView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .task {
             await favoritesStore.loadIfNeeded()
-            viewModel.loadIfNeeded()
+            await viewModel.loadIfNeeded()
         }
         .onAppear {
             viewModel.reloadVisibleContent()
@@ -83,25 +81,15 @@ struct HomeView: View {
                     spacing: DesignTokens.contentSpacing
                 ) {
                     ForEach(content.popularCountries) { item in
-                        #if os(tvOS)
-                        Button {
-                            openTVTopLevelDestination(
-                                .searchCountry(item.country.code)
-                            )
-                        } label: {
+                        NavigationTile(
+                            route: .country(item.country.code),
+                            tvDestination: .searchCountry(item.country.code),
+                            accessibilityID: "country.\(item.country.code)",
+                            tvAccessibilityID: "home.open.country.\(item.country.code)"
+                        ) {
                             CountryCard(item: item)
                         }
                         .worldTVCardButtonStyle()
-                        .accessibilityIdentifier(
-                            "home.open.country.\(item.country.code)"
-                        )
-                        #else
-                        NavigationLink(value: AppRoute.country(item.country.code)) {
-                            CountryCard(item: item)
-                        }
-                        .worldTVCardButtonStyle()
-                        .accessibilityIdentifier("country.\(item.country.code)")
-                        #endif
                     }
                 }
 
@@ -148,7 +136,6 @@ struct HomeView: View {
                 ForEach(channels) { item in
                     ChannelTile(
                         item: item,
-                        imageLoader: imageLoader,
                         favoritesStore: favoritesStore,
                         width: DesignTokens.cardWidth
                     )
@@ -166,6 +153,9 @@ struct HomeView: View {
             for: .scrollContent
         )
         .padding(.horizontal, -DesignTokens.pagePadding)
+        #endif
+        #if os(macOS)
+        .frame(height: DesignTokens.channelCarouselHeight)
         #endif
         .tvShelfBehavior()
     }
@@ -186,20 +176,14 @@ struct HomeView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
                 ForEach(categories) { category in
-                    #if os(tvOS)
-                    Button {
-                        openTVTopLevelDestination(.searchCategory(category.id))
-                    } label: {
+                    NavigationTile(
+                        route: .searchCategory(category.id),
+                        tvDestination: .searchCategory(category.id),
+                        tvAccessibilityID: "home.open.category.\(category.id)"
+                    ) {
                         categoryLabel(category)
                     }
                     .buttonStyle(.bordered)
-                    .accessibilityIdentifier("home.open.category.\(category.id)")
-                    #else
-                    NavigationLink(value: AppRoute.searchCategory(category.id)) {
-                        categoryLabel(category)
-                    }
-                    .buttonStyle(.bordered)
-                    #endif
                 }
             }
             .scrollTargetLayout()
@@ -214,43 +198,32 @@ struct HomeView: View {
         )
         .padding(.horizontal, -DesignTokens.pagePadding)
         #endif
+        #if os(macOS)
+        .frame(height: DesignTokens.categoryChipRowHeight)
+        #endif
         .tvShelfBehavior()
     }
 
-    @ViewBuilder
     private var allCountriesAction: some View {
-        #if os(tvOS)
-        Button {
-            openTVTopLevelDestination(.section(.countries))
-        } label: {
+        NavigationTile(
+            route: .countries,
+            tvDestination: .section(.countries),
+            tvAccessibilityID: "home.open.countries"
+        ) {
             Label("home.allCountries", systemImage: "globe")
         }
         .buttonStyle(.borderedProminent)
-        .accessibilityIdentifier("home.open.countries")
-        #else
-        NavigationLink(value: AppRoute.countries) {
-            Label("home.allCountries", systemImage: "globe")
-        }
-        .buttonStyle(.borderedProminent)
-        #endif
     }
 
-    @ViewBuilder
     private var favoritesAction: some View {
-        #if os(tvOS)
-        Button {
-            openTVTopLevelDestination(.section(.favorites))
-        } label: {
+        NavigationTile(
+            route: .favorites,
+            tvDestination: .section(.favorites),
+            tvAccessibilityID: "home.open.favorites"
+        ) {
             Label("favorites.open", systemImage: "star")
         }
         .buttonStyle(.bordered)
-        .accessibilityIdentifier("home.open.favorites")
-        #else
-        NavigationLink(value: AppRoute.favorites) {
-            Label("favorites.open", systemImage: "star")
-        }
-        .buttonStyle(.bordered)
-        #endif
     }
 
     private func categoryLabel(_ category: ChannelCategory) -> some View {

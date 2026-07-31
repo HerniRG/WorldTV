@@ -3,35 +3,20 @@ import Observation
 
 @Observable
 @MainActor
-final class FavoritesViewModel {
-    private(set) var state: Loadable<[ChannelCatalogItem]> = .idle
-
+final class FavoritesViewModel: LoadableViewModel<[ChannelCatalogItem]> {
     private let loadFavoriteChannels: LoadFavoriteChannelsUseCase
 
     init(loadFavoriteChannels: LoadFavoriteChannelsUseCase) {
         self.loadFavoriteChannels = loadFavoriteChannels
-    }
-
-    func loadIfNeeded() async {
-        guard case .idle = state else {
-            return
-        }
-        await load()
+        super.init(load: { [loadFavoriteChannels] _ in
+            let channels = try await loadFavoriteChannels.execute()
+            return channels.isEmpty ? nil : channels
+        })
     }
 
     func reload() {
         Task {
-            await load()
-        }
-    }
-
-    private func load() async {
-        state = .loading
-        do {
-            let channels = try await loadFavoriteChannels.execute()
-            state = channels.isEmpty ? .empty : .loaded(channels)
-        } catch {
-            state = .failed(.catalogUnavailable)
+            await super.reload()
         }
     }
 }
