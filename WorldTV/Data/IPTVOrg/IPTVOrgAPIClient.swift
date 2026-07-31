@@ -20,6 +20,8 @@ struct IPTVOrgAPIClient: IPTVOrgCatalogProviding {
         async let countries: [IPTVOrgCountryDTO] = fetch(.countries)
         async let categories: [IPTVOrgCategoryDTO] = fetch(.categories)
         async let blocklist: [IPTVOrgBlocklistDTO] = fetch(.blocklist)
+        async let feeds: [IPTVOrgFeedDTO] = fetch(.feeds)
+        async let languages: [IPTVOrgLanguageDTO] = fetch(.languages)
 
         return try await IPTVOrgCatalogPayload(
             channels: channels,
@@ -27,7 +29,9 @@ struct IPTVOrgAPIClient: IPTVOrgCatalogProviding {
             logos: logos,
             countries: countries,
             categories: categories,
-            blocklist: blocklist
+            blocklist: blocklist,
+            feeds: feeds,
+            languages: languages
         )
     }
 

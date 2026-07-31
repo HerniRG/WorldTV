@@ -4,6 +4,10 @@ private struct PlayChannelActionKey: EnvironmentKey {
     static let defaultValue: @MainActor (String) -> Void = { _ in }
 }
 
+private struct PlayChannelWithInitialFeedActionKey: EnvironmentKey {
+    static let defaultValue: @MainActor (String, String?) -> Void = { _, _ in }
+}
+
 private struct OpenTVTopLevelDestinationKey: EnvironmentKey {
     static let defaultValue: @MainActor (TVTopLevelDestination) -> Void = { _ in }
 }
@@ -29,6 +33,11 @@ extension EnvironmentValues {
     var playChannel: @MainActor (String) -> Void {
         get { self[PlayChannelActionKey.self] }
         set { self[PlayChannelActionKey.self] = newValue }
+    }
+
+    var playChannelWithInitialFeed: @MainActor (String, String?) -> Void {
+        get { self[PlayChannelWithInitialFeedActionKey.self] }
+        set { self[PlayChannelWithInitialFeedActionKey.self] = newValue }
     }
 
     var openTVTopLevelDestination: @MainActor (TVTopLevelDestination) -> Void {

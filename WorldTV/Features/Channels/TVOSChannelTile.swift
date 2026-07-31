@@ -31,6 +31,9 @@ struct TVOSChannelTile: View {
         )
         .worldTVCardButtonStyle()
         .contextMenu {
+            NavigationLink(value: AppRoute.channel(item.id)) {
+                Label("channel.details", systemImage: "info.circle")
+            }
             Button {
                 Task {
                     await favoritesStore.toggle(item.id)

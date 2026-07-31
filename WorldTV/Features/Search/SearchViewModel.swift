@@ -15,6 +15,9 @@ final class SearchViewModel {
     var selectedCategoryID: String? {
         didSet { scheduleSearch() }
     }
+    var selectedLanguageCode: String? {
+        didSet { scheduleSearch() }
+    }
     var minimumQuality: Int? {
         didSet { scheduleSearch() }
     }
@@ -46,6 +49,7 @@ final class SearchViewModel {
         [
             selectedCountryCode != nil,
             selectedCategoryID != nil,
+            selectedLanguageCode != nil,
             minimumQuality != nil,
             favoritesOnly,
             !availableOnly,
@@ -70,6 +74,7 @@ final class SearchViewModel {
     func resetFilters() {
         selectedCountryCode = nil
         selectedCategoryID = nil
+        selectedLanguageCode = nil
         minimumQuality = nil
         favoritesOnly = false
         availableOnly = true
@@ -82,6 +87,7 @@ final class SearchViewModel {
             query: query,
             countryCode: selectedCountryCode,
             categoryID: selectedCategoryID,
+            languageCode: selectedLanguageCode,
             minimumQuality: minimumQuality,
             favoritesOnly: favoritesOnly,
             availableOnly: availableOnly,

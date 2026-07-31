@@ -32,7 +32,24 @@ struct IPTVOrgMapperTests {
         #expect(logos.count == 1)
         #expect(logos.first?.url.absoluteString == "https://example.com/news.png")
         #expect(logos.first?.isInUse == true)
+        #expect(logos.first?.tags == ["horizontal"])
         #expect(catalog.logosByChannelID["Missing.es"] == nil)
+    }
+
+    @Test
+    func mapsFeedsAndLanguages() {
+        #expect(catalog.feeds.map(\.id) == ["main", "intl"])
+        #expect(catalog.feeds.first?.isMain == true)
+        #expect(catalog.feeds.first?.languages == ["spa"])
+        #expect(catalog.languages.first(where: { $0.code == "eng" })?.name == "English")
+    }
+
+    @Test
+    func mapsNetworkAndOwnersOnChannels() throws {
+        let channel = try #require(catalog.channels.first)
+        #expect(channel.network == "News Network")
+        #expect(channel.owners == ["Owner Corp"])
+        #expect(channel.broadcasterName == "News Network")
     }
 
     @Test

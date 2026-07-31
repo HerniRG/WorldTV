@@ -8,6 +8,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
+- Channel feeds and languages loaded from the iptv-org API, exposing regional feed variants in the player and channel detail
+- Search filter by language on iOS, macOS, and tvOS
+- Explore by category from Home and dedicated category channel grids
+- Channel detail screen with hero logo, metadata, feed picker, and play action (info button on channel tiles)
+- Networks row on Home grouping channels by broadcaster or owner, with per-network channel grids
+- Horizontal-tag preference when selecting a preferred channel logo
 - Native SwiftUI application for iOS, iPadOS, macOS, and tvOS
 - Structured iptv-org catalog loading, mapping, exclusions, indexing, and persistent cache
 - Home, countries, channel grids, asynchronous logos, search, and filters

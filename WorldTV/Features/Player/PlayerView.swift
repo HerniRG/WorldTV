@@ -11,6 +11,7 @@ struct PlayerView: View {
         channelID: String,
         resolveSources: ResolvePlayableStreamUseCase,
         recordRecentlyWatched: RecordRecentlyWatchedUseCase,
+        initialFeedID: String? = nil,
         closePresentation: (@MainActor () -> Void)? = nil
     ) {
         self.closePresentation = closePresentation
@@ -18,7 +19,8 @@ struct PlayerView: View {
             initialValue: PlayerViewModel(
                 channelID: channelID,
                 resolveSources: resolveSources,
-                recordRecentlyWatched: recordRecentlyWatched
+                recordRecentlyWatched: recordRecentlyWatched,
+                initialFeedID: initialFeedID
             )
         )
     }
@@ -52,20 +54,54 @@ struct PlayerView: View {
         }
         #if os(iOS) || os(macOS)
         .overlay(alignment: .topLeading) {
-            Button {
-                close()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.headline.bold())
-                    .frame(width: 44, height: 44)
-                    .background(.ultraThinMaterial, in: Circle())
+            VStack(alignment: .leading, spacing: 8) {
+                Button {
+                    close()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.headline.bold())
+                        .frame(width: 44, height: 44)
+                        .background(.ultraThinMaterial, in: Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("player.close"))
+                .accessibilityIdentifier("player.close")
+
+                if let title = viewModel.currentSourceTitle {
+                    Text(title)
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.85))
+                        .lineLimit(1)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .accessibilityIdentifier("player.source.title")
+                }
             }
-            .buttonStyle(.plain)
             .padding()
-            .accessibilityLabel(Text("player.close"))
-            .accessibilityIdentifier("player.close")
         }
         #endif
+        .overlay(alignment: .topTrailing) {
+            if viewModel.feeds.count > 1 {
+                Menu {
+                    Picker("player.feed", selection: feedSelection) {
+                        Text("player.feed.auto").tag(String?.none)
+                        ForEach(viewModel.feeds) { feed in
+                            Text(feed.name ?? feed.id).tag(Optional(feed.id))
+                        }
+                    }
+                } label: {
+                    Image(systemName: "list.bullet")
+                        .font(.headline.bold())
+                        .frame(width: 44, height: 44)
+                        .background(.ultraThinMaterial, in: Circle())
+                }
+                .buttonStyle(.plain)
+                .padding()
+                .accessibilityLabel(Text("player.feed"))
+                .accessibilityIdentifier("player.feed")
+            }
+        }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea()
         .platformNavigationTitle(verbatim: viewModel.channelName)
@@ -90,6 +126,11 @@ struct PlayerView: View {
         VStack(spacing: 16) {
             ProgressView()
             Text(title)
+            if let sourceTitle = viewModel.currentSourceTitle {
+                Text(sourceTitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
             if viewModel.sourceCount > 1 {
                 Text(
                     "\(viewModel.currentSourceNumber) / \(viewModel.sourceCount)"
@@ -122,6 +163,13 @@ struct PlayerView: View {
         } else {
             dismiss()
         }
+    }
+
+    private var feedSelection: Binding<String?> {
+        Binding(
+            get: { viewModel.selectedFeedID },
+            set: { viewModel.selectFeed($0) }
+        )
     }
 
     private func message(for error: PlaybackError) -> LocalizedStringKey {

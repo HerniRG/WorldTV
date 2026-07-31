@@ -7,4 +7,7 @@ enum AppRoute: Hashable {
     case searchCategory(String)
     case about
     case country(String)
+    case category(String)
+    case channel(String)
+    case network(String)
 }

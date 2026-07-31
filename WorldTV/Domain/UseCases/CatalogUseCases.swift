@@ -39,6 +39,31 @@ struct LoadHomeContentUseCase: Sendable {
             }
             return $0.channelCount > $1.channelCount
         }
+        let categories = catalog.categories.compactMap { category -> CategoryCatalogItem? in
+            let count = catalog.channels.lazy.filter {
+                $0.categoryIDs.contains(category.id)
+            }.count
+            return count == 0 ? nil : CategoryCatalogItem(category: category, channelCount: count)
+        }
+        .sorted {
+            $0.category.name.localizedStandardCompare($1.category.name) == .orderedAscending
+        }
+        let broadcasters = catalog.index.channelsByBroadcaster.map { name, channels in
+            BroadcasterCatalogItem(
+                id: name,
+                name: name,
+                channelCount: channels.count,
+                logos: channels.prefix(4).compactMap {
+                    catalog.index.preferredLogoByChannelID[$0.id]
+                }
+            )
+        }
+        .sorted {
+            if $0.channelCount == $1.channelCount {
+                return $0.name.localizedStandardCompare($1.name) == .orderedAscending
+            }
+            return $0.channelCount > $1.channelCount
+        }
 
         let featured = catalog.channels.lazy
             .filter { catalog.streamsByChannelID[$0.id]?.isEmpty == false }
@@ -60,7 +85,8 @@ struct LoadHomeContentUseCase: Sendable {
             recentlyWatched: recentlyWatched,
             featuredChannels: Array(featured),
             popularCountries: Array(countries.prefix(12)),
-            categories: Array(catalog.categories.prefix(12))
+            categories: Array(categories.prefix(12)),
+            broadcasters: Array(broadcasters.prefix(12))
         )
     }
 }
@@ -103,6 +129,116 @@ struct LoadChannelsByCountryUseCase: Sendable {
                 $0.channel.name.localizedStandardCompare($1.channel.name) == .orderedAscending
             }
         return CountryChannels(country: country, channels: channels)
+    }
+}
+
+struct LoadCategoriesUseCase: Sendable {
+    private let repository: any ChannelRepository
+
+    init(repository: any ChannelRepository) {
+        self.repository = repository
+    }
+
+    func execute() async throws -> [CategoryCatalogItem] {
+        let catalog = try await repository.loadCatalog()
+        return catalog.categories.compactMap { category -> CategoryCatalogItem? in
+            let count = catalog.channels.lazy.filter {
+                $0.categoryIDs.contains(category.id)
+            }.count
+            return count == 0 ? nil : CategoryCatalogItem(category: category, channelCount: count)
+        }
+        .sorted {
+            $0.category.name.localizedStandardCompare($1.category.name) == .orderedAscending
+        }
+    }
+}
+
+struct LoadChannelsByCategoryUseCase: Sendable {
+    private let repository: any ChannelRepository
+
+    init(repository: any ChannelRepository) {
+        self.repository = repository
+    }
+
+    func execute(categoryID: String) async throws -> CategoryChannels? {
+        let catalog = try await repository.loadCatalog()
+        guard let category = catalog.categories.first(where: { $0.id == categoryID }) else {
+            return nil
+        }
+
+        let channels = catalog.channels
+            .filter { $0.categoryIDs.contains(categoryID) }
+            .map { makeChannelItem($0, catalog: catalog) }
+            .sorted {
+                $0.channel.name.localizedStandardCompare($1.channel.name) == .orderedAscending
+            }
+        return CategoryChannels(category: category, channels: channels)
+    }
+}
+
+struct LoadChannelsByBroadcasterUseCase: Sendable {
+    private let repository: any ChannelRepository
+
+    init(repository: any ChannelRepository) {
+        self.repository = repository
+    }
+
+    func execute(broadcasterID: String) async throws -> BroadcasterChannels? {
+        let catalog = try await repository.loadCatalog()
+        guard
+            let channels = catalog.index.channelsByBroadcaster[broadcasterID],
+            !channels.isEmpty
+        else {
+            return nil
+        }
+        let items = channels
+            .map { makeChannelItem($0, catalog: catalog) }
+            .sorted {
+                $0.channel.name.localizedStandardCompare($1.channel.name) == .orderedAscending
+            }
+        return BroadcasterChannels(
+            broadcaster: BroadcasterCatalogItem(
+                id: broadcasterID,
+                name: broadcasterID,
+                channelCount: channels.count,
+                logos: channels.prefix(4).compactMap {
+                    catalog.index.preferredLogoByChannelID[$0.id]
+                }
+            ),
+            channels: items
+        )
+    }
+}
+
+struct LoadChannelDetailUseCase: Sendable {
+    private let repository: any ChannelRepository
+
+    init(repository: any ChannelRepository) {
+        self.repository = repository
+    }
+
+    func execute(channelID: String) async throws -> ChannelDetailContent? {
+        let catalog = try await repository.loadCatalog()
+        guard let channel = catalog.index.channelsByID[channelID] else {
+            return nil
+        }
+        let streams = catalog.streamsByChannelID[channelID] ?? []
+        return ChannelDetailContent(
+            channel: channel,
+            logo: catalog.index.preferredLogoByChannelID[channelID],
+            countryName: catalog.index.countryByCode[channel.countryCode]?.name
+                ?? channel.countryCode,
+            categoryNames: channel.categoryIDs.compactMap { id in
+                catalog.categories.first(where: { $0.id == id })?.name
+            },
+            isAvailable: !streams.isEmpty,
+            isGeoBlocked: streams.contains { stream in
+                stream.label?.localizedCaseInsensitiveContains("geo") == true
+            },
+            quality: streams.compactMap(\.quality).sorted().last,
+            feeds: catalog.index.feedsByChannelID[channelID] ?? [],
+            languages: catalog.languages
+        )
     }
 }
 

@@ -31,9 +31,41 @@ struct ChannelTile: View {
             }
 
             favoriteButton
+            infoButton
         }
         .frame(width: width)
         .accessibilityElement(children: .contain)
+    }
+
+    private var infoButton: some View {
+        NavigationLink(value: AppRoute.channel(item.id)) {
+            Image(systemName: "info.circle")
+                .font(.system(size: DesignTokens.favoriteIconSize, weight: .semibold))
+                .foregroundStyle(Color.primary)
+                .frame(
+                    width: DesignTokens.favoriteButtonSize,
+                    height: DesignTokens.favoriteButtonSize
+                )
+                .background(.regularMaterial, in: Circle())
+                .overlay {
+                    Circle()
+                        .stroke(
+                            Color.primary.opacity(
+                                colorScheme == .dark ? 0.18 : 0.10
+                            ),
+                            lineWidth: 1
+                        )
+                }
+                .shadow(
+                    color: .black.opacity(colorScheme == .dark ? 0.28 : 0.12),
+                    radius: 4,
+                    y: 2
+                )
+        }
+        .buttonStyle(FocusedIconButtonStyle())
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(DesignTokens.favoriteButtonInset)
+        .accessibilityLabel(Text("channel.details"))
     }
 
     private var favoriteButton: some View {

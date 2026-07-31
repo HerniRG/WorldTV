@@ -333,6 +333,22 @@
         }
       }
     },
+    "broadcaster.channels" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "channels"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "canales"
+          }
+        }
+      }
+    },
     "catalog.empty.message" : {
       "localizations" : {
         "en" : {
@@ -429,6 +445,22 @@
         }
       }
     },
+    "category.channels" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "channels"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "canales"
+          }
+        }
+      }
+    },
     "channel.available" : {
       "localizations" : {
         "en" : {
@@ -445,6 +477,38 @@
         }
       }
     },
+    "channel.details" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Channel Details"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detalles del canal"
+          }
+        }
+      }
+    },
+    "channel.geo.warning" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "May be geographically restricted"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puede tener restricción geográfica"
+          }
+        }
+      }
+    },
     "channel.geoblocked" : {
       "localizations" : {
         "en" : {
@@ -457,6 +521,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Puede tener restricción geográfica"
+          }
+        }
+      }
+    },
+    "channel.play" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reproducir"
           }
         }
       }
@@ -781,6 +861,22 @@
         }
       }
     },
+    "home.networks" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Networks"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redes"
+          }
+        }
+      }
+    },
     "home.popularCountries" : {
       "localizations" : {
         "en" : {
@@ -957,6 +1053,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No se ha podido reproducir el canal."
+          }
+        }
+      }
+    },
+    "player.feed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Señal"
+          }
+        }
+      }
+    },
+    "player.feed.auto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automático"
+          }
+        }
+      }
+    },
+    "player.feeds" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Available feeds"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Señales disponibles"
           }
         }
       }

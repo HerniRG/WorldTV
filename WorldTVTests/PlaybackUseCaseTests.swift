@@ -77,7 +77,59 @@ struct PlaybackUseCaseTests {
         }
     }
 
-    private func makeCatalog(streams: [ChannelStream]) -> Catalog {
+    @Test
+    func prefersStreamsFromSelectedFeed() async throws {
+        let catalog = makeCatalog(
+            streams: [
+                stream("https://example.com/main.m3u8", quality: "1080p", feed: "main"),
+                stream("https://example.com/intl.m3u8", quality: "720p", feed: "intl"),
+                stream("https://example.com/unassigned.m3u8", quality: "1080p", feed: nil)
+            ],
+            feeds: [
+                ChannelFeed(
+                    id: "main",
+                    channelID: "news",
+                    name: "Main",
+                    isMain: true,
+                    languages: []
+                ),
+                ChannelFeed(
+                    id: "intl",
+                    channelID: "news",
+                    name: "International",
+                    isMain: false,
+                    languages: []
+                )
+            ]
+        )
+        let useCase = ResolvePlayableStreamUseCase(
+            repository: PlaybackStubChannelRepository(catalog: catalog)
+        )
+
+        let context = try await useCase.execute(channelID: "news", feedID: "intl")
+
+        #expect(context.sources.map(\.url.lastPathComponent) == ["intl.m3u8"])
+        #expect(context.feeds.map(\.id) == ["main", "intl"])
+    }
+
+    @Test
+    func unknownFeedFallsBackToAllSources() async throws {
+        let catalog = makeCatalog(
+            streams: [
+                stream("https://example.com/main.m3u8", quality: "1080p", feed: "main"),
+                stream("https://example.com/other.m3u8", quality: "720p", feed: nil)
+            ]
+        )
+        let useCase = ResolvePlayableStreamUseCase(
+            repository: PlaybackStubChannelRepository(catalog: catalog)
+        )
+
+        let context = try await useCase.execute(channelID: "news", feedID: "missing")
+
+        #expect(context.sources.count == 2)
+    }
+
+    private func makeCatalog(streams: [ChannelStream], feeds: [ChannelFeed] = []) -> Catalog {
         Catalog(
             channels: [
                 Channel(
@@ -94,17 +146,18 @@ struct PlaybackUseCaseTests {
             ],
             categories: [ChannelCategory(id: "news", name: "News")],
             streamsByChannelID: ["news": streams],
-            logosByChannelID: [:]
+            logosByChannelID: [:],
+            feeds: feeds
         )
     }
 
-    private func stream(_ value: String, quality: String) -> ChannelStream {
+    private func stream(_ value: String, quality: String, feed: String? = nil) -> ChannelStream {
         let url = URL(string: value)!
         return ChannelStream(
             id: url,
             channelID: "news",
             url: url,
-            feed: nil,
+            feed: feed,
             title: nil,
             quality: quality,
             label: nil,

@@ -13,13 +13,23 @@ struct IPTVOrgMapper: Sendable {
         let validChannelIDs = Set(channels.map(\.id))
         let streams = payload.streams.compactMap { mapStream($0, validChannelIDs: validChannelIDs) }
         let logos = payload.logos.compactMap { mapLogo($0, validChannelIDs: validChannelIDs) }
+        let feeds = payload.feeds
+            .compactMap { mapFeed($0, validChannelIDs: validChannelIDs) }
+            .sorted {
+                if $0.isMain != $1.isMain {
+                    return $0.isMain
+                }
+                return ($0.name ?? "") < ($1.name ?? "")
+            }
 
         return Catalog(
             channels: channels,
             countries: payload.countries.map(mapCountry).sorted { $0.name < $1.name },
             categories: payload.categories.map(mapCategory).sorted { $0.name < $1.name },
             streamsByChannelID: Dictionary(grouping: streams, by: \.channelID),
-            logosByChannelID: Dictionary(grouping: logos, by: \.channelID)
+            logosByChannelID: Dictionary(grouping: logos, by: \.channelID),
+            feeds: feeds,
+            languages: payload.languages.map(mapLanguage).sorted { $0.name < $1.name }
         )
     }
 
@@ -30,7 +40,9 @@ struct IPTVOrgMapper: Sendable {
             alternativeNames: dto.alternativeNames,
             countryCode: dto.country,
             categoryIDs: dto.categories,
-            isNSFW: dto.isNSFW
+            isNSFW: dto.isNSFW,
+            network: dto.network,
+            owners: dto.owners
         )
     }
 
@@ -79,8 +91,33 @@ struct IPTVOrgMapper: Sendable {
             width: dto.width,
             height: dto.height,
             format: dto.format,
-            isInUse: dto.isInUse
+            isInUse: dto.isInUse,
+            tags: dto.tags
         )
+    }
+
+    private func mapFeed(
+        _ dto: IPTVOrgFeedDTO,
+        validChannelIDs: Set<String>
+    ) -> ChannelFeed? {
+        guard
+            let channelID = dto.channel,
+            validChannelIDs.contains(channelID)
+        else {
+            return nil
+        }
+
+        return ChannelFeed(
+            id: dto.id,
+            channelID: channelID,
+            name: dto.name,
+            isMain: dto.isMain == true,
+            languages: dto.languages
+        )
+    }
+
+    private func mapLanguage(_ dto: IPTVOrgLanguageDTO) -> Language {
+        Language(code: dto.code, name: dto.name)
     }
 
     private func mapCountry(_ dto: IPTVOrgCountryDTO) -> Country {

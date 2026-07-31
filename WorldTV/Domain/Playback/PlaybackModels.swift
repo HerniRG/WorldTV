@@ -14,6 +14,7 @@ struct PlaybackSource: Identifiable, Equatable, Sendable {
 
 struct PlaybackContext: Sendable {
     let channel: Channel
+    let feeds: [ChannelFeed]
     let sources: [PlaybackSource]
 }
 

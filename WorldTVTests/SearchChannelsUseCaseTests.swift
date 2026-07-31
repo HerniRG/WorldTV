@@ -30,6 +30,18 @@ struct SearchChannelsUseCaseTests {
         #expect(result.channels.map(\.id) == ["sport.us"])
     }
 
+    @Test
+    func filtersChannelsByLanguage() async throws {
+        let useCase = makeUseCase()
+
+        let result = try await useCase.execute(
+            criteria: ChannelSearchCriteria(languageCode: "spa")
+        )
+
+        #expect(result.channels.map(\.id) == ["news.es"])
+        #expect(result.options.languages.map(\.code) == ["eng", "spa"])
+    }
+
     private func makeUseCase() -> SearchChannelsUseCase {
         SearchChannelsUseCase(
             channelRepository: SearchStubChannelRepository(catalog: catalog),
@@ -106,7 +118,27 @@ private enum SearchFixture {
                     )
                 ]
             ],
-            logosByChannelID: [:]
+            logosByChannelID: [:],
+            feeds: [
+                ChannelFeed(
+                    id: "news-feed",
+                    channelID: "news.es",
+                    name: "Main",
+                    isMain: true,
+                    languages: ["spa"]
+                ),
+                ChannelFeed(
+                    id: "sport-feed",
+                    channelID: "sport.us",
+                    name: "Main",
+                    isMain: true,
+                    languages: ["eng"]
+                )
+            ],
+            languages: [
+                Language(code: "spa", name: "Spanish"),
+                Language(code: "eng", name: "English")
+            ]
         )
     }()
 

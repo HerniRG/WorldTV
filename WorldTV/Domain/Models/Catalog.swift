@@ -6,6 +6,8 @@ struct Catalog: Sendable {
     let categories: [ChannelCategory]
     let streamsByChannelID: [String: [ChannelStream]]
     let logosByChannelID: [String: [ChannelLogo]]
+    let feeds: [ChannelFeed]
+    let languages: [Language]
     let index: CatalogIndex
 
     init(
@@ -13,17 +15,22 @@ struct Catalog: Sendable {
         countries: [Country],
         categories: [ChannelCategory],
         streamsByChannelID: [String: [ChannelStream]],
-        logosByChannelID: [String: [ChannelLogo]]
+        logosByChannelID: [String: [ChannelLogo]],
+        feeds: [ChannelFeed] = [],
+        languages: [Language] = []
     ) {
         self.channels = channels
         self.countries = countries
         self.categories = categories
         self.streamsByChannelID = streamsByChannelID
         self.logosByChannelID = logosByChannelID
+        self.feeds = feeds
+        self.languages = languages
         index = CatalogIndex(
             channels: channels,
             countries: countries,
-            logosByChannelID: logosByChannelID
+            logosByChannelID: logosByChannelID,
+            feeds: feeds
         )
     }
 
@@ -40,6 +47,13 @@ struct CountryCatalogItem: Identifiable, Hashable, Sendable {
     var id: String { country.id }
 
     let country: Country
+    let channelCount: Int
+}
+
+struct CategoryCatalogItem: Identifiable, Hashable, Sendable {
+    var id: String { category.id }
+
+    let category: ChannelCategory
     let channelCount: Int
 }
 
@@ -60,12 +74,42 @@ struct HomeContent: Sendable {
     let recentlyWatched: [ChannelCatalogItem]
     let featuredChannels: [ChannelCatalogItem]
     let popularCountries: [CountryCatalogItem]
-    let categories: [ChannelCategory]
+    let categories: [CategoryCatalogItem]
+    let broadcasters: [BroadcasterCatalogItem]
 }
 
 struct CountryChannels: Sendable {
     let country: Country
     let channels: [ChannelCatalogItem]
+}
+
+struct CategoryChannels: Sendable {
+    let category: ChannelCategory
+    let channels: [ChannelCatalogItem]
+}
+
+struct BroadcasterCatalogItem: Identifiable, Hashable, Sendable {
+    let id: String
+    let name: String
+    let channelCount: Int
+    let logos: [ChannelLogo]
+}
+
+struct BroadcasterChannels: Sendable {
+    let broadcaster: BroadcasterCatalogItem
+    let channels: [ChannelCatalogItem]
+}
+
+struct ChannelDetailContent: Sendable {
+    let channel: Channel
+    let logo: ChannelLogo?
+    let countryName: String
+    let categoryNames: [String]
+    let isAvailable: Bool
+    let isGeoBlocked: Bool
+    let quality: String?
+    let feeds: [ChannelFeed]
+    let languages: [Language]
 }
 
 struct CatalogSummary: Equatable, Sendable {

@@ -98,7 +98,12 @@ struct HomeView: View {
 
                 if !content.categories.isEmpty {
                     sectionTitle("home.categories", systemImage: "square.grid.2x2")
-                    categoryChips(content.categories)
+                    categoryGrid(content.categories)
+                }
+
+                if !content.broadcasters.isEmpty {
+                    sectionTitle("home.networks", systemImage: "building.2")
+                    broadcasterRow(content.broadcasters)
                 }
             }
             .padding(DesignTokens.pagePadding)
@@ -157,23 +162,47 @@ struct HomeView: View {
         }
     }
 
-    private func categoryChips(_ categories: [ChannelCategory]) -> some View {
-        HorizontalCarousel(
-            items: categories,
-            spacing: 12,
-            pitch: 120,
-            height: DesignTokens.categoryChipRowHeight,
-            accessibilityIdentifier: "home.category.carousel"
-        ) { category in
-            NavigationTile(
-                route: .searchCategory(category.id),
-                tvDestination: .searchCategory(category.id),
-                tvAccessibilityID: "home.open.category.\(category.id)"
-            ) {
-                categoryLabel(category)
+    private func categoryGrid(_ categories: [CategoryCatalogItem]) -> some View {
+        LazyVGrid(
+            columns: [
+                GridItem(
+                    .adaptive(minimum: DesignTokens.channelGridMinimum),
+                    spacing: DesignTokens.contentSpacing
+                )
+            ],
+            spacing: DesignTokens.contentSpacing
+        ) {
+            ForEach(categories) { item in
+                NavigationTile(
+                    route: .category(item.category.id),
+                    tvDestination: .searchCategory(item.category.id),
+                    accessibilityID: "category.\(item.category.id)",
+                    tvAccessibilityID: "home.open.category.\(item.category.id)"
+                ) {
+                    CategoryCard(item: item)
+                }
+                .worldTVCardButtonStyle()
             }
-            .buttonStyle(.bordered)
         }
+        #if os(tvOS)
+        .focusSection()
+        #endif
+    }
+
+    private func broadcasterRow(_ broadcasters: [BroadcasterCatalogItem]) -> some View {
+        HorizontalCarousel(
+            items: broadcasters,
+            verticalPadding: 14,
+            height: DesignTokens.broadcasterRowHeight,
+            accessibilityIdentifier: "home.broadcaster.carousel"
+        ) { item in
+            NavigationLink(value: AppRoute.network(item.id)) {
+                BroadcasterCard(item: item)
+            }
+            .worldTVCardButtonStyle()
+            .accessibilityIdentifier("broadcaster.\(item.id)")
+        }
+        .tvShelfBehavior()
     }
 
     private var allCountriesAction: some View {
@@ -196,12 +225,5 @@ struct HomeView: View {
             Label("favorites.open", systemImage: "star")
         }
         .buttonStyle(.bordered)
-    }
-
-    private func categoryLabel(_ category: ChannelCategory) -> some View {
-        Text(category.name)
-            .font(.headline)
-            .padding(.horizontal, 18)
-            .padding(.vertical, 10)
     }
 }

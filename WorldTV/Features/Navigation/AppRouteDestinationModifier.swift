@@ -38,6 +38,24 @@ struct AppRouteDestinationModifier: ViewModifier {
                 loadChannels: container.loadChannelsByCountry,
                 favoritesStore: container.favoritesStore
             )
+        case .category(let id):
+            CategoryGridView(
+                categoryID: id,
+                loadChannels: container.loadChannelsByCategory,
+                favoritesStore: container.favoritesStore
+            )
+        case .channel(let id):
+            ChannelDetailView(
+                channelID: id,
+                loadDetail: container.loadChannelDetail,
+                favoritesStore: container.favoritesStore
+            )
+        case .network(let id):
+            NetworkChannelGridView(
+                broadcasterID: id,
+                loadChannels: container.loadChannelsByBroadcaster,
+                favoritesStore: container.favoritesStore
+            )
         }
     }
 }

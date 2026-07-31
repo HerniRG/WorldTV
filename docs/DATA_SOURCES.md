@@ -12,8 +12,8 @@ WorldTV currently consumes the public JSON API maintained by [iptv-org](https://
 | Countries | `https://iptv-org.github.io/api/countries.json` | Region names, codes, flags, languages |
 | Categories | `https://iptv-org.github.io/api/categories.json` | Category identifiers and names |
 | Blocklist | `https://iptv-org.github.io/api/blocklist.json` | Channels excluded by the upstream project |
-
-The languages endpoint is not currently loaded because the first product version does not expose language filtering.
+| Feeds | `https://iptv-org.github.io/api/feeds.json` | Regional feed variants and their languages |
+| Languages | `https://iptv-org.github.io/api/languages.json` | Language codes and localized names |
 
 ## Relationships
 
@@ -22,6 +22,8 @@ The languages endpoint is not currently loaded because the first product version
 - `Channel.country` matches `Country.code`.
 - `Channel.categories` contains `Category.id` values.
 - `Stream.feed` and `Logo.feed` may describe regional variants.
+- `Feed.channel` matches `Channel.id`; `Stream.feed` and `Logo.feed` match `Feed.id` when present.
+- `Feed.languages` and `Country.languages` contain `Language.code` values.
 
 WorldTV builds a `CatalogIndex` after mapping so views do not repeatedly join large arrays.
 

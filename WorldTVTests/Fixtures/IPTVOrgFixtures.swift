@@ -40,13 +40,13 @@ enum IPTVOrgFixtures {
                 channel(id: "Blocked.es", name: "Blocked", country: "ES")
             ],
             streams: [
-                stream(channel: "News.es", url: "https://example.com/live.m3u8"),
-                stream(channel: "News.es", url: "http://example.com/insecure.m3u8"),
+                stream(channel: "News.es", url: "https://example.com/live.m3u8", feedID: "main"),
+                stream(channel: "News.es", url: "http://example.com/insecure.m3u8", feedID: "main"),
                 stream(channel: "Missing.es", url: "https://example.com/orphan.m3u8"),
                 stream(channel: nil, url: "https://example.com/unassigned.m3u8")
             ],
             logos: [
-                logo(channel: "News.es", url: "https://example.com/news.png"),
+                logo(channel: "News.es", url: "https://example.com/news.png", tags: ["horizontal"]),
                 logo(channel: "News.es", url: "http://example.com/news-insecure.png", isInUse: false),
                 logo(channel: "Missing.es", url: "https://example.com/orphan.png")
             ],
@@ -58,6 +58,26 @@ enum IPTVOrgFixtures {
             ],
             blocklist: [
                 IPTVOrgBlocklistDTO(channel: "Blocked.es")
+            ],
+            feeds: [
+                IPTVOrgFeedDTO(
+                    channel: "News.es",
+                    id: "main",
+                    name: "Main",
+                    isMain: true,
+                    languages: ["spa"]
+                ),
+                IPTVOrgFeedDTO(
+                    channel: "News.es",
+                    id: "intl",
+                    name: "International",
+                    isMain: false,
+                    languages: ["eng"]
+                )
+            ],
+            languages: [
+                IPTVOrgLanguageDTO(name: "Spanish", code: "spa"),
+                IPTVOrgLanguageDTO(name: "English", code: "eng")
             ]
         )
     }
@@ -76,14 +96,16 @@ enum IPTVOrgFixtures {
             country: country,
             categories: ["news"],
             isNSFW: isNSFW,
-            closed: closed
+            closed: closed,
+            network: "News Network",
+            owners: ["Owner Corp"]
         )
     }
 
-    private static func stream(channel: String?, url: String) -> IPTVOrgStreamDTO {
+    private static func stream(channel: String?, url: String, feedID: String? = nil) -> IPTVOrgStreamDTO {
         IPTVOrgStreamDTO(
             channel: channel,
-            feed: nil,
+            feed: feedID,
             title: nil,
             url: url,
             referrer: nil,
@@ -96,7 +118,8 @@ enum IPTVOrgFixtures {
     private static func logo(
         channel: String?,
         url: String,
-        isInUse: Bool = true
+        isInUse: Bool = true,
+        tags: [String] = []
     ) -> IPTVOrgLogoDTO {
         IPTVOrgLogoDTO(
             channel: channel,
@@ -105,7 +128,8 @@ enum IPTVOrgFixtures {
             width: 512,
             height: 288,
             format: "PNG",
-            isInUse: isInUse
+            isInUse: isInUse,
+            tags: tags
         )
     }
 }

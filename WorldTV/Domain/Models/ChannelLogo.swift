@@ -9,4 +9,5 @@ struct ChannelLogo: Identifiable, Hashable, Sendable {
     let height: Int?
     let format: String?
     let isInUse: Bool
+    var tags: [String] = []
 }

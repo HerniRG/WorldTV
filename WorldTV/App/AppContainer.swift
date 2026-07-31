@@ -5,6 +5,10 @@ struct AppContainer {
     let loadHomeContent: LoadHomeContentUseCase
     let loadCountries: LoadCountriesUseCase
     let loadChannelsByCountry: LoadChannelsByCountryUseCase
+    let loadCategories: LoadCategoriesUseCase
+    let loadChannelsByCategory: LoadChannelsByCategoryUseCase
+    let loadChannelDetail: LoadChannelDetailUseCase
+    let loadChannelsByBroadcaster: LoadChannelsByBroadcasterUseCase
     let resolvePlaybackSources: ResolvePlayableStreamUseCase
     let recordRecentlyWatched: RecordRecentlyWatchedUseCase
     let loadFavoriteChannels: LoadFavoriteChannelsUseCase
@@ -56,6 +60,10 @@ struct AppContainer {
             ),
             loadCountries: LoadCountriesUseCase(repository: repository),
             loadChannelsByCountry: LoadChannelsByCountryUseCase(repository: repository),
+            loadCategories: LoadCategoriesUseCase(repository: repository),
+            loadChannelsByCategory: LoadChannelsByCategoryUseCase(repository: repository),
+            loadChannelDetail: LoadChannelDetailUseCase(repository: repository),
+            loadChannelsByBroadcaster: LoadChannelsByBroadcasterUseCase(repository: repository),
             resolvePlaybackSources: ResolvePlayableStreamUseCase(repository: repository),
             recordRecentlyWatched: RecordRecentlyWatchedUseCase(
                 repository: recentlyWatchedRepository

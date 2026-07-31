@@ -19,4 +19,26 @@ struct CatalogIndexTests {
                 == "https://example.com/news.png"
         )
     }
+
+    @Test
+    func indexesFeedsLanguagesAndBroadcasters() {
+        #expect(
+            catalog.index.feedsByChannelID["News.es"]?.map(\.id)
+                == ["main", "intl"]
+        )
+        #expect(
+            catalog.index.languageCodesByChannelID["News.es"]
+                == ["eng", "spa"]
+        )
+        #expect(
+            catalog.index.channelsByBroadcaster["News Network"]?.map(\.id)
+                == ["News.es"]
+        )
+    }
+
+    @Test
+    func fallbackLanguagesUseCountryCodes() {
+        #expect(catalog.languages.map(\.code) == ["eng", "spa"])
+        #expect(catalog.languages.first(where: { $0.code == "spa" })?.name == "Spanish")
+    }
 }

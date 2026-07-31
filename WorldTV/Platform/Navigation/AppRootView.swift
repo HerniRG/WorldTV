@@ -22,6 +22,9 @@ struct AppRootView: View {
             .environment(\.playChannel) { channelID in
                 presentedPlayer = PresentedPlayer(channelID: channelID)
             }
+            .environment(\.playChannelWithInitialFeed) { channelID, feedID in
+                presentedPlayer = PresentedPlayer(channelID: channelID, feedID: feedID)
+            }
             .playerPresentation($presentedPlayer, container: container)
     }
 
@@ -88,6 +91,12 @@ struct AppRootView: View {
 
 private struct PresentedPlayer: Identifiable {
     let channelID: String
+    let feedID: String?
+
+    init(channelID: String, feedID: String? = nil) {
+        self.channelID = channelID
+        self.feedID = feedID
+    }
 
     var id: String {
         channelID
@@ -106,6 +115,7 @@ private extension View {
                 channelID: presentation.channelID,
                 resolveSources: container.resolvePlaybackSources,
                 recordRecentlyWatched: container.recordRecentlyWatched,
+                initialFeedID: presentation.feedID,
                 closePresentation: { presentedPlayer.wrappedValue = nil }
             )
             .frame(minWidth: 900, minHeight: 600)
@@ -116,6 +126,7 @@ private extension View {
                 channelID: presentation.channelID,
                 resolveSources: container.resolvePlaybackSources,
                 recordRecentlyWatched: container.recordRecentlyWatched,
+                initialFeedID: presentation.feedID,
                 closePresentation: { presentedPlayer.wrappedValue = nil }
             )
             .id(presentation.id)

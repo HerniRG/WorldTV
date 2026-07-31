@@ -23,15 +23,16 @@ Data repository → IPTVOrg API client → HTTP client
 
 ## Catalog loading
 
-The API client fetches the six Phase 1 datasets concurrently. `IPTVOrgMapper` then:
+The API client fetches the eight datasets concurrently. `IPTVOrgMapper` then:
 
 1. Removes NSFW, blocked, and closed channels.
 2. Builds the set of valid channel identifiers.
 3. Accepts stream URLs over HTTP or HTTPS with a host, and logo URLs over HTTPS only.
 4. Removes orphaned streams and logos.
 5. Groups streams and logos by channel identifier.
+6. Maps feeds (sorted main-first, then by name) and languages.
 
-`CatalogIndex` precalculates channels by identifier and country, countries by code, and the preferred logo for each channel. Views and ViewModels therefore do not repeatedly join tens of thousands of records.
+`CatalogIndex` precalculates channels by identifier and country, countries by code, feeds by channel, language codes by channel (feed languages first, falling back to country languages), the preferred logo for each channel, and channels grouped by broadcaster or owner. Views and ViewModels therefore do not repeatedly join tens of thousands of records.
 
 The repository is an actor because it owns mutable in-memory catalog state. It reads a fresh persistent snapshot for up to 24 hours, refreshes from the network when required, and falls back to a stale snapshot if a refresh fails. Mapping, indexing, encoding, and decoding stay outside `MainActor`.
 
@@ -41,13 +42,15 @@ Logos load with SwiftUI's `AsyncImage` against the shared `URLCache`, so in-flig
 
 `ResolvePlayableStreamUseCase` resolves a channel into a bounded list of sources. HLS sources are preferred, followed by numeric quality. `PlaybackAttempt` inside `PlayerViewModel` owns the `AVPlayer` and its KVO observations, forwards required HTTP headers, and advances to the next source after a failure, a 15-second preparation timeout, or a 20-second stall timeout. On iOS, `AudioSessionCoordinator` activates the playback audio category and pauses or resumes playback when interruptions begin or end.
 
-Playback settings are read at the presentation boundary and passed explicitly to the resolver. The resolver prefers HLS and then the stream closest to the selected quality. History is recorded only after playback actually starts. Home maps those identifiers back through the current catalog index, so removed channels disappear safely and recent channels retain current logos and availability.
+Playback settings are read at the presentation boundary and passed explicitly to the resolver. The resolver prefers HLS and then the stream closest to the selected quality. An optional feed identifier restricts candidates to streams belonging to that regional feed, falling back to all sources when the feed yields none. History is recorded only after playback actually starts. Home maps those identifiers back through the current catalog index, so removed channels disappear safely and recent channels retain current logos and availability.
 
 ## Personalization and search
 
 Favorites are stored as stable channel identifiers behind an actor-backed repository. A shared `@MainActor` store keeps all visible feature screens consistent while persistence remains outside the UI layer.
 
-Search runs locally against the indexed catalog and matches channel names, alternative names, countries, categories, and stream titles. `SearchViewModel` debounces text changes for 300 milliseconds and sends an immutable criteria value to the use case. Country, category, minimum quality, availability, geoblocking, and favorites are filters rather than view concerns.
+Search runs locally against the indexed catalog and matches channel names, alternative names, countries, categories, and stream titles. `SearchViewModel` debounces text changes for 300 milliseconds and sends an immutable criteria value to the use case. Country, category, language, minimum quality, availability, geoblocking, and favorites are filters rather than view concerns.
+
+Categories, networks, and channel detail each load through a dedicated use case that reuses the same catalog repository. A channel detail resolves its logo, country, categories, availability, geoblocking, quality, feeds, and languages in one read against the index.
 
 Settings use small use cases for catalog refresh, cache removal, history removal, and cache metadata. User preferences use `AppStorage` because they are simple device-local values; repositories remain reserved for collections and operations that require explicit concurrency or mapping.
 
@@ -58,7 +61,7 @@ Settings use small use cases for catalog refresh, cache removal, history removal
 - iPhone uses bottom tabs with an independent `NavigationStack` per section; iPad and macOS share a resizable `NavigationSplitView` rooted in `AppRootView`.
 - tvOS uses its native top-level `TabView`; the selected section is restored with scene storage, while each tab retains its navigation and focus context.
 
-Cards share semantic content but adapt interaction by platform: tvOS exposes an explicit focus ring and stable scale, macOS adds a restrained hover response, and Reduce Motion removes nonessential scaling animations. Platform-specific interactions are extracted into dedicated views such as `NavigationTile` (navigation link vs. top-level tvOS destination) and `TVOSChannelTile`, so feature views stay shared. Top-level platform dispatch is confined to the launch boundary and platform root files.
+Cards share semantic content but adapt interaction by platform: tvOS exposes an explicit focus ring and stable scale, macOS adds a restrained hover response, and Reduce Motion removes nonessential scaling animations. Channel tiles open detail through a leading info button on iOS and macOS and through the context menu on tvOS, while a tap still plays the channel. Platform-specific interactions are extracted into dedicated views such as `NavigationTile` (navigation link vs. top-level tvOS destination) and `TVOSChannelTile`, so feature views stay shared. Top-level platform dispatch is confined to the launch boundary and platform root files.
 
 ## Concurrency
 

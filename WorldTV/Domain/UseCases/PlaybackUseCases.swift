@@ -11,14 +11,23 @@ struct ResolvePlayableStreamUseCase: Sendable {
 
     func execute(
         channelID: String,
-        preferredQuality: Int? = nil
+        preferredQuality: Int? = nil,
+        feedID: String? = nil
     ) async throws -> PlaybackContext {
         let catalog = try await repository.loadCatalog()
         guard let channel = catalog.index.channelsByID[channelID] else {
             throw PlaybackError.channelNotFound
         }
 
-        let sources = (catalog.streamsByChannelID[channelID] ?? [])
+        var candidateStreams = catalog.streamsByChannelID[channelID] ?? []
+        if let feedID {
+            let feedStreams = candidateStreams.filter { $0.feed == feedID }
+            if !feedStreams.isEmpty {
+                candidateStreams = feedStreams
+            }
+        }
+
+        let sources = candidateStreams
             .map(Self.makeSource)
             .sorted {
                 Self.isPreferred(
@@ -31,7 +40,11 @@ struct ResolvePlayableStreamUseCase: Sendable {
         guard !sources.isEmpty else {
             throw PlaybackError.noSources
         }
-        return PlaybackContext(channel: channel, sources: Array(sources.prefix(maximumAttempts)))
+        return PlaybackContext(
+            channel: channel,
+            feeds: catalog.index.feedsByChannelID[channelID] ?? [],
+            sources: Array(sources.prefix(maximumAttempts))
+        )
     }
 
     private static func makeSource(_ stream: ChannelStream) -> PlaybackSource {

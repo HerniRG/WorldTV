@@ -4,6 +4,7 @@ struct ChannelSearchCriteria: Equatable, Sendable {
     var query = ""
     var countryCode: String?
     var categoryID: String?
+    var languageCode: String?
     var minimumQuality: Int?
     var favoritesOnly = false
     var availableOnly = true
@@ -13,6 +14,7 @@ struct ChannelSearchCriteria: Equatable, Sendable {
 struct ChannelSearchOptions: Sendable {
     let countries: [Country]
     let categories: [ChannelCategory]
+    var languages: [Language] = []
 }
 
 struct ChannelSearchResult: Sendable {

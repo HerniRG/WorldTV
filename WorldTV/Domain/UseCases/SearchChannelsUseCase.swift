@@ -42,6 +42,13 @@ struct SearchChannelsUseCase: Sendable {
                 return false
             }
             if
+                let languageCode = criteria.languageCode,
+                loadedCatalog.index.languageCodesByChannelID[channel.id]?
+                    .contains(languageCode) != true
+            {
+                return false
+            }
+            if
                 !criteria.includeGeoBlocked,
                 streams.contains(where: {
                     $0.label?.localizedCaseInsensitiveContains("geo") == true
@@ -82,6 +89,9 @@ struct SearchChannelsUseCase: Sendable {
                     $0.name.localizedStandardCompare($1.name) == .orderedAscending
                 },
                 categories: loadedCatalog.categories.sorted {
+                    $0.name.localizedStandardCompare($1.name) == .orderedAscending
+                },
+                languages: loadedCatalog.languages.sorted {
                     $0.name.localizedStandardCompare($1.name) == .orderedAscending
                 }
             )

@@ -111,6 +111,13 @@ struct SearchFiltersView: View {
         }
         .accessibilityIdentifier("search.filter.quality")
 
+        NavigationLink(value: TVFilterRoute.language) {
+            LabeledContent("search.filter.language") {
+                Text(selectedLanguageName)
+            }
+        }
+        .accessibilityIdentifier("search.filter.language")
+
         commonFilterControls
     }
 
@@ -134,6 +141,12 @@ struct SearchFiltersView: View {
                 title: "search.filter.quality",
                 selection: $viewModel.minimumQuality,
                 options: qualityOptions
+            )
+        case .language:
+            TVFilterSelectionView(
+                title: "search.filter.language",
+                selection: $viewModel.selectedLanguageCode,
+                options: languageOptions
             )
         }
     }
@@ -184,6 +197,22 @@ struct SearchFiltersView: View {
         ]
     }
 
+    private var languageOptions: [TVFilterOption<String?>] {
+        [
+            TVFilterOption(
+                id: "any",
+                title: String(localized: "search.filter.any"),
+                value: nil
+            )
+        ] + options.languages.map { language in
+            TVFilterOption(
+                id: language.code,
+                title: language.name,
+                value: language.code
+            )
+        }
+    }
+
     private var selectedCountryName: String {
         guard let code = viewModel.selectedCountryCode else {
             return String(localized: "search.filter.any")
@@ -206,6 +235,13 @@ struct SearchFiltersView: View {
         }
         return "\(quality)p"
     }
+
+    private var selectedLanguageName: String {
+        guard let code = viewModel.selectedLanguageCode else {
+            return String(localized: "search.filter.any")
+        }
+        return options.languages.first(where: { $0.code == code })?.name ?? code
+    }
     #endif
 
     @ViewBuilder
@@ -225,6 +261,13 @@ struct SearchFiltersView: View {
             Text("search.filter.any").tag(String?.none)
             ForEach(options.categories) { category in
                 Text(category.name).tag(Optional(category.id))
+            }
+        }
+
+        Picker("search.filter.language", selection: $viewModel.selectedLanguageCode) {
+            Text("search.filter.any").tag(String?.none)
+            ForEach(options.languages) { language in
+                Text(language.name).tag(Optional(language.code))
             }
         }
 
@@ -255,6 +298,7 @@ private enum TVFilterRoute: Hashable {
     case country
     case category
     case quality
+    case language
 }
 
 private struct TVFilterOption<Value: Hashable>: Identifiable {

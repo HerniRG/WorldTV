@@ -9,6 +9,9 @@ final class PlayerViewModel {
     private(set) var channelName = ""
     private(set) var currentSourceNumber = 0
     private(set) var sourceCount = 0
+    private(set) var currentSourceTitle: String?
+    private(set) var feeds: [ChannelFeed] = []
+    private(set) var selectedFeedID: String?
 
     @ObservationIgnored let player = AVPlayer()
 
@@ -28,11 +31,13 @@ final class PlayerViewModel {
     init(
         channelID: String,
         resolveSources: ResolvePlayableStreamUseCase,
-        recordRecentlyWatched: RecordRecentlyWatchedUseCase
+        recordRecentlyWatched: RecordRecentlyWatchedUseCase,
+        initialFeedID: String? = nil
     ) {
         self.channelID = channelID
         self.resolveSources = resolveSources
         self.recordRecentlyWatched = recordRecentlyWatched
+        selectedFeedID = initialFeedID
     }
 
     func loadIfNeeded(autoplay: Bool = true, preferredQuality: Int? = nil) {
@@ -45,6 +50,7 @@ final class PlayerViewModel {
         self.autoplay = autoplay
         self.preferredQuality = preferredQuality
         state = .resolving
+        currentSourceTitle = nil
         loadTask = Task { [weak self] in
             guard let self else {
                 return
@@ -53,12 +59,14 @@ final class PlayerViewModel {
             do {
                 let context = try await resolveSources.execute(
                     channelID: channelID,
-                    preferredQuality: preferredQuality
+                    preferredQuality: preferredQuality,
+                    feedID: selectedFeedID
                 )
                 guard !Task.isCancelled else {
                     return
                 }
                 channelName = context.channel.name
+                feeds = context.feeds
                 sources = context.sources
                 sourceCount = sources.count
                 currentSourceIndex = 0
@@ -69,6 +77,20 @@ final class PlayerViewModel {
                 fail(.unavailable)
             }
         }
+    }
+
+    func selectFeed(_ feedID: String?) {
+        guard feedID != selectedFeedID else {
+            return
+        }
+        loadTask?.cancel()
+        attempt?.cancel()
+        attempt = nil
+        player.pause()
+        player.replaceCurrentItem(with: nil)
+        selectedFeedID = feedID
+        state = .idle
+        loadIfNeeded(autoplay: autoplay, preferredQuality: preferredQuality)
     }
 
     func retry() {
@@ -107,6 +129,7 @@ final class PlayerViewModel {
         attempt?.cancel()
         state = .preparing
         currentSourceNumber = currentSourceIndex + 1
+        currentSourceTitle = sources[currentSourceIndex].title
 
         let item = makePlayerItem(from: sources[currentSourceIndex])
         player.replaceCurrentItem(with: item)
