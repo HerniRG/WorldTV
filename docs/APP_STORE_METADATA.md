@@ -6,7 +6,7 @@ This document is the copy-ready source for the first App Store Connect record. R
 
 | Field | Value |
 | --- | --- |
-| App name | WorldTV++ |
+| App name | WorldTV+ |
 | Bundle ID | `hrgapps.WorldTV` |
 | SKU suggestion | `WORLDTv-APPLE-001` |
 | Primary category | Entertainment |
