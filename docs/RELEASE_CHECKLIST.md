@@ -51,10 +51,10 @@ permission to the UI test runner in System Settings; if a macOS run reports
 "Timed out while enabling automation mode", accept the permission prompt and
 re-run.
 
-- [ ] Run `scripts/capture-screenshots.sh --platform all`
-- [ ] Verify PNG sizes: iPhone 1320×2868, iPad 2064×2752, Mac 1440×900, tvOS 1920×1080
-- [ ] Check every PNG is opaque and contains no personal information
-- [ ] Add at least one screenshot and no more than ten per required display
+- [x] Run `scripts/capture-screenshots.sh --platform all`
+- [x] Verify PNG sizes: iPhone 1320×2868, iPad 2064×2752, Mac 1440×900, tvOS 1920×1080
+- [x] Check every PNG is opaque and contains no personal information
+- [x] Add at least one screenshot and no more than ten per required display
 
 ## Physical-device acceptance
 
