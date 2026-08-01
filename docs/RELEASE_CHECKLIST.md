@@ -29,10 +29,30 @@
 
 ## Screenshots
 
-- [ ] iPhone 6.9-inch portrait: 1260×2736, 1290×2796, or 1320×2868
-- [ ] iPad 13-inch landscape: 2752×2064 or 2732×2048
-- [x] Apple TV: 1920×1080
-- [ ] Mac 16:10: 1280×800, 1440×900, 2560×1600, or 2880×1800
+Screenshots are captured automatically with `scripts/capture-screenshots.sh`
+(requires a network connection; the catalog is loaded live). It runs the
+dedicated `WorldTVUITests/ScreenshotTests` XCUITest class on the store devices
+and exports the PNGs from the xcresult bundle into `docs/screenshots/store/`:
+
+```sh
+scripts/capture-screenshots.sh            # iPhone + iPad + Mac + tvOS
+scripts/capture-screenshots.sh --platform ios    # iPhone + iPad only
+scripts/capture-screenshots.sh --platform mac    # Mac only
+scripts/capture-screenshots.sh --platform tvos   # tvOS only
+```
+
+- iPhone 17 Pro Max sim → 1320×2868 (portrait)
+- iPad Pro 13-inch (M5) sim → 2064×2752 (portrait)
+- Apple TV 4K 3rd gen (1080p) sim → 1920×1080
+- Mac runs the native app → 1440×900 window (resized by the test)
+
+Note: the first macOS run may require granting Automation/Developer Tools
+permission to the UI test runner in System Settings; if a macOS run reports
+"Timed out while enabling automation mode", accept the permission prompt and
+re-run.
+
+- [ ] Run `scripts/capture-screenshots.sh --platform all`
+- [ ] Verify PNG sizes: iPhone 1320×2868, iPad 2064×2752, Mac 1440×900, tvOS 1920×1080
 - [ ] Check every PNG is opaque and contains no personal information
 - [ ] Add at least one screenshot and no more than ten per required display
 

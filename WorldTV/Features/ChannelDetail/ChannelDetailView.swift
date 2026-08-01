@@ -233,6 +233,7 @@ struct ChannelDetailView: View {
         }
         .buttonStyle(.borderedProminent)
         .disabled(!content.isAvailable)
+        .accessibilityIdentifier("channel.detail.play")
     }
 
     private func play(_ content: ChannelDetailContent) {
