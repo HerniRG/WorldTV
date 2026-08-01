@@ -6,7 +6,7 @@ This document is the copy-ready source for the first App Store Connect record. R
 
 | Field | Value |
 | --- | --- |
-| App name | WorldTV+ |
+| App name | WorldTV++ |
 | Bundle ID | `hrgapps.WorldTV` |
 | SKU suggestion | `WORLDTv-APPLE-001` |
 | Primary category | Entertainment |
@@ -31,7 +31,7 @@ This document is the copy-ready source for the first App Store Connect record. R
 
 > Discover television from around the world with a native app for iPhone, iPad, Apple TV, and Mac.
 >
-> WorldTV organizes free, publicly accessible channel streams from the open-source iptv-org catalog. Browse by country or category, search locally, filter by quality and availability, save favorites, and return to recently watched channels.
+> WorldTV+ organizes free, publicly accessible channel streams from the open-source iptv-org catalog. Browse by country or category, search locally, filter by quality and availability, save favorites, and return to recently watched channels.
 >
 > Highlights:
 >
@@ -40,10 +40,10 @@ This document is the copy-ready source for the first App Store Connect record. R
 > • Favorites and viewing history stored only on your device  
 > • Automatic stream-source fallback when alternatives exist  
 > • AirPlay and native system playback capabilities where available  
-> • English and Spanish interface  
+> • Interface in 10 languages: English, Spanish, French, Portuguese, German, Italian, Japanese, Simplified Chinese, Arabic, and Hindi  
 > • No account, advertising, analytics, or tracking
 >
-> WorldTV does not host, mirror, or retransmit television content. Channel metadata and stream addresses are supplied by independent third parties. Availability, geographic access, compatibility, and rights can change without notice.
+> WorldTV+ does not host, mirror, or retransmit television content. Channel metadata and stream addresses are supplied by independent third parties. Availability, geographic access, compatibility, and rights can change without notice.
 
 **Keywords**
 
@@ -63,7 +63,7 @@ This document is the copy-ready source for the first App Store Connect record. R
 
 > Descubre televisión de todo el mundo con una aplicación nativa para iPhone, iPad, Apple TV y Mac.
 >
-> WorldTV organiza emisiones gratuitas y públicamente accesibles del catálogo open source de iptv-org. Explora por país o categoría, busca localmente, filtra por calidad y disponibilidad, guarda favoritos y vuelve a los canales vistos recientemente.
+> WorldTV+ organiza emisiones gratuitas y públicamente accesibles del catálogo open source de iptv-org. Explora por país o categoría, busca localmente, filtra por calidad y disponibilidad, guarda favoritos y vuelve a los canales vistos recientemente.
 >
 > Funciones principales:
 >
@@ -72,10 +72,10 @@ This document is the copy-ready source for the first App Store Connect record. R
 > • Favoritos e historial guardados únicamente en tu dispositivo  
 > • Cambio automático de fuente cuando existen alternativas  
 > • AirPlay y funciones nativas de reproducción cuando están disponibles  
-> • Interfaz en español e inglés  
+> • Interfaz en 10 idiomas: inglés, español, francés, portugués, alemán, italiano, japonés, chino simplificado, árabe e hindi  
 > • Sin cuentas, publicidad, analítica ni seguimiento
 >
-> WorldTV no aloja, copia ni retransmite contenido televisivo. Los metadatos y las direcciones de emisión pertenecen a terceros independientes. La disponibilidad, el acceso geográfico, la compatibilidad y los derechos pueden cambiar sin previo aviso.
+> WorldTV+ no aloja, copia ni retransmite contenido televisivo. Los metadatos y las direcciones de emisión pertenecen a terceros independientes. La disponibilidad, el acceso geográfico, la compatibilidad y los derechos pueden cambiar sin previo aviso.
 
 **Keywords**
 
@@ -83,7 +83,7 @@ This document is the copy-ready source for the first App Store Connect record. R
 
 ## Apple TV privacy policy text
 
-> WorldTV does not collect personal data, use analytics or advertising SDKs, or track users. Favorites, recently watched channels, preferences, and catalog cache are stored only in the app sandbox on the device. WorldTV connects directly to the public iptv-org API and independent channel servers to retrieve catalog data, artwork, and streams. These third-party services receive technical request data such as an IP address under their own practices. Full policy: https://github.com/HerniRG/WorldTV/blob/main/PRIVACY.md
+> WorldTV+ does not collect personal data, use analytics or advertising SDKs, or track users. Favorites, recently watched channels, preferences, and catalog cache are stored only in the app sandbox on the device. WorldTV+ connects directly to the public iptv-org API and independent channel servers to retrieve catalog data, artwork, and streams. These third-party services receive technical request data such as an IP address under their own practices. Full policy: https://github.com/HerniRG/WorldTV/blob/main/PRIVACY.md
 
 ## App privacy answers
 
@@ -97,7 +97,7 @@ These answers are based on the source at version 1.0 build 1. Re-audit them when
 
 ## App Review notes
 
-> WorldTV requires no account, subscription, purchase, or special hardware.
+> WorldTV+ requires no account, subscription, purchase, or special hardware.
 >
 > On first launch, the app downloads public structured catalog data from iptv-org. Select a channel card to request playback. Live stream availability is controlled by independent providers; if one source fails, the app tries a limited number of alternatives or presents a localized error.
 >
@@ -107,8 +107,8 @@ These answers are based on the source at version 1.0 build 1. Re-audit them when
 
 ## Content-rights declaration
 
-WorldTV accesses third-party channel names, logos, metadata, and live stream URLs. Before selecting the App Store Connect content-rights answer or countries of availability, the publisher must document the legal basis for accessing and displaying that content in every intended storefront. The repository disclaimer and removal process improve transparency but do not themselves grant distribution rights.
+WorldTV+ accesses third-party channel names, logos, metadata, and live stream URLs. Before selecting the App Store Connect content-rights answer or countries of availability, the publisher must document the legal basis for accessing and displaying that content in every intended storefront. The repository disclaimer and removal process improve transparency but do not themselves grant distribution rights.
 
 ## Age rating
 
-Complete Apple’s current questionnaire in App Store Connect. WorldTV has no chat, user-generated submissions, gambling, purchases, advertising, or unrestricted web browser. However, live third-party broadcasts can change without notice, so content-frequency answers require an editorial and legal review of the catalog immediately before submission.
+Complete Apple’s current questionnaire in App Store Connect. WorldTV+ has no chat, user-generated submissions, gambling, purchases, advertising, or unrestricted web browser. However, live third-party broadcasts can change without notice, so content-frequency answers require an editorial and legal review of the catalog immediately before submission.
