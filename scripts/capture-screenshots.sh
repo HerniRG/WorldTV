@@ -13,6 +13,15 @@
 #   scripts/capture-screenshots.sh [all|ios|mac|tvos]
 #   scripts/capture-screenshots.sh --platform ios --output docs/screenshots/store
 #
+# Notes:
+#   - tvOS: the Apple TV simulator must be booted before xcodebuild test, or the
+#     run hangs and fails to launch the UI test runner. The script boots it
+#     automatically and uninstalls a stale xctrunner app if present.
+#   - macOS: the first run requires granting Automation (Developer Tools)
+#     permission to the UI test runner in System Settings. If a macOS run
+#     reports "Timed out while enabling automation mode", accept the permission
+#     prompt and re-run.
+#
 # Options:
 #   --platform all|ios|mac|tvos   Which platforms to capture (default: all)
 #   --output DIR                  Where to write PNGs (default: docs/screenshots/store)
@@ -156,8 +165,21 @@ run_mac() {
 }
 
 run_tvos() {
-    run_tests "tvos" \
-        -destination "platform=tvOS Simulator,id=$(find_sim "Apple TV 4K (3rd generation) (at 1080p)" "tvOS 26.5")"
+    local sim
+    sim="$(find_sim "Apple TV 4K (3rd generation) (at 1080p)" "tvOS 26.5")"
+    xcrun simctl list devices available -j | python3 - "$sim" <<'PY'
+import json, subprocess, sys
+target = sys.argv[1]
+for rt, devs in json.loads(sys.stdin.read())["devices"].items():
+    for d in devs:
+        if d["state"] == "Booted" and d["udid"] != target:
+            subprocess.run(["xcrun", "simctl", "shutdown", d["udid"]],
+                           check=False, capture_output=True)
+PY
+    xcrun simctl boot "$sim" 2>/dev/null || true
+    xcrun simctl bootstatus "$sim" -b >/dev/null 2>&1 || true
+    xcrun simctl uninstall "$sim" hrgapps.WorldTVUITests.xctrunner >/dev/null 2>&1 || true
+    run_tests "tvos" -destination "platform=tvOS Simulator,id=$sim"
 }
 
 case "$PLATFORM" in
