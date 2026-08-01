@@ -14,9 +14,9 @@
 
 ## App Store Connect
 
-- [ ] Create the app record using bundle ID `hrgapps.WorldTV`
-- [ ] Confirm that the name WorldTV is available
-- [ ] Add iOS, macOS, and tvOS platform versions
+- [x] Create the app record using bundle ID `hrgapps.WorldTV`
+- [x] Confirm that the name WorldTV+ is available
+- [x] Add iOS, macOS, and tvOS platform versions
 - [ ] Paste localized metadata from `docs/APP_STORE_METADATA.md`
 - [ ] Select “No data collected” after a final source audit
 - [ ] Paste the tvOS privacy-policy text and set the iOS/macOS privacy URL
