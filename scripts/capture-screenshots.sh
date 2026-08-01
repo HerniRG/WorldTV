@@ -150,17 +150,33 @@ run_tests() {
     export_screenshots "$bundle" "$label"
 }
 
+# prep_sim <udid> — boot the simulator and remove a stale xctrunner app so the
+# UI test runner can relaunch (avoids FBSOpenApplicationServiceErrorDomain
+# RequestDenied failures).
+prep_sim() {
+    local sim="$1"
+    xcrun simctl boot "$sim" 2>/dev/null || true
+    xcrun simctl bootstatus "$sim" -b >/dev/null 2>&1 || true
+    xcrun simctl uninstall "$sim" hrgapps.WorldTVUITests.xctrunner >/dev/null 2>&1 || true
+}
+
 run_ios_iphone() {
-    run_tests "ios-iphone" \
-        -destination "platform=iOS Simulator,id=$(find_sim "iPhone 17 Pro Max" "iOS 26.5")"
+    local sim
+    sim="$(find_sim "iPhone 17 Pro Max" "iOS 26.5")"
+    prep_sim "$sim"
+    run_tests "ios-iphone" -destination "platform=iOS Simulator,id=$sim"
 }
 
 run_ios_ipad() {
-    run_tests "ios-ipad" \
-        -destination "platform=iOS Simulator,id=$(find_sim "iPad Pro 13-inch (M5)" "iOS 26.5")"
+    local sim
+    sim="$(find_sim "iPad Pro 13-inch (M5)" "iOS 26.5")"
+    prep_sim "$sim"
+    run_tests "ios-ipad" -destination "platform=iOS Simulator,id=$sim"
 }
 
 run_mac() {
+    defaults delete hrgapps.WorldTV \
+        "NSWindow Frame WorldTV.ContentView-1-AppWindow-1" 2>/dev/null || true
     run_tests "mac" -destination "platform=macOS"
 }
 
@@ -176,9 +192,7 @@ for rt, devs in json.loads(sys.stdin.read())["devices"].items():
             subprocess.run(["xcrun", "simctl", "shutdown", d["udid"]],
                            check=False, capture_output=True)
 PY
-    xcrun simctl boot "$sim" 2>/dev/null || true
-    xcrun simctl bootstatus "$sim" -b >/dev/null 2>&1 || true
-    xcrun simctl uninstall "$sim" hrgapps.WorldTVUITests.xctrunner >/dev/null 2>&1 || true
+    prep_sim "$sim"
     run_tests "tvos" -destination "platform=tvOS Simulator,id=$sim"
 }
 

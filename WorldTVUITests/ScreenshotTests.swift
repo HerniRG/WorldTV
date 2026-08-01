@@ -19,12 +19,16 @@ final class ScreenshotTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments += ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         app.launch()
+        #if os(macOS)
+        app.activate()
+        RunLoop.current.run(until: Date().addingTimeInterval(1))
+        #endif
         return app
     }
 
     @MainActor
     private func waitForHome(_ app: XCUIApplication) {
-        let header = app.otherElements["home.header"]
+        let header = app.descendants(matching: .any)["home.header"]
         XCTAssertTrue(header.waitForExistence(timeout: 30), "Home did not load.")
         let channel = app.buttons.matching(
             NSPredicate(format: "identifier ENDSWITH '.available'")
@@ -71,16 +75,18 @@ final class ScreenshotTests: XCTestCase {
         if app.tabBars.firstMatch.exists {
             let button = app.tabBars.buttons[name]
             XCTAssertTrue(button.waitForExistence(timeout: 15), "Tab '\(name)' not found.")
-            button.activate()
+            button.activateElement()
             return
         }
         let candidates = [
             app.buttons[name],
             app.cells[name],
-            app.staticTexts[name]
+            app.staticTexts[name],
+            app.otherElements[name],
+            app.descendants(matching: .any)[name]
         ]
         for candidate in candidates where candidate.waitForExistence(timeout: 5) {
-            candidate.activate()
+            candidate.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).activateElement()
             return
         }
         XCTFail("Sidebar section '\(name)' not found.")
@@ -254,13 +260,16 @@ final class ScreenshotTests: XCTestCase {
         let app = makeApp()
         waitForHome(app)
         resizeMacWindow(app, to: CGSize(width: 1440, height: 900))
-        guard let infoButton = waitForHittable(
-            app.buttons.matching(identifier: "Channel Details")
-        ) else {
-            XCTFail("No hittable channel info button on Home.")
-            return
-        }
-        infoButton.click()
+        let infoButton = app.buttons.matching(
+            NSPredicate(format: "label == 'Channel Details'")
+        ).firstMatch
+        XCTAssertTrue(
+            infoButton.waitForExistence(timeout: 30),
+            "Channel Details button not found."
+        )
+        infoButton.coordinate(
+            withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)
+        ).activateElement()
         let playButton = app.buttons["channel.detail.play"]
         XCTAssertTrue(playButton.waitForExistence(timeout: 30), "Channel detail did not open.")
         save(app.windows.firstMatch.screenshot(), "04_channel_detail", platform: "mac")
@@ -278,9 +287,10 @@ final class ScreenshotTests: XCTestCase {
             return
         }
         channel.click()
-        let player = app.otherElements["player.fullscreen"]
+        let player = app.descendants(matching: .any)["player.fullscreen"]
         XCTAssertTrue(player.waitForExistence(timeout: 20), "Player did not open.")
-        save(player.screenshot(), "05_player", platform: "mac")
+        resizeMacWindow(app, to: CGSize(width: 1440, height: 900))
+        save(app.windows.firstMatch.screenshot(), "05_player", platform: "mac")
         let close = app.buttons["player.close"]
         if close.waitForExistence(timeout: 5) {
             close.click()
@@ -290,20 +300,41 @@ final class ScreenshotTests: XCTestCase {
     private func resizeMacWindow(_ app: XCUIApplication, to size: CGSize) {
         let window = app.windows.firstMatch
         guard window.exists else { return }
-        let frame = window.frame
-        guard frame.width > 0, frame.height > 0 else { return }
-        let handle = window.coordinate(withNormalizedOffset: CGVector(dx: 1, dy: 1))
-        let delta = CGVector(dx: size.width - frame.width, dy: size.height - frame.height)
-        let target = handle.withOffset(delta)
-        handle.press(forDuration: 0.1, thenDragTo: target)
-        RunLoop.current.run(until: Date().addingTimeInterval(1))
+        guard window.frame.width > 0, window.frame.height > 0 else { return }
+        for _ in 0..<5 {
+            let current = window.frame
+            if abs(current.width - size.width) < 2 && abs(current.height - size.height) < 2 {
+                return
+            }
+            app.activate()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.5))
+            let handle = window.coordinate(
+                withNormalizedOffset: CGVector(dx: 0.999, dy: 0.999)
+            )
+            let delta = CGVector(
+                dx: size.width - current.width,
+                dy: size.height - current.height
+            )
+            handle.press(forDuration: 0.1, thenDragTo: handle.withOffset(delta))
+            RunLoop.current.run(until: Date().addingTimeInterval(1))
+        }
     }
     #endif
 }
 
 #if !os(tvOS)
 private extension XCUIElement {
-    func activate() {
+    func activateElement() {
+        #if os(macOS)
+        click()
+        #else
+        tap()
+        #endif
+    }
+}
+
+private extension XCUICoordinate {
+    func activateElement() {
         #if os(macOS)
         click()
         #else

@@ -1,7 +1,24 @@
 import AVKit
 import SwiftUI
 
-#if os(iOS) || os(macOS)
+#if os(macOS)
+struct PlatformPlayerView: NSViewRepresentable {
+    let player: AVPlayer
+
+    func makeNSView(context: Context) -> AVPlayerView {
+        let view = AVPlayerView()
+        view.player = player
+        view.controlsStyle = .floating
+        view.videoGravity = .resizeAspect
+        view.showsFullScreenToggleButton = true
+        return view
+    }
+
+    func updateNSView(_ view: AVPlayerView, context: Context) {
+        view.player = player
+    }
+}
+#elseif os(iOS)
 struct PlatformPlayerView: View {
     let player: AVPlayer
 
