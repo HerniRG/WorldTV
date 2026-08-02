@@ -34,18 +34,16 @@ struct TopShelfPayloadWriter: Sendable {
             let history = (try? await recentlyWatchedRepository.load()) ?? []
             let favoriteIdentifiers = (try? await favoritesRepository.load()) ?? []
 
-            let recent = history.compactMap { entry in
-                makeChannel(
-                    catalog.index.channelsByID[entry.channelID],
-                    logo: catalog.index.preferredLogoByChannelID[entry.channelID]
-                )
-            }
-            let favorites = favoriteIdentifiers.compactMap { identifier in
-                makeChannel(
-                    catalog.index.channelsByID[identifier],
-                    logo: catalog.index.preferredLogoByChannelID[identifier]
-                )
-            }
+            let recent = await makeChannels(
+                ids: history.map(\.channelID),
+                catalog: catalog,
+                container: container
+            )
+            let favorites = await makeChannels(
+                ids: favoriteIdentifiers,
+                catalog: catalog,
+                container: container
+            )
 
             let encoder = JSONEncoder()
             let data = try encoder.encode(
@@ -85,17 +83,65 @@ struct TopShelfPayloadWriter: Sendable {
         }
     }
 
-    private func makeChannel(
-        _ channel: Channel?,
-        logo: ChannelLogo?
-    ) -> TopShelfChannel? {
-        guard let channel else {
+    private func makeChannels(
+        ids: [String],
+        catalog: Catalog,
+        container: URL
+    ) async -> [TopShelfChannel] {
+        var channels: [TopShelfChannel] = []
+        for id in ids {
+            guard let channel = catalog.index.channelsByID[id] else {
+                continue
+            }
+            let logo = catalog.index.preferredLogoByChannelID[id]
+            channels.append(
+                TopShelfChannel(
+                    id: channel.id,
+                    name: channel.name,
+                    logoURL: await tileURL(
+                        for: logo,
+                        channelID: channel.id,
+                        container: container
+                    )
+                )
+            )
+        }
+        return channels
+    }
+
+    private func tileURL(
+        for logo: ChannelLogo?,
+        channelID: String,
+        container: URL
+    ) async -> String? {
+        guard let logo else {
             return nil
         }
-        return TopShelfChannel(
-            id: channel.id,
-            name: channel.name,
-            logoURL: logo?.url.absoluteString
-        )
+        let directory = container
+            .appendingPathComponent(
+                TopShelfConfiguration.payloadDirectory,
+                isDirectory: true
+            )
+            .appendingPathComponent("TopShelfImages", isDirectory: true)
+        let fileURL = directory.appendingPathComponent("\(channelID).png")
+        if FileManager.default.fileExists(atPath: fileURL.path) {
+            return fileURL.absoluteString
+        }
+        guard
+            let response = try? await URLSession.shared.data(from: logo.url),
+            let tile = TopShelfArtworkRenderer.renderTile(logoData: response.0)
+        else {
+            return logo.url.absoluteString
+        }
+        do {
+            try FileManager.default.createDirectory(
+                at: directory,
+                withIntermediateDirectories: true
+            )
+            try tile.write(to: fileURL, options: .atomic)
+            return fileURL.absoluteString
+        } catch {
+            return logo.url.absoluteString
+        }
     }
 }
