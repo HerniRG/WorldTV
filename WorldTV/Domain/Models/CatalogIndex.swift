@@ -66,14 +66,16 @@ struct CatalogIndex: Sendable {
         let lhsFormatPriority = Self.formatPriority(lhs.format)
         let rhsFormatPriority = Self.formatPriority(rhs.format)
 
-        // Prefer higher format only if resolution is comparable (within 4x) or higher format has reasonable resolution
+        // Prefer higher format (SVG > WebP > AVIF > PNG > JPEG) only if its resolution
+        // is at least 90% of the lower format's resolution. This prevents smaller
+        // vector images from winning over larger, higher-quality raster images.
         if lhsFormatPriority != rhsFormatPriority {
             let higherFormatIsLHS = lhsFormatPriority > rhsFormatPriority
             let higherFormatPixels = higherFormatIsLHS ? lhsPixels : rhsPixels
             let lowerFormatPixels = higherFormatIsLHS ? rhsPixels : lhsPixels
 
-            // If higher format has at least 25% of lower format's pixels, or at least 5000 pixels, prefer it
-            if higherFormatPixels >= 5000 || (lowerFormatPixels > 0 && higherFormatPixels * 4 >= lowerFormatPixels) {
+            if lowerFormatPixels > 0 && higherFormatPixels * 10 >= lowerFormatPixels * 9 {
+                // higher format has at least 90% of lower format's resolution
                 return higherFormatIsLHS
             }
             return !higherFormatIsLHS
