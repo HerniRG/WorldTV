@@ -29,7 +29,16 @@ struct ChannelInfoPanelView: View {
                 )
                 .font(.subheadline)
             }
-
+            if let network = info.network, !network.isEmpty {
+                Label(network, systemImage: "building.2")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            if let launched = info.launched, !launched.isEmpty {
+                Label("channel.emitsSince \(launched)", systemImage: "calendar.badge.plus")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(DesignTokens.pagePadding)
         .foregroundStyle(.white)

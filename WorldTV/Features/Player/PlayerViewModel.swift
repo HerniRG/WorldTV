@@ -74,7 +74,9 @@ final class PlayerViewModel {
                     countryName: context.countryName,
                     categoryNames: context.categoryNames,
                     logoURL: context.logoURL,
-                    feeds: context.feeds
+                    feeds: context.feeds,
+                    network: context.channel.network,
+                    launched: context.channel.launched
                 )
                 feeds = context.feeds
                 sources = context.sources

@@ -164,7 +164,7 @@ struct ChannelDetailView: View {
                 .font(.subheadline)
             }
             if let launched = channel.launched, !launched.isEmpty {
-                Label("channel.launched \(launched)", systemImage: "calendar.badge.plus")
+                Label("channel.emitsSince \(launched)", systemImage: "calendar.badge.plus")
                     .font(.subheadline)
             }
             if let closed = channel.closed, !closed.isEmpty {
