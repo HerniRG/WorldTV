@@ -23,13 +23,6 @@ struct ChannelCard: View {
             .foregroundStyle(.secondary)
             .lineLimit(1)
 
-            if let nowPlaying = item.nowPlaying {
-                Text(nowPlaying.title)
-                    .font(.caption)
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-            }
-
             HStack(spacing: 10) {
                 if let quality = item.quality {
                     Text(quality)

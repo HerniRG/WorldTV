@@ -1,23 +1,18 @@
 import Foundation
 
-import Foundation
-
 struct LoadHomeContentUseCase: Sendable {
     private let repository: any ChannelRepository
     private let recentlyWatchedRepository: any RecentlyWatchedRepository
     private let favoritesRepository: any FavoritesRepository
-    private let epgRepository: (any EPGRepository)?
 
     init(
         repository: any ChannelRepository,
         recentlyWatchedRepository: any RecentlyWatchedRepository,
-        favoritesRepository: any FavoritesRepository,
-        epgRepository: (any EPGRepository)? = nil
+        favoritesRepository: any FavoritesRepository
     ) {
         self.repository = repository
         self.recentlyWatchedRepository = recentlyWatchedRepository
         self.favoritesRepository = favoritesRepository
-        self.epgRepository = epgRepository
     }
 
     func execute(forceRefresh: Bool = false) async throws -> HomeContent {
@@ -75,35 +70,8 @@ struct LoadHomeContentUseCase: Sendable {
             .filter { catalog.index.preferredLogoByChannelID[$0.id] != nil }
             .prefix(20)
 
-        let featured: [ChannelCatalogItem]
-        if let epgRepository {
-            featured = await withTaskGroup(of: ChannelCatalogItem?.self) { group in
-                let feedIDsByChannel = Dictionary(grouping: catalog.feeds, by: \.channelID)
-                for channel in featuredChannels {
-                    group.addTask {
-                        let channelFeeds = feedIDsByChannel[channel.id] ?? []
-                        let mainFeedID = channelFeeds.first { $0.isMain }?.id
-                        let programs = try? await epgRepository.loadPrograms(
-                            for: channel.id,
-                            feedID: mainFeedID,
-                            forceRefresh: false
-                        )
-                        let nowPlaying = programs?.first { $0.isCurrent }
-                        return makeChannelCatalogItem(channel, catalog: catalog, nowPlaying: nowPlaying)
-                    }
-                }
-                var items: [ChannelCatalogItem] = []
-                for await item in group {
-                    if let item {
-                        items.append(item)
-                    }
-                }
-                return items.sorted {
-                    $0.channel.name.localizedStandardCompare($1.channel.name) == .orderedAscending
-                }
-            }
-        } else {
-            featured = featuredChannels.map { makeChannelItem($0, catalog: catalog) }
+        let featured: [ChannelCatalogItem] = featuredChannels.map {
+            makeChannelCatalogItem($0, catalog: catalog)
         }
 
         let recentlyWatched = history.compactMap { entry in
@@ -248,14 +216,11 @@ struct LoadChannelsByBroadcasterUseCase: Sendable {
 
 struct LoadChannelDetailUseCase: Sendable {
     private let repository: any ChannelRepository
-    private let epgRepository: any EPGRepository
 
     init(
-        repository: any ChannelRepository,
-        epgRepository: any EPGRepository
+        repository: any ChannelRepository
     ) {
         self.repository = repository
-        self.epgRepository = epgRepository
     }
 
     func execute(channelID: String) async throws -> ChannelDetailContent? {
@@ -266,13 +231,6 @@ struct LoadChannelDetailUseCase: Sendable {
         let streams = catalog.streamsByChannelID[channelID] ?? []
         let blocklistEntry = catalog.blocklist.first { $0.channelID == channelID }
         let feeds = catalog.index.feedsByChannelID[channelID] ?? []
-        let mainFeedID = feeds.first { $0.isMain }?.id
-        let programs = try await epgRepository.loadPrograms(
-            for: channelID,
-            feedID: mainFeedID,
-            forceRefresh: false
-        )
-        let nowPlaying = programs.first { $0.startTime != nil && $0.endTime != nil && $0.isCurrent }
         return ChannelDetailContent(
             channel: channel,
             logo: catalog.index.preferredLogoByChannelID[channelID],
@@ -289,16 +247,14 @@ struct LoadChannelDetailUseCase: Sendable {
             quality: streams.compactMap(\.quality).sorted().last,
             feeds: feeds,
             languages: catalog.languages,
-            blocklistEntry: blocklistEntry,
-            nowPlaying: nowPlaying
+            blocklistEntry: blocklistEntry
         )
     }
 }
 
 func makeChannelCatalogItem(
     _ channel: Channel,
-    catalog: Catalog,
-    nowPlaying: Program? = nil
+    catalog: Catalog
 ) -> ChannelCatalogItem {
     let streams = catalog.streamsByChannelID[channel.id] ?? []
     return ChannelCatalogItem(
@@ -311,32 +267,10 @@ func makeChannelCatalogItem(
         isGeoBlocked: streams.contains { stream in
             stream.label?.localizedCaseInsensitiveContains("geo") == true
         },
-        quality: streams.compactMap(\.quality).sorted().last,
-        nowPlaying: nowPlaying
+        quality: streams.compactMap(\.quality).sorted().last
     )
 }
 
 private func makeChannelItem(_ channel: Channel, catalog: Catalog) -> ChannelCatalogItem {
     makeChannelCatalogItem(channel, catalog: catalog)
-}
-
-struct LoadNowPlayingUseCase: Sendable {
-    private let epgRepository: any EPGRepository
-
-    init(epgRepository: any EPGRepository) {
-        self.epgRepository = epgRepository
-    }
-
-    func execute(
-        channelID: String,
-        feedID: String?,
-        forceRefresh: Bool = false
-    ) async throws -> Program? {
-        let programs = try await epgRepository.loadPrograms(
-            for: channelID,
-            feedID: feedID,
-            forceRefresh: forceRefresh
-        )
-        return programs.first { $0.isCurrent }
-    }
 }

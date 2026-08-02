@@ -7,7 +7,6 @@ struct CatalogIndex: Sendable {
     let preferredLogoByChannelID: [String: ChannelLogo]
     let countryByCode: [String: Country]
     let feedsByChannelID: [String: [ChannelFeed]]
-    let guidesByChannelID: [String: [Guide]]
     let languageCodesByChannelID: [String: Set<String>]
     let channelsByBroadcaster: [String: [Channel]]
 
@@ -15,8 +14,7 @@ struct CatalogIndex: Sendable {
         channels: [Channel],
         countries: [Country],
         logosByChannelID: [String: [ChannelLogo]],
-        feeds: [ChannelFeed] = [],
-        guides: [Guide] = []
+        feeds: [ChannelFeed] = []
     ) {
         channelsByID = Dictionary(uniqueKeysWithValues: channels.map { ($0.id, $0) })
         channelsByCountryCode = Dictionary(grouping: channels, by: \.countryCode)
@@ -37,12 +35,6 @@ struct CatalogIndex: Sendable {
             }
         }
         feedsByChannelID = groupedFeeds
-        guidesByChannelID = Dictionary(
-            grouping: guides.compactMap { guide -> (String, Guide)? in
-                guide.channelID.map { ($0, guide) }
-            },
-            by: \.0
-        ).mapValues { $0.map(\.1) }
         languageCodesByChannelID = channels.reduce(into: [:]) { result, channel in
             let feedLanguages = groupedFeeds[channel.id]?.flatMap(\.languages) ?? []
             if !feedLanguages.isEmpty {

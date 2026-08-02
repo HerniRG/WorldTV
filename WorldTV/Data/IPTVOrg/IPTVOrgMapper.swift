@@ -22,7 +22,6 @@ struct IPTVOrgMapper: Sendable {
                 return ($0.name ?? "") < ($1.name ?? "")
             }
         let blocklist = payload.blocklist.map(mapBlocklistEntry)
-        let guides = payload.guides.compactMap { mapGuide($0, validChannelIDs: validChannelIDs) }
 
         return Catalog(
             channels: channels,
@@ -32,8 +31,7 @@ struct IPTVOrgMapper: Sendable {
             logosByChannelID: Dictionary(grouping: logos, by: \.channelID),
             feeds: feeds,
             languages: payload.languages.map(mapLanguage).sorted { $0.name < $1.name },
-            blocklist: blocklist,
-            guides: guides
+            blocklist: blocklist
         )
     }
 
@@ -142,40 +140,6 @@ struct IPTVOrgMapper: Sendable {
 
     private func mapBlocklistEntry(_ dto: IPTVOrgBlocklistDTO) -> BlocklistEntry {
         BlocklistEntry(channelID: dto.channel, reason: dto.reason, ref: dto.ref)
-    }
-
-    private func mapGuide(
-        _ dto: IPTVOrgGuideDTO,
-        validChannelIDs: Set<String>
-    ) -> Guide? {
-        guard
-            let channelID = dto.channel,
-            validChannelIDs.contains(channelID)
-        else {
-            return nil
-        }
-
-        let sources = dto.sources.compactMap { sourceDTO -> GuideSource? in
-            guard let urlStr = sourceDTO.url, let url = URL(string: urlStr) else {
-                return nil
-            }
-            return GuideSource(
-                host: sourceDTO.host,
-                url: url,
-                format: sourceDTO.format
-            )
-        }
-
-        return Guide(
-            id: "\(channelID).\(dto.site ?? "")",
-            channelID: channelID,
-            feedID: dto.feed,
-            site: dto.site,
-            siteID: dto.site_id,
-            siteName: dto.site_name,
-            lang: dto.lang,
-            sources: sources
-        )
     }
 
     private func secureStreamURL(from value: String) -> URL? {

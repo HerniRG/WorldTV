@@ -9,7 +9,6 @@ struct Catalog: Sendable {
     let feeds: [ChannelFeed]
     let languages: [Language]
     let blocklist: [BlocklistEntry]
-    let guides: [Guide]
     let index: CatalogIndex
 
     init(
@@ -20,8 +19,7 @@ struct Catalog: Sendable {
         logosByChannelID: [String: [ChannelLogo]],
         feeds: [ChannelFeed] = [],
         languages: [Language] = [],
-        blocklist: [BlocklistEntry] = [],
-        guides: [Guide] = []
+        blocklist: [BlocklistEntry] = []
     ) {
         self.channels = channels
         self.countries = countries
@@ -31,13 +29,11 @@ struct Catalog: Sendable {
         self.feeds = feeds
         self.languages = languages
         self.blocklist = blocklist
-        self.guides = guides
         index = CatalogIndex(
             channels: channels,
             countries: countries,
             logosByChannelID: logosByChannelID,
-            feeds: feeds,
-            guides: guides
+            feeds: feeds
         )
     }
 
@@ -74,7 +70,6 @@ struct ChannelCatalogItem: Identifiable, Hashable, Sendable {
     let isAvailable: Bool
     let isGeoBlocked: Bool
     let quality: String?
-    let nowPlaying: Program?
 }
 
 struct HomeContent: Sendable {
@@ -121,7 +116,6 @@ struct ChannelDetailContent: Sendable {
     let feeds: [ChannelFeed]
     let languages: [Language]
     let blocklistEntry: BlocklistEntry?
-    let nowPlaying: Program?
 }
 
 struct CatalogSummary: Equatable, Sendable {

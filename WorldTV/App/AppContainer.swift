@@ -19,7 +19,6 @@ struct AppContainer {
     let clearCatalogCache: ClearCatalogCacheUseCase
     let loadCatalogCacheDate: LoadCatalogCacheDateUseCase
     let topShelfPayloadWriter: TopShelfPayloadWriter
-    let loadNowPlaying: LoadNowPlayingUseCase
 
     static func live() -> AppContainer {
         let urlCache = URLCache(
@@ -45,19 +44,7 @@ struct AppContainer {
                 .appendingPathComponent("WorldTV", isDirectory: true)
                 .appendingPathComponent("catalog.json")
         )
-        let epgCache = FileEPGBCache(baseURL: baseDirectory
-            .appendingPathComponent("WorldTV", isDirectory: true)
-        )
-        let epgSessionConfig = URLSessionConfiguration.default
-        epgSessionConfig.timeoutIntervalForRequest = 15
-        epgSessionConfig.timeoutIntervalForResource = 30
-        epgSessionConfig.requestCachePolicy = .reloadIgnoringLocalCacheData
         let repository = DefaultCatalogRepository(apiClient: apiClient, cache: cache)
-        let epgRepository = DefaultEPGRepository(
-            channelRepository: repository,
-            guideSourceFetcher: URLSessionGuideSourceFetcher(session: URLSession(configuration: epgSessionConfig)),
-            cache: epgCache
-        )
         let recentlyWatchedRepository = UserDefaultsRecentlyWatchedRepository()
         let favoritesRepository = UserDefaultsFavoritesRepository()
         let favoritesStore = FavoritesStore(
@@ -70,16 +57,14 @@ struct AppContainer {
             loadHomeContent: LoadHomeContentUseCase(
                 repository: repository,
                 recentlyWatchedRepository: recentlyWatchedRepository,
-                favoritesRepository: favoritesRepository,
-                epgRepository: epgRepository
+                favoritesRepository: favoritesRepository
             ),
             loadCountries: LoadCountriesUseCase(repository: repository),
             loadChannelsByCountry: LoadChannelsByCountryUseCase(repository: repository),
             loadCategories: LoadCategoriesUseCase(repository: repository),
             loadChannelsByCategory: LoadChannelsByCategoryUseCase(repository: repository),
             loadChannelDetail: LoadChannelDetailUseCase(
-                repository: repository,
-                epgRepository: epgRepository
+                repository: repository
             ),
             loadChannelsByBroadcaster: LoadChannelsByBroadcasterUseCase(repository: repository),
             resolvePlaybackSources: ResolvePlayableStreamUseCase(repository: repository),
@@ -105,8 +90,7 @@ struct AppContainer {
                 repository: repository,
                 recentlyWatchedRepository: recentlyWatchedRepository,
                 favoritesRepository: favoritesRepository
-            ),
-            loadNowPlaying: LoadNowPlayingUseCase(epgRepository: epgRepository)
+            )
         )
     }
 }

@@ -9,7 +9,6 @@ enum APIEndpoint: String, CaseIterable, Sendable {
     case blocklist
     case feeds
     case languages
-    case guides
 
     var url: URL? {
         URL(string: "https://iptv-org.github.io/api/\(rawValue).json")

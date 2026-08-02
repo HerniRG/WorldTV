@@ -83,7 +83,6 @@ struct ChannelDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: DesignTokens.sectionSpacing) {
                 hero(content)
-                nowPlayingView(content)
                 metadata(content)
                 feedSelection(content)
                 playButton(content)
@@ -112,33 +111,6 @@ struct ChannelDetailView: View {
             }
             .font(.subheadline)
             .foregroundStyle(.secondary)
-        }
-    }
-
-    @ViewBuilder
-    private func nowPlayingView(_ content: ChannelDetailContent) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Label("epg.nowPlaying", systemImage: "clock.badge.checkmark")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.tertiary)
-
-            if let nowPlaying = content.nowPlaying {
-                Text(nowPlaying.title)
-                    .font(.subheadline.weight(.semibold))
-                Text("\(nowPlaying.startTime, format: Date.FormatStyle(date: .abbreviated, time: .shortened))–\(nowPlaying.endTime, format: Date.FormatStyle(date: .omitted, time: .shortened))")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                if let desc = nowPlaying.description {
-                    Text(desc)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(3)
-                }
-            } else {
-                Text("epg.notAvailable")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
         }
     }
 
