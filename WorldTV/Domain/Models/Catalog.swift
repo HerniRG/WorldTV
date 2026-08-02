@@ -65,6 +65,7 @@ struct ChannelCatalogItem: Identifiable, Hashable, Sendable {
 
     let channel: Channel
     let logo: ChannelLogo?
+    let logos: [ChannelLogo]
     let countryName: String
     let isAvailable: Bool
     let isGeoBlocked: Bool
@@ -106,6 +107,7 @@ struct BroadcasterChannels: Sendable {
 struct ChannelDetailContent: Sendable {
     let channel: Channel
     let logo: ChannelLogo?
+    let logos: [ChannelLogo]
     let countryName: String
     let categoryNames: [String]
     let isAvailable: Bool

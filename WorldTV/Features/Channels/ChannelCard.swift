@@ -6,7 +6,7 @@ struct ChannelCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             ChannelLogoView(
-                logo: item.logo,
+                logos: item.logos,
                 channelName: item.channel.name
             )
 

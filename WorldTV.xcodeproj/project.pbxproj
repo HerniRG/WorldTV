@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CA0E7A2B000000000000000D /* WorldTVTopShelf.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = CA0E7A2B0000000000000001 /* WorldTVTopShelf.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		CA0E7A2B000000000000000D /* WorldTVTopShelf.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = CA0E7A2B0000000000000001 /* WorldTVTopShelf.appex */; platformFilters = (tvos, ); settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -373,6 +373,7 @@
 		};
 		CA0E7A2B000000000000000C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilter = tvos;
 			target = CA0E7A2B0000000000000007 /* WorldTVTopShelf */;
 			targetProxy = CA0E7A2B000000000000000B /* PBXContainerItemProxy */;
 		};

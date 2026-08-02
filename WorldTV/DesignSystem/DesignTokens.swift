@@ -16,6 +16,7 @@ enum DesignTokens {
     static let channelCarouselHeight: CGFloat = 320
     static let broadcasterCardWidth: CGFloat = 300
     static let broadcasterRowHeight: CGFloat = 230
+    static let categoryCardHeight: CGFloat = 238
     #else
     static let sectionSpacing: CGFloat = 32
     static let contentSpacing: CGFloat = 16
@@ -31,5 +32,6 @@ enum DesignTokens {
     static let channelCarouselHeight: CGFloat = 260
     static let broadcasterCardWidth: CGFloat = 240
     static let broadcasterRowHeight: CGFloat = 180
+    static let categoryCardHeight: CGFloat = 220
     #endif
 }

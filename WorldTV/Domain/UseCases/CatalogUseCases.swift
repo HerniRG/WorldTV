@@ -67,7 +67,6 @@ struct LoadHomeContentUseCase: Sendable {
 
         let featured = catalog.channels.lazy
             .filter { catalog.streamsByChannelID[$0.id]?.isEmpty == false }
-            .filter { catalog.index.preferredLogoByChannelID[$0.id] != nil }
             .prefix(20)
             .map { makeChannelItem($0, catalog: catalog) }
         let recentlyWatched = history.compactMap { entry in
@@ -227,6 +226,7 @@ struct LoadChannelDetailUseCase: Sendable {
         return ChannelDetailContent(
             channel: channel,
             logo: catalog.index.preferredLogoByChannelID[channelID],
+            logos: catalog.index.logoCandidatesByChannelID[channelID] ?? [],
             countryName: catalog.index.countryByCode[channel.countryCode]?.name
                 ?? channel.countryCode,
             categoryNames: channel.categoryIDs.compactMap { id in
@@ -249,6 +249,7 @@ func makeChannelCatalogItem(_ channel: Channel, catalog: Catalog) -> ChannelCata
     return ChannelCatalogItem(
         channel: channel,
         logo: catalog.index.preferredLogoByChannelID[channel.id],
+        logos: catalog.index.logoCandidatesByChannelID[channel.id] ?? [],
         countryName: catalog.index.countryByCode[channel.countryCode]?.name
             ?? channel.countryCode,
         isAvailable: !streams.isEmpty,

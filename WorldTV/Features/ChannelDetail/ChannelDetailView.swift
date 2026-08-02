@@ -115,34 +115,9 @@ struct ChannelDetailView: View {
     }
 
     private func logo(_ content: ChannelDetailContent) -> some View {
-        Group {
-            if let logo = content.logo {
-                AsyncImage(url: logo.url, transaction: Transaction(animation: .default)) { phase in
-                    switch phase {
-                    case .empty:
-                        ProgressView()
-                    case .success(let image):
-                        image.resizable().scaledToFit()
-                    case .failure:
-                        fallbackLogo
-                    @unknown default:
-                        fallbackLogo
-                    }
-                }
-                .accessibilityLabel(content.channel.name)
-            } else {
-                fallbackLogo
-            }
-        }
+        ChannelLogoView(logos: content.logos, channelName: content.channel.name)
         .frame(width: 220, height: 120)
         .accessibilityHidden(true)
-    }
-
-    private var fallbackLogo: some View {
-        Image(systemName: "tv")
-            .font(.system(size: 56))
-            .foregroundStyle(.secondary)
-            .frame(width: 220, height: 120)
     }
 
     private func favoriteButton(_ content: ChannelDetailContent) -> some View {
