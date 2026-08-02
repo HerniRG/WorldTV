@@ -175,13 +175,7 @@ struct PlayerView: View {
         guard let info = viewModel.channelInfo else {
             return nil
         }
-        return AnyView(
-            ChannelInfoPanelView(
-                info: info,
-                selectedFeedID: viewModel.selectedFeedID,
-                onSelectFeed: { viewModel.selectFeed(nil) }
-            )
-        )
+        return AnyView(ChannelInfoPanelView(info: info))
     }
 
     private func progress(_ title: LocalizedStringKey) -> some View {
