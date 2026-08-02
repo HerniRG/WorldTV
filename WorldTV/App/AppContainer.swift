@@ -66,7 +66,8 @@ struct AppContainer {
             loadHomeContent: LoadHomeContentUseCase(
                 repository: repository,
                 recentlyWatchedRepository: recentlyWatchedRepository,
-                favoritesRepository: favoritesRepository
+                favoritesRepository: favoritesRepository,
+                epgRepository: epgRepository
             ),
             loadCountries: LoadCountriesUseCase(repository: repository),
             loadChannelsByCountry: LoadChannelsByCountryUseCase(repository: repository),

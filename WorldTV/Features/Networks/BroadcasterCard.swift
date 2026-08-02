@@ -10,7 +10,7 @@ struct BroadcasterCard: View {
                     BroadcasterLogoPlaceholder(name: item.name)
                         .frame(maxWidth: .infinity)
                 } else {
-                    ForEach(item.logos.prefix(4)) { logo in
+                    ForEach(item.logos.uniqueByID.prefix(4)) { logo in
                         AsyncImage(url: logo.url) { image in
                             image
                                 .resizable()
@@ -71,5 +71,12 @@ private struct BroadcasterLogoPlaceholder: View {
             .compactMap(\.first)
             .map(String.init)
             .joined()
+    }
+}
+
+private extension Collection where Element: Identifiable, Element.ID: Hashable {
+    var uniqueByID: [Element] {
+        var seen: Set<Element.ID> = []
+        return filter { seen.insert($0.id).inserted }
     }
 }

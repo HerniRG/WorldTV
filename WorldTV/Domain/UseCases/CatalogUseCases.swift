@@ -6,15 +6,18 @@ struct LoadHomeContentUseCase: Sendable {
     private let repository: any ChannelRepository
     private let recentlyWatchedRepository: any RecentlyWatchedRepository
     private let favoritesRepository: any FavoritesRepository
+    private let epgRepository: (any EPGRepository)?
 
     init(
         repository: any ChannelRepository,
         recentlyWatchedRepository: any RecentlyWatchedRepository,
-        favoritesRepository: any FavoritesRepository
+        favoritesRepository: any FavoritesRepository,
+        epgRepository: (any EPGRepository)? = nil
     ) {
         self.repository = repository
         self.recentlyWatchedRepository = recentlyWatchedRepository
         self.favoritesRepository = favoritesRepository
+        self.epgRepository = epgRepository
     }
 
     func execute(forceRefresh: Bool = false) async throws -> HomeContent {
@@ -67,10 +70,42 @@ struct LoadHomeContentUseCase: Sendable {
             return $0.channelCount > $1.channelCount
         }
 
-        let featured = catalog.channels.lazy
+        let featuredChannels = catalog.channels.lazy
             .filter { catalog.streamsByChannelID[$0.id]?.isEmpty == false }
+            .filter { catalog.index.preferredLogoByChannelID[$0.id] != nil }
             .prefix(20)
-            .map { makeChannelItem($0, catalog: catalog) }
+
+        let featured: [ChannelCatalogItem]
+        if let epgRepository {
+            featured = await withTaskGroup(of: ChannelCatalogItem?.self) { group in
+                let feedIDsByChannel = Dictionary(grouping: catalog.feeds, by: \.channelID)
+                for channel in featuredChannels {
+                    group.addTask {
+                        let channelFeeds = feedIDsByChannel[channel.id] ?? []
+                        let mainFeedID = channelFeeds.first { $0.isMain }?.id
+                        let programs = try? await epgRepository.loadPrograms(
+                            for: channel.id,
+                            feedID: mainFeedID,
+                            forceRefresh: false
+                        )
+                        let nowPlaying = programs?.first { $0.isCurrent }
+                        return makeChannelCatalogItem(channel, catalog: catalog, nowPlaying: nowPlaying)
+                    }
+                }
+                var items: [ChannelCatalogItem] = []
+                for await item in group {
+                    if let item {
+                        items.append(item)
+                    }
+                }
+                return items.sorted {
+                    $0.channel.name.localizedStandardCompare($1.channel.name) == .orderedAscending
+                }
+            }
+        } else {
+            featured = featuredChannels.map { makeChannelItem($0, catalog: catalog) }
+        }
+
         let recentlyWatched = history.compactMap { entry in
             catalog.index.channelsByID[entry.channelID]
         }
