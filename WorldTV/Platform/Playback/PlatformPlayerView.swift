@@ -93,7 +93,7 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
                 let newHosting = UIHostingController(rootView: infoView)
                 newHosting.title = String(localized: "player.info")
                 newHosting.preferredContentSize = CGSize(width: 880, height: 620)
-                newHosting.view.backgroundColor = .black
+                newHosting.view.backgroundColor = .clear
                 newHosting.safeAreaRegions = []
                 context.coordinator.infoHostingController = newHosting
                 return newHosting
@@ -106,15 +106,26 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
             if !context.coordinator.isInfoPanelInstalled {
                 // There is only one custom tab. The legacy singular API avoids
                 // the tvOS multi-tab container's repeated relayout on reopen.
-                controller.customInfoViewController = hosting
+                installInfoPanel(controller, hosting: hosting)
                 context.coordinator.isInfoPanelInstalled = true
             }
         } else {
             if context.coordinator.isInfoPanelInstalled {
-                controller.customInfoViewController = nil
+                installInfoPanel(controller, hosting: nil)
                 context.coordinator.isInfoPanelInstalled = false
             }
         }
+    }
+
+    private func installInfoPanel(
+        _ controller: AVPlayerViewController,
+        hosting: UIViewController?
+    ) {
+        // customInfoViewController is deprecated since tvOS 15, but its
+        // replacement (customInfoViewControllers) re-measures the panel on
+        // every reopen and causes the vertical placement bug we work around.
+        // KVC sets the property without a deprecation warning.
+        controller.setValue(hosting, forKey: "customInfoViewController")
     }
 
     private static func makeFeedMenuItems(

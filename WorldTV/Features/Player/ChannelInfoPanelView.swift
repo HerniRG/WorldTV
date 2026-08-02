@@ -52,7 +52,10 @@ struct ChannelInfoPanelView: View {
         .padding(DesignTokens.pagePadding)
         .foregroundStyle(.white)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(Color.black)
+        .background(
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(Color.black)
+        )
         .frame(minWidth: 760, minHeight: 480)
     }
 
