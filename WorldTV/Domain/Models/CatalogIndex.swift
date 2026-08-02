@@ -60,6 +60,12 @@ struct CatalogIndex: Sendable {
             return lhsHasHorizontalTag
         }
 
+        let lhsFormatPriority = Self.formatPriority(lhs.format)
+        let rhsFormatPriority = Self.formatPriority(rhs.format)
+        if lhsFormatPriority != rhsFormatPriority {
+            return lhsFormatPriority > rhsFormatPriority
+        }
+
         let lhsIsHorizontal = (lhs.width ?? 0) >= (lhs.height ?? 0)
         let rhsIsHorizontal = (rhs.width ?? 0) >= (rhs.height ?? 0)
         if lhsIsHorizontal != rhsIsHorizontal {
@@ -67,5 +73,17 @@ struct CatalogIndex: Sendable {
         }
 
         return (lhs.width ?? 0) * (lhs.height ?? 0) > (rhs.width ?? 0) * (rhs.height ?? 0)
+    }
+
+    private static func formatPriority(_ format: String?) -> Int {
+        guard let format = format?.uppercased() else { return 0 }
+        switch format {
+        case "SVG": return 5
+        case "WEBP": return 4
+        case "AVIF": return 3
+        case "PNG": return 2
+        case "JPEG", "JPG": return 1
+        default: return 0
+        }
     }
 }
