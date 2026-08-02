@@ -191,6 +191,21 @@ struct ChannelDetailView: View {
                 Label("channel.geo.warning", systemImage: "globe.europe.africa")
                     .font(.footnote)
             }
+            if let blocklistEntry = content.blocklistEntry {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label("channel.blocked", systemImage: "exclamationmark.triangle")
+                        .font(.footnote)
+                        .foregroundStyle(.orange)
+                    Text(blocklistEntry.reason)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    if let url = URL(string: blocklistEntry.ref) {
+                        Link("channel.blocked.reference", destination: url)
+                            .font(.caption)
+                            .foregroundStyle(.blue)
+                    }
+                }
+            }
         }
         .foregroundStyle(.secondary)
     }

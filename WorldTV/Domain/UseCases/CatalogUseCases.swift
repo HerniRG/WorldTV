@@ -223,6 +223,7 @@ struct LoadChannelDetailUseCase: Sendable {
             return nil
         }
         let streams = catalog.streamsByChannelID[channelID] ?? []
+        let blocklistEntry = catalog.blocklist.first { $0.channelID == channelID }
         return ChannelDetailContent(
             channel: channel,
             logo: catalog.index.preferredLogoByChannelID[channelID],
@@ -237,7 +238,8 @@ struct LoadChannelDetailUseCase: Sendable {
             },
             quality: streams.compactMap(\.quality).sorted().last,
             feeds: catalog.index.feedsByChannelID[channelID] ?? [],
-            languages: catalog.languages
+            languages: catalog.languages,
+            blocklistEntry: blocklistEntry
         )
     }
 }

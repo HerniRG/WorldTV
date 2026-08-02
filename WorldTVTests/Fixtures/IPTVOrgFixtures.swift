@@ -57,7 +57,7 @@ enum IPTVOrgFixtures {
                 IPTVOrgCategoryDTO(id: "news", name: "News", description: "News and current affairs")
             ],
             blocklist: [
-                IPTVOrgBlocklistDTO(channel: "Blocked.es")
+                IPTVOrgBlocklistDTO(channel: "Blocked.es", reason: "dmca", ref: "https://github.com/iptv-org/iptv/issues/1831")
             ],
             feeds: [
                 IPTVOrgFeedDTO(
