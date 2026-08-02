@@ -373,7 +373,6 @@
 		};
 		CA0E7A2B000000000000000C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			platformFilter = tvos;
 			target = CA0E7A2B0000000000000007 /* WorldTVTopShelf */;
 			targetProxy = CA0E7A2B000000000000000B /* PBXContainerItemProxy */;
 		};
