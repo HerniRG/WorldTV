@@ -134,6 +134,38 @@ struct IPTVOrgLanguageDTO: Codable, Sendable {
     let code: String
 }
 
+struct IPTVOrgGuideSourceDTO: Codable, Sendable {
+    let host: String?
+    let url: String?
+    let format: String?
+
+    enum CodingKeys: String, CodingKey {
+        case host
+        case url
+        case format
+    }
+}
+
+struct IPTVOrgGuideDTO: Codable, Sendable {
+    let channel: String?
+    let feed: String?
+    let site: String?
+    let site_id: String?
+    let site_name: String?
+    let lang: String?
+    let sources: [IPTVOrgGuideSourceDTO]
+
+    enum CodingKeys: String, CodingKey {
+        case channel
+        case feed
+        case site
+        case site_id = "site_id"
+        case site_name = "site_name"
+        case lang
+        case sources
+    }
+}
+
 struct IPTVOrgCatalogPayload: Codable, Sendable {
     let channels: [IPTVOrgChannelDTO]
     let streams: [IPTVOrgStreamDTO]
@@ -141,8 +173,9 @@ struct IPTVOrgCatalogPayload: Codable, Sendable {
     let countries: [IPTVOrgCountryDTO]
     let categories: [IPTVOrgCategoryDTO]
     let blocklist: [IPTVOrgBlocklistDTO]
-    var feeds: [IPTVOrgFeedDTO] = []
-    var languages: [IPTVOrgLanguageDTO] = []
+    let feeds: [IPTVOrgFeedDTO]
+    let languages: [IPTVOrgLanguageDTO]
+    let guides: [IPTVOrgGuideDTO]
 }
 
 extension IPTVOrgChannelDTO {
@@ -203,5 +236,6 @@ extension IPTVOrgCatalogPayload {
         blocklist = try container.decode([IPTVOrgBlocklistDTO].self, forKey: .blocklist)
         feeds = try container.decodeIfPresent([IPTVOrgFeedDTO].self, forKey: .feeds) ?? []
         languages = try container.decodeIfPresent([IPTVOrgLanguageDTO].self, forKey: .languages) ?? []
+        guides = try container.decodeIfPresent([IPTVOrgGuideDTO].self, forKey: .guides) ?? []
     }
 }

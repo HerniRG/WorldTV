@@ -19,6 +19,7 @@ struct AppContainer {
     let clearCatalogCache: ClearCatalogCacheUseCase
     let loadCatalogCacheDate: LoadCatalogCacheDateUseCase
     let topShelfPayloadWriter: TopShelfPayloadWriter
+    let loadNowPlaying: LoadNowPlayingUseCase
 
     static func live() -> AppContainer {
         let urlCache = URLCache(
@@ -44,7 +45,15 @@ struct AppContainer {
                 .appendingPathComponent("WorldTV", isDirectory: true)
                 .appendingPathComponent("catalog.json")
         )
+        let epgCache = FileEPGBCache(baseURL: baseDirectory
+            .appendingPathComponent("WorldTV", isDirectory: true)
+        )
         let repository = DefaultCatalogRepository(apiClient: apiClient, cache: cache)
+        let epgRepository = DefaultEPGRepository(
+            channelRepository: repository,
+            guideSourceFetcher: URLSessionGuideSourceFetcher(session: URLSession(configuration: configuration)),
+            cache: epgCache
+        )
         let recentlyWatchedRepository = UserDefaultsRecentlyWatchedRepository()
         let favoritesRepository = UserDefaultsFavoritesRepository()
         let favoritesStore = FavoritesStore(
@@ -63,7 +72,10 @@ struct AppContainer {
             loadChannelsByCountry: LoadChannelsByCountryUseCase(repository: repository),
             loadCategories: LoadCategoriesUseCase(repository: repository),
             loadChannelsByCategory: LoadChannelsByCategoryUseCase(repository: repository),
-            loadChannelDetail: LoadChannelDetailUseCase(repository: repository),
+            loadChannelDetail: LoadChannelDetailUseCase(
+                repository: repository,
+                epgRepository: epgRepository
+            ),
             loadChannelsByBroadcaster: LoadChannelsByBroadcasterUseCase(repository: repository),
             resolvePlaybackSources: ResolvePlayableStreamUseCase(repository: repository),
             recordRecentlyWatched: RecordRecentlyWatchedUseCase(
@@ -88,7 +100,8 @@ struct AppContainer {
                 repository: repository,
                 recentlyWatchedRepository: recentlyWatchedRepository,
                 favoritesRepository: favoritesRepository
-            )
+            ),
+            loadNowPlaying: LoadNowPlayingUseCase(epgRepository: epgRepository)
         )
     }
 }

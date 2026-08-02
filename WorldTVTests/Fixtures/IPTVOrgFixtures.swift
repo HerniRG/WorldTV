@@ -86,6 +86,23 @@ enum IPTVOrgFixtures {
             languages: [
                 IPTVOrgLanguageDTO(name: "Spanish", code: "spa"),
                 IPTVOrgLanguageDTO(name: "English", code: "eng")
+            ],
+            guides: [
+                IPTVOrgGuideDTO(
+                    channel: "News.es",
+                    feed: nil,
+                    site: "example.com",
+                    site_id: "news",
+                    site_name: "News",
+                    lang: "eng",
+                    sources: [
+                        IPTVOrgGuideSourceDTO(
+                            host: "example.com",
+                            url: "https://example.com/guide.xml",
+                            format: "XML"
+                        )
+                    ]
+                )
             ]
         )
     }
