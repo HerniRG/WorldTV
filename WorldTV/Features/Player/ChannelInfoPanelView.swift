@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ChannelInfoPanelView: View {
     let info: PlayerChannelInfo
+    let selectedFeedID: String?
+    var onSelectFeed: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignTokens.contentSpacing) {
@@ -29,6 +31,11 @@ struct ChannelInfoPanelView: View {
                 )
                 .font(.subheadline)
             }
+
+            if !info.feeds.isEmpty {
+                Divider()
+                feedSelector
+            }
         }
         .padding(DesignTokens.pagePadding)
         .foregroundStyle(.white)
@@ -38,6 +45,31 @@ struct ChannelInfoPanelView: View {
                 .fill(Color.black)
         )
         .frame(minWidth: 760, minHeight: 480)
+    }
+
+    private var feedSelector: some View {
+        HStack(spacing: 8) {
+            if let selectedFeed = info.feeds.first(where: { $0.id == selectedFeedID }) {
+                Label(selectedFeed.displayName, systemImage: "signal")
+                    .font(.subheadline.weight(.semibold))
+            } else {
+                Label("player.feed.auto", systemImage: "signal")
+                    .font(.subheadline.weight(.semibold))
+            }
+            Spacer()
+            if info.feeds.count > 1 {
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onSelectFeed?()
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("player.feed"))
+        .accessibilityHint(Text("Double tap to change feed"))
     }
 
     private var logo: some View {
