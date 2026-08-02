@@ -2887,6 +2887,22 @@
         }
       }
     },
+    "epg.notAvailable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No EPG data available for this channel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay datos de guía para este canal"
+          }
+        }
+      }
+    },
     "favorites.add" : {
       "localizations" : {
         "ar" : {

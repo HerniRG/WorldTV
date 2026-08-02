@@ -117,11 +117,12 @@ struct ChannelDetailView: View {
 
     @ViewBuilder
     private func nowPlayingView(_ content: ChannelDetailContent) -> some View {
-        if let nowPlaying = content.nowPlaying {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("epg.nowPlaying")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.tertiary)
+        VStack(alignment: .leading, spacing: 6) {
+            Label("epg.nowPlaying", systemImage: "clock.badge.checkmark")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.tertiary)
+
+            if let nowPlaying = content.nowPlaying {
                 Text(nowPlaying.title)
                     .font(.subheadline.weight(.semibold))
                 Text("\(nowPlaying.startTime, format: Date.FormatStyle(date: .abbreviated, time: .shortened))–\(nowPlaying.endTime, format: Date.FormatStyle(date: .omitted, time: .shortened))")
@@ -133,6 +134,10 @@ struct ChannelDetailView: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(3)
                 }
+            } else {
+                Text("epg.notAvailable")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
     }
