@@ -1,7 +1,9 @@
 import Foundation
+import OSLog
 
 struct URLSessionGuideSourceFetcher: GuideSourceFetching {
     private let session: URLSession
+    private let logger = Logger(subsystem: "hrgapps.WorldTV", category: "epg")
 
     init(session: URLSession) {
         self.session = session
@@ -21,6 +23,8 @@ struct URLSessionGuideSourceFetcher: GuideSourceFetching {
         guard (200..<300).contains(httpResponse.statusCode) else {
             throw HTTPError.unacceptableStatusCode(httpResponse.statusCode)
         }
+
+        logger.info("EPG HTTP: \(url.absoluteString, privacy: .public) status=\(httpResponse.statusCode, privacy: .public) bytes=\(data.count, privacy: .public) contentType=\(httpResponse.mimeType ?? "nil", privacy: .public)")
 
         return data
     }

@@ -18,7 +18,9 @@ struct XMLTVParser: Sendable {
         let parser = XMLParser(data: data)
         let delegate = XMLTVParserDelegate(feedID: feedID)
         parser.delegate = delegate
-        parser.parse()
+        let success = parser.parse()
+        let count = delegate.programs.count
+        print("EPG XML: parse success=\(success), programs=\(count), dataBytes=\(data.count)")
         return delegate.programs
     }
 }

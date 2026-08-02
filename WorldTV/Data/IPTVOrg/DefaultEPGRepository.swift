@@ -41,7 +41,8 @@ actor DefaultEPGRepository: EPGRepository {
         let catalog = try await channelRepository.loadCatalog()
         let guides = catalog.index.guidesByChannelID[channelID] ?? []
 
-        logger.info("EPG: loading for channel \(channelID, privacy: .public), guides found: \(guides.count, privacy: .public)")
+        logger.info("═══ EPG: START loadPrograms for channel \(channelID, privacy: .public), feedID: \(feedID ?? "nil", privacy: .public), forceRefresh: \(forceRefresh) ═══")
+        logger.info("EPG: channel has \(guides.count, privacy: .public) guide(s)")
 
         guard !guides.isEmpty else {
             return []
@@ -58,26 +59,41 @@ actor DefaultEPGRepository: EPGRepository {
         }
 
         if !forceRefresh,
-           let cachedPrograms = try? await cache.load(key: cacheKey)
+           let cachedPrograms = try? await cache.load(key: cacheKey),
+           !cachedPrograms.isEmpty
         {
             inMemoryCache[cacheKey] = (cachedPrograms, Date())
             logger.info("EPG: file cache load for \(channelID, privacy: .public), \(cachedPrograms.count, privacy: .public) programs")
             return cachedPrograms
         }
 
+        var totalSources = 0
+        var xmltvSources = 0
+        var fetchedSources = 0
+        var failedSources = 0
+        var totalRawPrograms = 0
+        var totalValidPrograms = 0
+
         var allPrograms: [Program] = []
         for guide in guides {
+            logger.info("EPG: guide id=\(guide.id, privacy: .public), site=\(guide.siteName ?? "nil", privacy: .public), feedID=\(guide.feedID ?? "nil", privacy: .public), lang=\(guide.lang ?? "nil", privacy: .public), sources=\(guide.sources.count, privacy: .public)")
             for source in guide.sources where source.url != nil {
                 guard let url = source.url else { continue }
                 let fmt = source.format?.uppercased() ?? "nil"
-                logger.info("EPG: source format=\(fmt, privacy: .public) url=\(url.absoluteString, privacy: .public)")
+                totalSources += 1
+                logger.info("EPG: [\(totalSources, privacy: .public)] source host=\(source.host ?? "nil", privacy: .public) format=\(fmt, privacy: .public) url=\(url.absoluteString, privacy: .public)")
                 if fmt != "XML" && fmt != "xmltv" {
+                    logger.info("EPG: [\(totalSources, privacy: .public)] skipped (not XML/XMLTV)")
                     continue
                 }
+                xmltvSources += 1
                 do {
                     let xmlData = try await guideSourceFetcher.fetchXML(from: url)
+                    fetchedSources += 1
+                    logger.info("EPG: [\(totalSources, privacy: .public)] fetched \(xmlData.count, privacy: .public) bytes")
                     let parsed = XMLTVParser.parse(data: xmlData, feedID: guide.feedID)
-                    logger.info("EPG: fetched \(parsed.count, privacy: .public) raw programs from \(url.absoluteString, privacy: .public)")
+                    totalRawPrograms += parsed.count
+                    logger.info("EPG: [\(totalSources, privacy: .public)] parsed \(parsed.count, privacy: .public) raw programs from XML")
                     let programs = parsed.compactMap { parsedProgram -> Program? in
                         guard let startTime = parsedProgram.startTime,
                               let endTime = parsedProgram.endTime
@@ -99,20 +115,21 @@ actor DefaultEPGRepository: EPGRepository {
                             iconURL: iconURL
                         )
                     }
+                    let validCount = programs.count
                     let currentCount = programs.filter { $0.isCurrent }.count
-                    logger.info("EPG: \(programs.count, privacy: .public) valid programs, \(currentCount, privacy: .public) current")
+                    totalValidPrograms += validCount
+                    logger.info("EPG: [\(totalSources, privacy: .public)] \(validCount, privacy: .public) valid programs (\(currentCount, privacy: .public) current)")
                     allPrograms.append(contentsOf: programs)
                 } catch {
-                    logger.warning("EPG: Failed to fetch from \(url.absoluteString, privacy: .public): \(String(describing: error))")
+                    failedSources += 1
+                    logger.warning("EPG: [\(totalSources, privacy: .public)] FAILED url=\(url.absoluteString, privacy: .public) error=\(String(describing: error))")
                 }
             }
         }
 
-        inMemoryCache[cacheKey] = (allPrograms, Date())
-        try? await cache.save(allPrograms, key: cacheKey)
-
-        let currentCount = allPrograms.filter { $0.isCurrent }.count
-        logger.info("EPG: total \(allPrograms.count, privacy: .public) programs for \(channelID, privacy: .public), \(currentCount, privacy: .public) current")
+        logger.info("═══ EPG: SUMMARY for \(channelID, privacy: .public) ═══")
+        logger.info("EPG: total guides=\(guides.count, privacy: .public), total sources=\(totalSources, privacy: .public), xmltv sources=\(xmltvSources, privacy: .public), fetched=\(fetchedSources, privacy: .public), failed=\(failedSources, privacy: .public)")
+        logger.info("EPG: raw programs=\(totalRawPrograms, privacy: .public), valid programs=\(totalValidPrograms, privacy: .public)")
 
         return allPrograms
     }
