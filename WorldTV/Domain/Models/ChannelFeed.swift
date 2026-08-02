@@ -7,3 +7,12 @@ struct ChannelFeed: Identifiable, Hashable, Sendable {
     let isMain: Bool
     let languages: [String]
 }
+
+extension ChannelFeed {
+    var displayName: String {
+        guard let name, !name.isEmpty else {
+            return String(localized: "player.feed.auto")
+        }
+        return name
+    }
+}

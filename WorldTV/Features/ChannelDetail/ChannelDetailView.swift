@@ -276,15 +276,6 @@ struct ChannelDetailView: View {
     }
 }
 
-private extension ChannelFeed {
-    var displayName: String {
-        guard let name, !name.isEmpty else {
-            return String(localized: "player.feed.auto")
-        }
-        return name
-    }
-}
-
 private struct FocusedIconButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label

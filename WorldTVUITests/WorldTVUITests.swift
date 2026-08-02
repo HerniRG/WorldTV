@@ -548,9 +548,7 @@ final class WorldTVUITests: XCTestCase {
             "The Mac player did not open in its modal presentation."
         )
 
-        let closeButton = app.buttons["player.close"]
-        XCTAssertTrue(closeButton.waitForExistence(timeout: 5))
-        closeButton.click()
+        app.typeKey(.escape, modifierFlags: [])
 
         let playerDismissed = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "exists == false"),

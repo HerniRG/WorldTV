@@ -40,10 +40,16 @@ struct ResolvePlayableStreamUseCase: Sendable {
         guard !sources.isEmpty else {
             throw PlaybackError.noSources
         }
+        let categoriesByID = Dictionary(
+            uniqueKeysWithValues: catalog.categories.map { ($0.id, $0) }
+        )
         return PlaybackContext(
             channel: channel,
             feeds: catalog.index.feedsByChannelID[channelID] ?? [],
-            sources: Array(sources.prefix(maximumAttempts))
+            sources: Array(sources.prefix(maximumAttempts)),
+            logoURL: catalog.index.preferredLogoByChannelID[channelID]?.url,
+            countryName: catalog.index.countryByCode[channel.countryCode]?.name ?? "",
+            categoryNames: channel.categoryIDs.compactMap { categoriesByID[$0]?.name }
         )
     }
 

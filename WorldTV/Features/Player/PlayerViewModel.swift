@@ -1,4 +1,5 @@
 import AVFoundation
+import AVKit
 import Foundation
 import Observation
 
@@ -12,6 +13,7 @@ final class PlayerViewModel {
     private(set) var currentSourceTitle: String?
     private(set) var feeds: [ChannelFeed] = []
     private(set) var selectedFeedID: String?
+    private(set) var channelInfo: PlayerChannelInfo?
 
     @ObservationIgnored let player = AVPlayer()
 
@@ -66,6 +68,14 @@ final class PlayerViewModel {
                     return
                 }
                 channelName = context.channel.name
+                channelInfo = PlayerChannelInfo(
+                    name: context.channel.name,
+                    broadcasterName: context.channel.broadcasterName,
+                    countryName: context.countryName,
+                    categoryNames: context.categoryNames,
+                    logoURL: context.logoURL,
+                    feeds: context.feeds
+                )
                 feeds = context.feeds
                 sources = context.sources
                 sourceCount = sources.count
@@ -131,7 +141,11 @@ final class PlayerViewModel {
         currentSourceNumber = currentSourceIndex + 1
         currentSourceTitle = sources[currentSourceIndex].title
 
-        let item = makePlayerItem(from: sources[currentSourceIndex])
+        let item = makePlayerItem(
+            from: sources[currentSourceIndex],
+            channelName: channelName,
+            sourceTitle: sources[currentSourceIndex].title
+        )
         player.replaceCurrentItem(with: item)
 
         let nextAttempt = PlaybackAttempt(
@@ -221,7 +235,11 @@ final class PlayerViewModel {
         state = .failed(error)
     }
 
-    private func makePlayerItem(from source: PlaybackSource) -> AVPlayerItem {
+    private func makePlayerItem(
+        from source: PlaybackSource,
+        channelName: String,
+        sourceTitle: String?
+    ) -> AVPlayerItem {
         var headers: [String: String] = [:]
         if let referrer = source.referrer, !referrer.isEmpty {
             headers["Referer"] = referrer
@@ -229,16 +247,51 @@ final class PlayerViewModel {
         if let userAgent = source.userAgent, !userAgent.isEmpty {
             headers["User-Agent"] = userAgent
         }
-        guard !headers.isEmpty else {
-            return AVPlayerItem(url: source.url)
+        let item: AVPlayerItem
+        if headers.isEmpty {
+            item = AVPlayerItem(url: source.url)
+        } else {
+            let asset = AVURLAsset(
+                url: source.url,
+                options: ["AVURLAssetHTTPHeaderFieldsKey": headers]
+            )
+            item = AVPlayerItem(asset: asset)
         }
-
-        let asset = AVURLAsset(
-            url: source.url,
-            options: ["AVURLAssetHTTPHeaderFieldsKey": headers]
+        #if os(iOS) || os(tvOS)
+        item.externalMetadata = Self.makeMetadata(
+            channelName: channelName,
+            sourceTitle: sourceTitle
         )
-        return AVPlayerItem(asset: asset)
+        #endif
+        return item
     }
+
+    #if os(iOS) || os(tvOS)
+    private static func makeMetadata(
+        channelName: String,
+        sourceTitle: String?
+    ) -> [AVMetadataItem] {
+        let posixLocale = Locale(identifier: "en_US_POSIX")
+
+        let title = AVMutableMetadataItem()
+        title.identifier = .commonIdentifierTitle
+        title.keySpace = .common
+        title.locale = posixLocale
+        title.value = channelName as NSString
+
+        var items: [AVMetadataItem] = [title]
+
+        if let sourceTitle, !sourceTitle.isEmpty {
+            let subtitle = AVMutableMetadataItem()
+            subtitle.identifier = .iTunesMetadataTrackSubTitle
+            subtitle.keySpace = .iTunes
+            subtitle.locale = posixLocale
+            subtitle.value = sourceTitle as NSString
+            items.append(subtitle)
+        }
+        return items
+    }
+    #endif
 }
 
 @MainActor
