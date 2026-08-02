@@ -8,6 +8,9 @@ struct IPTVOrgChannelDTO: Codable, Sendable {
     let categories: [String]
     let isNSFW: Bool
     let closed: String?
+    let launched: String?
+    let replaced_by: String?
+    let website: String?
     var network: String? = nil
     var owners: [String] = []
 
@@ -19,6 +22,9 @@ struct IPTVOrgChannelDTO: Codable, Sendable {
         case categories
         case isNSFW = "is_nsfw"
         case closed
+        case launched
+        case replaced_by
+        case website
         case network
         case owners
     }
@@ -149,6 +155,9 @@ extension IPTVOrgChannelDTO {
         categories = try container.decode([String].self, forKey: .categories)
         isNSFW = try container.decode(Bool.self, forKey: .isNSFW)
         closed = try container.decodeIfPresent(String.self, forKey: .closed)
+        launched = try container.decodeIfPresent(String.self, forKey: .launched)
+        replaced_by = try container.decodeIfPresent(String.self, forKey: .replaced_by)
+        website = try container.decodeIfPresent(String.self, forKey: .website)
         network = try container.decodeIfPresent(String.self, forKey: .network)
         owners = try container.decodeIfPresent([String].self, forKey: .owners) ?? []
     }

@@ -60,10 +60,23 @@ struct CatalogIndex: Sendable {
             return lhsHasHorizontalTag
         }
 
+        let lhsPixels = (lhs.width ?? 0) * (lhs.height ?? 0)
+        let rhsPixels = (rhs.width ?? 0) * (rhs.height ?? 0)
+
         let lhsFormatPriority = Self.formatPriority(lhs.format)
         let rhsFormatPriority = Self.formatPriority(rhs.format)
+
+        // Prefer higher format only if resolution is comparable (within 4x) or higher format has reasonable resolution
         if lhsFormatPriority != rhsFormatPriority {
-            return lhsFormatPriority > rhsFormatPriority
+            let higherFormatIsLHS = lhsFormatPriority > rhsFormatPriority
+            let higherFormatPixels = higherFormatIsLHS ? lhsPixels : rhsPixels
+            let lowerFormatPixels = higherFormatIsLHS ? rhsPixels : lhsPixels
+
+            // If higher format has at least 25% of lower format's pixels, or at least 5000 pixels, prefer it
+            if higherFormatPixels >= 5000 || (lowerFormatPixels > 0 && higherFormatPixels * 4 >= lowerFormatPixels) {
+                return higherFormatIsLHS
+            }
+            return !higherFormatIsLHS
         }
 
         let lhsIsHorizontal = (lhs.width ?? 0) >= (lhs.height ?? 0)
@@ -72,7 +85,7 @@ struct CatalogIndex: Sendable {
             return lhsIsHorizontal
         }
 
-        return (lhs.width ?? 0) * (lhs.height ?? 0) > (rhs.width ?? 0) * (rhs.height ?? 0)
+        return lhsPixels > rhsPixels
     }
 
     private static func formatPriority(_ format: String?) -> Int {
