@@ -8,6 +8,7 @@ struct TVRootView: View {
     @State private var selectedSection = AppSection.home
     @State private var searchRequest: TVSearchRequest?
     @State private var tabBarHasFocus = true
+    @State private var presentedChannel: TVDeepLinkChannel?
 
     let homeViewModel: HomeViewModel
     let container: AppContainer
@@ -34,6 +35,12 @@ struct TVRootView: View {
         .onAppear {
             selectedSection = AppSection(rawValue: selectedSectionRawValue) ?? .home
         }
+        .task {
+            // HomeView may not be created when tvOS restores the last selected tab.
+            // Refresh the shared payload at app startup so Top Shelf is never
+            // dependent on the Home tab being visited first.
+            await container.topShelfPayloadWriter.write()
+        }
         .onChange(of: selectedSection) {
             selectedSectionRawValue = selectedSection.rawValue
         }
@@ -52,6 +59,37 @@ struct TVRootView: View {
             tabBarHasFocus = isTabBarFocus(context.nextFocusedItem)
         }
         .onExitCommand(perform: exitCommand)
+        .onReceive(
+            NotificationCenter.default.publisher(for: .topShelfDataDidChange)
+        ) { _ in
+            Task {
+                await container.topShelfPayloadWriter.write()
+            }
+        }
+        .onOpenURL(perform: handleURL)
+        .fullScreenCover(item: $presentedChannel) { channel in
+            PlayerView(
+                channelID: channel.channelID,
+                resolveSources: container.resolvePlaybackSources,
+                recordRecentlyWatched: container.recordRecentlyWatched,
+                initialFeedID: channel.feedID,
+                closePresentation: {
+                    presentedChannel = nil
+                }
+            )
+            .id(channel.channelID)
+        }
+    }
+
+    private func handleURL(_ url: URL) {
+        guard url.scheme == "worldtv", url.host == "play" else {
+            return
+        }
+        let components = url.pathComponents
+        guard components.count >= 2, !components[1].isEmpty else {
+            return
+        }
+        presentedChannel = TVDeepLinkChannel(channelID: components[1], feedID: nil)
     }
 
     private var exitCommand: (() -> Void)? {
@@ -86,5 +124,11 @@ struct TVRootView: View {
             selectedSection = .search
         }
     }
+}
+
+private struct TVDeepLinkChannel: Identifiable {
+    let id = UUID()
+    let channelID: String
+    let feedID: String?
 }
 #endif

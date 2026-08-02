@@ -224,6 +224,7 @@ final class PlayerViewModel {
         didRecordPlayback = true
         Task {
             await recordRecentlyWatched.execute(channelID: channelID)
+            NotificationCenter.default.post(name: .topShelfDataDidChange, object: nil)
         }
     }
 

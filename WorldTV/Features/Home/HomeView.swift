@@ -33,6 +33,7 @@ struct HomeView: View {
         .task {
             await favoritesStore.loadIfNeeded()
             await viewModel.loadIfNeeded()
+            NotificationCenter.default.post(name: .topShelfDataDidChange, object: nil)
         }
         .onAppear {
             viewModel.reloadVisibleContent()

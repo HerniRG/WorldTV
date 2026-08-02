@@ -58,6 +58,7 @@ final class FavoritesStore {
                 identifiers.remove(channelID)
             }
             persistenceFailed = false
+            NotificationCenter.default.post(name: .topShelfDataDidChange, object: nil)
         } catch {
             persistenceFailed = true
             logger.error("Favorite could not be changed")

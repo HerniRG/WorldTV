@@ -18,6 +18,7 @@ struct AppContainer {
     let clearRecentlyWatched: ClearRecentlyWatchedUseCase
     let clearCatalogCache: ClearCatalogCacheUseCase
     let loadCatalogCacheDate: LoadCatalogCacheDateUseCase
+    let topShelfPayloadWriter: TopShelfPayloadWriter
 
     static func live() -> AppContainer {
         let urlCache = URLCache(
@@ -82,7 +83,12 @@ struct AppContainer {
                 repository: recentlyWatchedRepository
             ),
             clearCatalogCache: ClearCatalogCacheUseCase(cache: cache),
-            loadCatalogCacheDate: LoadCatalogCacheDateUseCase(cache: cache)
+            loadCatalogCacheDate: LoadCatalogCacheDateUseCase(cache: cache),
+            topShelfPayloadWriter: TopShelfPayloadWriter(
+                repository: repository,
+                recentlyWatchedRepository: recentlyWatchedRepository,
+                favoritesRepository: favoritesRepository
+            )
         )
     }
 }
