@@ -30,12 +30,6 @@ struct ChannelInfoPanelView: View {
                 .font(.subheadline)
             }
 
-            if !info.feeds.isEmpty {
-                Divider()
-                Text("\(info.feeds.count) señales")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
         }
         .padding(DesignTokens.pagePadding)
         .foregroundStyle(.white)
