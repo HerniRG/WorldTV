@@ -105,6 +105,10 @@ struct IPTVOrgFeedDTO: Codable, Sendable {
     let name: String?
     let isMain: Bool?
     var languages: [String] = []
+    let alt_names: [String]?
+    let broadcast_area: [String]?
+    let timezones: [String]?
+    let format: String?
 
     enum CodingKeys: String, CodingKey {
         case channel
@@ -112,6 +116,10 @@ struct IPTVOrgFeedDTO: Codable, Sendable {
         case name
         case isMain = "is_main"
         case languages
+        case alt_names = "alt_names"
+        case broadcast_area = "broadcast_area"
+        case timezones
+        case format
     }
 }
 
@@ -168,6 +176,10 @@ extension IPTVOrgFeedDTO {
         name = try container.decodeIfPresent(String.self, forKey: .name)
         isMain = try container.decodeIfPresent(Bool.self, forKey: .isMain)
         languages = try container.decodeIfPresent([String].self, forKey: .languages) ?? []
+        alt_names = try container.decodeIfPresent([String].self, forKey: .alt_names) ?? []
+        broadcast_area = try container.decodeIfPresent([String].self, forKey: .broadcast_area) ?? []
+        timezones = try container.decodeIfPresent([String].self, forKey: .timezones) ?? []
+        format = try container.decodeIfPresent(String.self, forKey: .format)
     }
 }
 

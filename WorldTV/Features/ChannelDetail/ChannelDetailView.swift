@@ -298,11 +298,33 @@ struct ChannelDetailView: View {
                 Text("player.feeds")
                     .font(.subheadline.weight(.semibold))
                 ForEach(content.feeds) { feed in
-                    HStack(spacing: 12) {
-                        Text(feed.displayName)
-                        Spacer()
-                        Text(feedLanguageNames(feed, in: content))
-                            .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 12) {
+                            Text(feed.displayName)
+                            Spacer()
+                            Text(feedLanguageNames(feed, in: content))
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        if !feed.broadcastArea.isEmpty || !feed.timezones.isEmpty || feed.videoFormat != nil {
+                            HStack(spacing: 16) {
+                                if !feed.broadcastArea.isEmpty {
+                                    Label(feed.broadcastArea.joined(separator: ", "), systemImage: "location")
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
+                                }
+                                if !feed.timezones.isEmpty {
+                                    Label(feed.timezones.joined(separator: ", "), systemImage: "clock")
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
+                                }
+                                if let videoFormat = feed.videoFormat, !videoFormat.isEmpty {
+                                    Label(videoFormat, systemImage: "tv")
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
+                                }
+                            }
+                        }
                     }
                     .padding()
                     .background(

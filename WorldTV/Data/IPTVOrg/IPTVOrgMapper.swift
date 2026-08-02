@@ -118,7 +118,11 @@ struct IPTVOrgMapper: Sendable {
             channelID: channelID,
             name: dto.name,
             isMain: dto.isMain == true,
-            languages: dto.languages
+            languages: dto.languages,
+            broadcastArea: dto.broadcast_area ?? [],
+            timezones: dto.timezones ?? [],
+            videoFormat: dto.format,
+            altNames: dto.alt_names ?? []
         )
     }
 
