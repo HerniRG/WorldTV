@@ -42,6 +42,8 @@ actor DefaultEPGRepository: EPGRepository {
         let catalog = try await channelRepository.loadCatalog()
         let guides = catalog.index.guidesByChannelID[channelID] ?? []
 
+        logger.info("EPG: loading for channel \(channelID, privacy: .public), guides found: \(guides.count, privacy: .public)")
+
         guard !guides.isEmpty else {
             return []
         }
@@ -72,6 +74,7 @@ actor DefaultEPGRepository: EPGRepository {
                 do {
                     let xmlData = try await guideSourceFetcher.fetchXML(from: url)
                     let parsed = XMLTVParser.parse(data: xmlData, feedID: guide.feedID)
+                    logger.info("EPG: fetched \(parsed.count, privacy: .public) programs from \(url.absoluteString, privacy: .public)")
                     let programs = parsed.compactMap { parsedProgram -> Program? in
                         guard let startTime = parsedProgram.startTime,
                               let endTime = parsedProgram.endTime,
@@ -95,7 +98,7 @@ actor DefaultEPGRepository: EPGRepository {
                     }
                     allPrograms.append(contentsOf: programs)
                 } catch {
-                    logger.warning("Failed to fetch EPG from \(url.absoluteString): \(String(describing: error))")
+                    logger.warning("EPG: Failed to fetch from \(url.absoluteString, privacy: .public): \(String(describing: error))")
                 }
             }
         }

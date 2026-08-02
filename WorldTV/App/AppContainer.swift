@@ -48,10 +48,14 @@ struct AppContainer {
         let epgCache = FileEPGBCache(baseURL: baseDirectory
             .appendingPathComponent("WorldTV", isDirectory: true)
         )
+        let epgSessionConfig = URLSessionConfiguration.default
+        epgSessionConfig.timeoutIntervalForRequest = 15
+        epgSessionConfig.timeoutIntervalForResource = 30
+        epgSessionConfig.requestCachePolicy = .reloadIgnoringLocalCacheData
         let repository = DefaultCatalogRepository(apiClient: apiClient, cache: cache)
         let epgRepository = DefaultEPGRepository(
             channelRepository: repository,
-            guideSourceFetcher: URLSessionGuideSourceFetcher(session: URLSession(configuration: configuration)),
+            guideSourceFetcher: URLSessionGuideSourceFetcher(session: URLSession(configuration: epgSessionConfig)),
             cache: epgCache
         )
         let recentlyWatchedRepository = UserDefaultsRecentlyWatchedRepository()
