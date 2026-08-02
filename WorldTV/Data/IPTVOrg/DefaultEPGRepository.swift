@@ -25,8 +25,7 @@ actor DefaultEPGRepository: EPGRepository {
         channelRepository: ChannelRepository,
         guideSourceFetcher: GuideSourceFetching,
         cache: EPGBCaching,
-        cacheMaxAge: TimeInterval = 30 * 60,
-        now: @escaping @Sendable () -> Date = Date.init
+        cacheMaxAge: TimeInterval = 30 * 60
     ) {
         self.channelRepository = channelRepository
         self.guideSourceFetcher = guideSourceFetcher
@@ -50,38 +49,42 @@ actor DefaultEPGRepository: EPGRepository {
 
         let cacheKey = channelID + (feedID ?? "")
 
-        // Check in-memory cache
         if !forceRefresh,
            let cached = inMemoryCache[cacheKey],
            Date().timeIntervalSince(cached.loadedAt) < cacheMaxAge
         {
+            logger.info("EPG: cache hit for \(channelID, privacy: .public), \(cached.programs.count, privacy: .public) programs")
             return cached.programs
         }
 
-        // Check file cache
         if !forceRefresh,
            let cachedPrograms = try? await cache.load(key: cacheKey)
         {
             inMemoryCache[cacheKey] = (cachedPrograms, Date())
+            logger.info("EPG: file cache load for \(channelID, privacy: .public), \(cachedPrograms.count, privacy: .public) programs")
             return cachedPrograms
         }
 
-        // Fetch from guide sources
         var allPrograms: [Program] = []
         for guide in guides {
-            for source in guide.sources where source.format?.uppercased() == "XML" {
+            for source in guide.sources where source.url != nil {
                 guard let url = source.url else { continue }
+                let fmt = source.format?.uppercased() ?? "nil"
+                logger.info("EPG: source format=\(fmt, privacy: .public) url=\(url.absoluteString, privacy: .public)")
+                if fmt != "XML" && fmt != "xmltv" {
+                    continue
+                }
                 do {
                     let xmlData = try await guideSourceFetcher.fetchXML(from: url)
                     let parsed = XMLTVParser.parse(data: xmlData, feedID: guide.feedID)
-                    logger.info("EPG: fetched \(parsed.count, privacy: .public) programs from \(url.absoluteString, privacy: .public)")
+                    logger.info("EPG: fetched \(parsed.count, privacy: .public) raw programs from \(url.absoluteString, privacy: .public)")
                     let programs = parsed.compactMap { parsedProgram -> Program? in
                         guard let startTime = parsedProgram.startTime,
-                              let endTime = parsedProgram.endTime,
-                              let iconURL = parsedProgram.iconSrc.flatMap(URL.init)
+                              let endTime = parsedProgram.endTime
                         else {
                             return nil
                         }
+                        let iconURL = parsedProgram.iconSrc.flatMap(URL.init)
                         return Program(
                             id: "\(channelID).\(startTime.timeIntervalSince1970)",
                             channelID: parsedProgram.channelID,
@@ -96,6 +99,8 @@ actor DefaultEPGRepository: EPGRepository {
                             iconURL: iconURL
                         )
                     }
+                    let currentCount = programs.filter { $0.isCurrent }.count
+                    logger.info("EPG: \(programs.count, privacy: .public) valid programs, \(currentCount, privacy: .public) current")
                     allPrograms.append(contentsOf: programs)
                 } catch {
                     logger.warning("EPG: Failed to fetch from \(url.absoluteString, privacy: .public): \(String(describing: error))")
@@ -103,9 +108,11 @@ actor DefaultEPGRepository: EPGRepository {
             }
         }
 
-        // Cache results
         inMemoryCache[cacheKey] = (allPrograms, Date())
         try? await cache.save(allPrograms, key: cacheKey)
+
+        let currentCount = allPrograms.filter { $0.isCurrent }.count
+        logger.info("EPG: total \(allPrograms.count, privacy: .public) programs for \(channelID, privacy: .public), \(currentCount, privacy: .public) current")
 
         return allPrograms
     }
