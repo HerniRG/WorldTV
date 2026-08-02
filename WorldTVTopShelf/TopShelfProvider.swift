@@ -76,7 +76,11 @@ final class TopShelfProvider: TVTopShelfContentProvider {
         else {
             return nil
         }
-        let url = container.appendingPathComponent(
+        let directory = container.appendingPathComponent(
+            TopShelfConfiguration.payloadDirectory,
+            isDirectory: true
+        )
+        let url = directory.appendingPathComponent(
             TopShelfConfiguration.payloadFileName
         )
         guard let data = try? Data(contentsOf: url) else {

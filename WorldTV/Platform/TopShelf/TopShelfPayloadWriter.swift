@@ -51,7 +51,15 @@ struct TopShelfPayloadWriter: Sendable {
             let data = try encoder.encode(
                 TopShelfPayload(recent: recent, favorites: favorites)
             )
-            let url = container.appendingPathComponent(
+            let directory = container.appendingPathComponent(
+                TopShelfConfiguration.payloadDirectory,
+                isDirectory: true
+            )
+            try FileManager.default.createDirectory(
+                at: directory,
+                withIntermediateDirectories: true
+            )
+            let url = directory.appendingPathComponent(
                 TopShelfConfiguration.payloadFileName
             )
             do {
