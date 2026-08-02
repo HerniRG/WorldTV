@@ -20,8 +20,20 @@ struct ResolvePlayableStreamUseCase: Sendable {
         }
 
         var candidateStreams = catalog.streamsByChannelID[channelID] ?? []
+        let availableFeeds = catalog.index.feedsByChannelID[channelID] ?? []
+        
+        // Auto-select feed based on locale if not explicitly provided
+        let effectiveFeedID: String?
         if let feedID {
-            let feedStreams = candidateStreams.filter { $0.feed == feedID }
+            effectiveFeedID = feedID
+        } else if !availableFeeds.isEmpty {
+            effectiveFeedID = Self.selectBestFeed(availableFeeds, for: channel, locale: Locale.current)
+        } else {
+            effectiveFeedID = nil
+        }
+        
+        if let effectiveFeedID {
+            let feedStreams = candidateStreams.filter { $0.feed == effectiveFeedID }
             if !feedStreams.isEmpty {
                 candidateStreams = feedStreams
             }
@@ -45,7 +57,7 @@ struct ResolvePlayableStreamUseCase: Sendable {
         )
         return PlaybackContext(
             channel: channel,
-            feeds: catalog.index.feedsByChannelID[channelID] ?? [],
+            feeds: availableFeeds,
             sources: Array(sources.prefix(maximumAttempts)),
             logoURL: catalog.index.preferredLogoByChannelID[channelID]?.url,
             countryName: catalog.index.countryByCode[channel.countryCode]?.name ?? "",
@@ -95,6 +107,35 @@ struct ResolvePlayableStreamUseCase: Sendable {
             return 0
         }
         return Int(quality.filter(\.isNumber)) ?? 0
+    }
+
+    private static func selectBestFeed(_ feeds: [ChannelFeed], for channel: Channel, locale: Locale) -> String? {
+        let regionCode = locale.region?.identifier ?? ""
+        let languageCode = locale.language.languageCode?.identifier ?? ""
+        
+        // Priority 1: Feed matching user's region in broadcast_area
+        for feed in feeds {
+            if feed.broadcastArea.contains(regionCode) {
+                return feed.id
+            }
+        }
+        
+        // Priority 2: Feed matching user's language
+        for feed in feeds {
+            if feed.languages.contains(languageCode) {
+                return feed.id
+            }
+        }
+        
+        // Priority 3: Main feed
+        for feed in feeds {
+            if feed.isMain {
+                return feed.id
+            }
+        }
+        
+        // Priority 4: First available feed
+        return feeds.first?.id
     }
 }
 

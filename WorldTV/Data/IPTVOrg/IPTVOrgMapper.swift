@@ -21,6 +21,7 @@ struct IPTVOrgMapper: Sendable {
                 }
                 return ($0.name ?? "") < ($1.name ?? "")
             }
+        let blocklist = payload.blocklist.map(mapBlocklistEntry)
 
         return Catalog(
             channels: channels,
@@ -29,7 +30,8 @@ struct IPTVOrgMapper: Sendable {
             streamsByChannelID: Dictionary(grouping: streams, by: \.channelID),
             logosByChannelID: Dictionary(grouping: logos, by: \.channelID),
             feeds: feeds,
-            languages: payload.languages.map(mapLanguage).sorted { $0.name < $1.name }
+            languages: payload.languages.map(mapLanguage).sorted { $0.name < $1.name },
+            blocklist: blocklist
         )
     }
 
@@ -42,7 +44,11 @@ struct IPTVOrgMapper: Sendable {
             categoryIDs: dto.categories,
             isNSFW: dto.isNSFW,
             network: dto.network,
-            owners: dto.owners
+            owners: dto.owners,
+            launched: dto.launched,
+            closed: dto.closed,
+            replacedBy: dto.replaced_by,
+            website: dto.website
         )
     }
 
@@ -112,7 +118,11 @@ struct IPTVOrgMapper: Sendable {
             channelID: channelID,
             name: dto.name,
             isMain: dto.isMain == true,
-            languages: dto.languages
+            languages: dto.languages,
+            broadcastArea: dto.broadcast_area ?? [],
+            timezones: dto.timezones ?? [],
+            videoFormat: dto.format,
+            altNames: dto.alt_names ?? []
         )
     }
 
@@ -125,7 +135,11 @@ struct IPTVOrgMapper: Sendable {
     }
 
     private func mapCategory(_ dto: IPTVOrgCategoryDTO) -> ChannelCategory {
-        ChannelCategory(id: dto.id, name: dto.name)
+        ChannelCategory(id: dto.id, name: dto.name, description: dto.description)
+    }
+
+    private func mapBlocklistEntry(_ dto: IPTVOrgBlocklistDTO) -> BlocklistEntry {
+        BlocklistEntry(channelID: dto.channel, reason: dto.reason, ref: dto.ref)
     }
 
     private func secureStreamURL(from value: String) -> URL? {

@@ -6,6 +6,10 @@ struct ChannelFeed: Identifiable, Hashable, Sendable {
     let name: String?
     let isMain: Bool
     let languages: [String]
+    let broadcastArea: [String]
+    let timezones: [String]
+    let videoFormat: String?
+    let altNames: [String]
 }
 
 extension ChannelFeed {

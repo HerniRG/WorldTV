@@ -8,6 +8,7 @@ struct Catalog: Sendable {
     let logosByChannelID: [String: [ChannelLogo]]
     let feeds: [ChannelFeed]
     let languages: [Language]
+    let blocklist: [BlocklistEntry]
     let index: CatalogIndex
 
     init(
@@ -17,7 +18,8 @@ struct Catalog: Sendable {
         streamsByChannelID: [String: [ChannelStream]],
         logosByChannelID: [String: [ChannelLogo]],
         feeds: [ChannelFeed] = [],
-        languages: [Language] = []
+        languages: [Language] = [],
+        blocklist: [BlocklistEntry] = []
     ) {
         self.channels = channels
         self.countries = countries
@@ -26,6 +28,7 @@ struct Catalog: Sendable {
         self.logosByChannelID = logosByChannelID
         self.feeds = feeds
         self.languages = languages
+        self.blocklist = blocklist
         index = CatalogIndex(
             channels: channels,
             countries: countries,
@@ -62,6 +65,7 @@ struct ChannelCatalogItem: Identifiable, Hashable, Sendable {
 
     let channel: Channel
     let logo: ChannelLogo?
+    let logos: [ChannelLogo]
     let countryName: String
     let isAvailable: Bool
     let isGeoBlocked: Bool
@@ -103,6 +107,7 @@ struct BroadcasterChannels: Sendable {
 struct ChannelDetailContent: Sendable {
     let channel: Channel
     let logo: ChannelLogo?
+    let logos: [ChannelLogo]
     let countryName: String
     let categoryNames: [String]
     let isAvailable: Bool
@@ -110,6 +115,7 @@ struct ChannelDetailContent: Sendable {
     let quality: String?
     let feeds: [ChannelFeed]
     let languages: [Language]
+    let blocklistEntry: BlocklistEntry?
 }
 
 struct CatalogSummary: Equatable, Sendable {

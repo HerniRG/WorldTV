@@ -91,14 +91,22 @@ struct PlaybackUseCaseTests {
                     channelID: "news",
                     name: "Main",
                     isMain: true,
-                    languages: []
+                    languages: [],
+                    broadcastArea: [],
+                    timezones: [],
+                    videoFormat: nil,
+                    altNames: []
                 ),
                 ChannelFeed(
                     id: "intl",
                     channelID: "news",
                     name: "International",
                     isMain: false,
-                    languages: []
+                    languages: [],
+                    broadcastArea: [],
+                    timezones: [],
+                    videoFormat: nil,
+                    altNames: []
                 )
             ]
         )
@@ -138,13 +146,19 @@ struct PlaybackUseCaseTests {
                     alternativeNames: [],
                     countryCode: "ES",
                     categoryIDs: ["news"],
-                    isNSFW: false
+                    isNSFW: false,
+                    network: nil,
+                    owners: [],
+                    launched: nil,
+                    closed: nil,
+                    replacedBy: nil,
+                    website: nil
                 )
             ],
             countries: [
                 Country(code: "ES", name: "Spain", languageCodes: ["spa"], flag: "🇪🇸")
             ],
-            categories: [ChannelCategory(id: "news", name: "News")],
+            categories: [ChannelCategory(id: "news", name: "News", description: "News and current affairs")],
             streamsByChannelID: ["news": streams],
             logosByChannelID: [:],
             feeds: feeds

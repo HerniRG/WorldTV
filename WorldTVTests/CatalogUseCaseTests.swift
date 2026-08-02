@@ -20,6 +20,9 @@ struct CatalogUseCaseTests {
         #expect(content.summary.channelCount == 1)
         #expect(content.featuredChannels.map(\.id) == ["News.es"])
         #expect(content.favoriteChannels.map(\.id) == ["News.es"])
+        #expect(content.favoriteChannels.first?.logos.map(\.url.absoluteString) == [
+            "https://example.com/news.png"
+        ])
         #expect(content.recentlyWatched.map(\.id) == ["News.es"])
         #expect(content.popularCountries.map(\.id) == ["ES"])
     }

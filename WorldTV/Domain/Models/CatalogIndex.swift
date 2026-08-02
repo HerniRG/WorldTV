@@ -3,6 +3,7 @@ import Foundation
 struct CatalogIndex: Sendable {
     let channelsByID: [String: Channel]
     let channelsByCountryCode: [String: [Channel]]
+    let logoCandidatesByChannelID: [String: [ChannelLogo]]
     let preferredLogoByChannelID: [String: ChannelLogo]
     let countryByCode: [String: Country]
     let feedsByChannelID: [String: [ChannelFeed]]
@@ -17,10 +18,13 @@ struct CatalogIndex: Sendable {
     ) {
         channelsByID = Dictionary(uniqueKeysWithValues: channels.map { ($0.id, $0) })
         channelsByCountryCode = Dictionary(grouping: channels, by: \.countryCode)
+        logoCandidatesByChannelID = logosByChannelID.mapValues { logos in
+            logos.sorted(by: Self.isPreferredLogo)
+        }
         let countriesByCode = Dictionary(uniqueKeysWithValues: countries.map { ($0.code, $0) })
         countryByCode = countriesByCode
-        preferredLogoByChannelID = logosByChannelID.compactMapValues { logos in
-            logos.sorted(by: Self.isPreferredLogo).first
+        preferredLogoByChannelID = logoCandidatesByChannelID.compactMapValues { logos in
+            logos.first
         }
         let groupedFeeds = Dictionary(grouping: feeds, by: \.channelID).mapValues { feeds in
             feeds.sorted {
@@ -60,12 +64,50 @@ struct CatalogIndex: Sendable {
             return lhsHasHorizontalTag
         }
 
+        let lhsPixels = (lhs.width ?? 0) * (lhs.height ?? 0)
+        let rhsPixels = (rhs.width ?? 0) * (rhs.height ?? 0)
+
+        let lhsFormatPriority = Self.formatPriority(lhs.format)
+        let rhsFormatPriority = Self.formatPriority(rhs.format)
+
+        // Prefer higher format (WebP > AVIF > PNG > JPEG > SVG) only if its resolution
+        // is at least 90% of the lower format's resolution. SVG is listed last because
+        // SwiftUI's AsyncImage cannot render it on iOS/tvOS (Core Graphics can, but
+        // AsyncImage's URLImageLoader does not pass SVG data through ImageIO).
+        if lhsFormatPriority != rhsFormatPriority {
+            let higherFormatIsLHS = lhsFormatPriority > rhsFormatPriority
+            let higherFormatPixels = higherFormatIsLHS ? lhsPixels : rhsPixels
+            let lowerFormatPixels = higherFormatIsLHS ? rhsPixels : lhsPixels
+
+            if lowerFormatPixels > 0 && higherFormatPixels * 10 >= lowerFormatPixels * 9 {
+                // higher format has at least 90% of lower format's resolution
+                return higherFormatIsLHS
+            }
+            return !higherFormatIsLHS
+        }
+
         let lhsIsHorizontal = (lhs.width ?? 0) >= (lhs.height ?? 0)
         let rhsIsHorizontal = (rhs.width ?? 0) >= (rhs.height ?? 0)
         if lhsIsHorizontal != rhsIsHorizontal {
             return lhsIsHorizontal
         }
 
-        return (lhs.width ?? 0) * (lhs.height ?? 0) > (rhs.width ?? 0) * (rhs.height ?? 0)
+        return lhsPixels > rhsPixels
+    }
+
+    private static func formatPriority(_ format: String?) -> Int {
+        guard let format = format?.uppercased() else { return 0 }
+        switch format {
+        // SVG is supported by Core Graphics (ImageIO) but not by SwiftUI's
+        // AsyncImage on iOS/tvOS. Demote it below raster formats so that
+        // renderable alternatives are preferred; SVG is still selected when
+        // no raster log is available (falls back to system icon).
+        case "SVG": return 0
+        case "WEBP": return 4
+        case "AVIF": return 3
+        case "PNG": return 2
+        case "JPEG", "JPG": return 1
+        default: return 0
+        }
     }
 }

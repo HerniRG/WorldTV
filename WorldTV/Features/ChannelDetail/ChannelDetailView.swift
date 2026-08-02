@@ -115,34 +115,9 @@ struct ChannelDetailView: View {
     }
 
     private func logo(_ content: ChannelDetailContent) -> some View {
-        Group {
-            if let logo = content.logo {
-                AsyncImage(url: logo.url, transaction: Transaction(animation: .default)) { phase in
-                    switch phase {
-                    case .empty:
-                        ProgressView()
-                    case .success(let image):
-                        image.resizable().scaledToFit()
-                    case .failure:
-                        fallbackLogo
-                    @unknown default:
-                        fallbackLogo
-                    }
-                }
-                .accessibilityLabel(content.channel.name)
-            } else {
-                fallbackLogo
-            }
-        }
+        ChannelLogoView(logos: content.logos, channelName: content.channel.name)
         .frame(width: 220, height: 120)
         .accessibilityHidden(true)
-    }
-
-    private var fallbackLogo: some View {
-        Image(systemName: "tv")
-            .font(.system(size: 56))
-            .foregroundStyle(.secondary)
-            .frame(width: 220, height: 120)
     }
 
     private func favoriteButton(_ content: ChannelDetailContent) -> some View {
@@ -168,7 +143,8 @@ struct ChannelDetailView: View {
     }
 
     private func metadata(_ content: ChannelDetailContent) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let channel = content.channel
+        return VStack(alignment: .leading, spacing: 10) {
             if !content.categoryNames.isEmpty {
                 Label(
                     content.categoryNames.joined(separator: " · "),
@@ -176,20 +152,65 @@ struct ChannelDetailView: View {
                 )
                 .font(.subheadline)
             }
-            if let network = content.channel.network, !network.isEmpty {
+            if let network = channel.network, !network.isEmpty {
                 Label(network, systemImage: "building.2")
                     .font(.subheadline)
             }
-            if !content.channel.owners.isEmpty {
+            if !channel.owners.isEmpty {
                 Label(
-                    content.channel.owners.joined(separator: " · "),
+                    channel.owners.joined(separator: " · "),
                     systemImage: "person.2"
                 )
                 .font(.subheadline)
             }
+            if let launched = channel.launched, !launched.isEmpty {
+                Label("channel.launched \(launched)", systemImage: "calendar.badge.plus")
+                    .font(.subheadline)
+            }
+            if let closed = channel.closed, !closed.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label("channel.closed \(closed)", systemImage: "calendar.badge.minus")
+                        .font(.subheadline)
+                    if let replacedBy = channel.replacedBy, !replacedBy.isEmpty {
+                        HStack(spacing: 8) {
+                            Text("channel.replacedBy")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            if let url = URL(string: "worldtv://channel/\(replacedBy)") {
+                                Link(replacedBy, destination: url)
+                                    .font(.caption)
+                                    .foregroundStyle(.blue)
+                            } else {
+                                Text(replacedBy)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+            }
+            if let website = channel.website, !website.isEmpty, let url = URL(string: website) {
+                Link("channel.website", destination: url)
+                    .font(.subheadline)
+            }
             if content.isGeoBlocked {
                 Label("channel.geo.warning", systemImage: "globe.europe.africa")
                     .font(.footnote)
+            }
+            if let blocklistEntry = content.blocklistEntry {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label("channel.blocked", systemImage: "exclamationmark.triangle")
+                        .font(.footnote)
+                        .foregroundStyle(.orange)
+                    Text(blocklistEntry.reason)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    if let url = URL(string: blocklistEntry.ref) {
+                        Link("channel.blocked.reference", destination: url)
+                            .font(.caption)
+                            .foregroundStyle(.blue)
+                    }
+                }
             }
         }
         .foregroundStyle(.secondary)
@@ -252,11 +273,33 @@ struct ChannelDetailView: View {
                 Text("player.feeds")
                     .font(.subheadline.weight(.semibold))
                 ForEach(content.feeds) { feed in
-                    HStack(spacing: 12) {
-                        Text(feed.displayName)
-                        Spacer()
-                        Text(feedLanguageNames(feed, in: content))
-                            .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 12) {
+                            Text(feed.displayName)
+                            Spacer()
+                            Text(feedLanguageNames(feed, in: content))
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        if !feed.broadcastArea.isEmpty || !feed.timezones.isEmpty || feed.videoFormat != nil {
+                            HStack(spacing: 16) {
+                                if !feed.broadcastArea.isEmpty {
+                                    Label(feed.broadcastArea.joined(separator: ", "), systemImage: "location")
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
+                                }
+                                if !feed.timezones.isEmpty {
+                                    Label(feed.timezones.joined(separator: ", "), systemImage: "clock")
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
+                                }
+                                if let videoFormat = feed.videoFormat, !videoFormat.isEmpty {
+                                    Label(videoFormat, systemImage: "tv")
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
+                                }
+                            }
+                        }
                     }
                     .padding()
                     .background(

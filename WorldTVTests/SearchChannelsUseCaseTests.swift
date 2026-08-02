@@ -70,7 +70,13 @@ private enum SearchFixture {
             alternativeNames: ["Noticias"],
             countryCode: "ES",
             categoryIDs: ["news"],
-            isNSFW: false
+            isNSFW: false,
+            network: nil,
+            owners: [],
+            launched: nil,
+            closed: nil,
+            replacedBy: nil,
+            website: nil
         )
         let sport = Channel(
             id: "sport.us",
@@ -78,7 +84,13 @@ private enum SearchFixture {
             alternativeNames: [],
             countryCode: "US",
             categoryIDs: ["sports"],
-            isNSFW: false
+            isNSFW: false,
+            network: nil,
+            owners: [],
+            launched: nil,
+            closed: nil,
+            replacedBy: nil,
+            website: nil
         )
         let offline = Channel(
             id: "offline.es",
@@ -86,7 +98,13 @@ private enum SearchFixture {
             alternativeNames: [],
             countryCode: "ES",
             categoryIDs: ["news"],
-            isNSFW: false
+            isNSFW: false,
+            network: nil,
+            owners: [],
+            launched: nil,
+            closed: nil,
+            replacedBy: nil,
+            website: nil
         )
         return Catalog(
             channels: [news, sport, offline],
@@ -95,8 +113,8 @@ private enum SearchFixture {
                 Country(code: "US", name: "United States", languageCodes: [], flag: "🇺🇸")
             ],
             categories: [
-                ChannelCategory(id: "news", name: "News"),
-                ChannelCategory(id: "sports", name: "Sports")
+                ChannelCategory(id: "news", name: "News", description: "News and current affairs"),
+                ChannelCategory(id: "sports", name: "Sports", description: "Sports and live events")
             ],
             streamsByChannelID: [
                 "news.es": [
@@ -125,14 +143,22 @@ private enum SearchFixture {
                     channelID: "news.es",
                     name: "Main",
                     isMain: true,
-                    languages: ["spa"]
+                    languages: ["spa"],
+                    broadcastArea: [],
+                    timezones: [],
+                    videoFormat: nil,
+                    altNames: []
                 ),
                 ChannelFeed(
                     id: "sport-feed",
                     channelID: "sport.us",
                     name: "Main",
                     isMain: true,
-                    languages: ["eng"]
+                    languages: ["eng"],
+                    broadcastArea: [],
+                    timezones: [],
+                    videoFormat: nil,
+                    altNames: []
                 )
             ],
             languages: [

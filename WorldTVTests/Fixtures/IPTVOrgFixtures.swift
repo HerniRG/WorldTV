@@ -54,10 +54,10 @@ enum IPTVOrgFixtures {
                 IPTVOrgCountryDTO(code: "ES", name: "Spain", languages: ["spa"], flag: "🇪🇸")
             ],
             categories: [
-                IPTVOrgCategoryDTO(id: "news", name: "News")
+                IPTVOrgCategoryDTO(id: "news", name: "News", description: "News and current affairs")
             ],
             blocklist: [
-                IPTVOrgBlocklistDTO(channel: "Blocked.es")
+                IPTVOrgBlocklistDTO(channel: "Blocked.es", reason: "dmca", ref: "https://github.com/iptv-org/iptv/issues/1831")
             ],
             feeds: [
                 IPTVOrgFeedDTO(
@@ -65,14 +65,22 @@ enum IPTVOrgFixtures {
                     id: "main",
                     name: "Main",
                     isMain: true,
-                    languages: ["spa"]
+                    languages: ["spa"],
+                    alt_names: nil,
+                    broadcast_area: nil,
+                    timezones: nil,
+                    format: nil
                 ),
                 IPTVOrgFeedDTO(
                     channel: "News.es",
                     id: "intl",
                     name: "International",
                     isMain: false,
-                    languages: ["eng"]
+                    languages: ["eng"],
+                    alt_names: nil,
+                    broadcast_area: nil,
+                    timezones: nil,
+                    format: nil
                 )
             ],
             languages: [
@@ -97,6 +105,9 @@ enum IPTVOrgFixtures {
             categories: ["news"],
             isNSFW: isNSFW,
             closed: closed,
+            launched: "2020-01-01",
+            replaced_by: nil,
+            website: "https://example.com",
             network: "News Network",
             owners: ["Owner Corp"]
         )
