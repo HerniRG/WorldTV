@@ -29,25 +29,6 @@ struct ChannelInfoPanelView: View {
                 )
                 .font(.subheadline)
             }
-
-            if !info.feeds.isEmpty {
-                Divider()
-                Text("player.feeds")
-                    .font(.headline)
-                ForEach(info.feeds.prefix(6)) { feed in
-                    HStack(spacing: 12) {
-                        Text(feed.displayName)
-                            .font(.subheadline)
-                        Spacer()
-                        if !feed.languages.isEmpty {
-                            Text(feed.languages.joined(separator: ", "))
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .padding(.vertical, 4)
-                }
-            }
         }
         .padding(DesignTokens.pagePadding)
         .foregroundStyle(.white)
