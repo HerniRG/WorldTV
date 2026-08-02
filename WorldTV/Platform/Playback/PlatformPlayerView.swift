@@ -94,12 +94,26 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
                 newHosting.title = String(localized: "player.info")
                 newHosting.preferredContentSize = CGSize(width: 880, height: 620)
                 newHosting.view.backgroundColor = .black
+                newHosting.safeAreaRegions = []
                 context.coordinator.infoHostingController = newHosting
                 return newHosting
             }()
-            controller.customInfoViewControllers = [hosting]
+            // AVKit can be in the middle of presenting the Info panel when
+            // SwiftUI updates this representable (for example, as playback
+            // changes state). Reassigning this property on every update makes
+            // tvOS tear down and re-measure the panel, which can produce a
+            // different vertical placement on the next presentation.
+            if !context.coordinator.isInfoPanelInstalled {
+                // There is only one custom tab. The legacy singular API avoids
+                // the tvOS multi-tab container's repeated relayout on reopen.
+                controller.customInfoViewController = hosting
+                context.coordinator.isInfoPanelInstalled = true
+            }
         } else {
-            controller.customInfoViewControllers = []
+            if context.coordinator.isInfoPanelInstalled {
+                controller.customInfoViewController = nil
+                context.coordinator.isInfoPanelInstalled = false
+            }
         }
     }
 
@@ -141,6 +155,7 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
 
     final class Coordinator {
         var infoHostingController: UIHostingController<AnyView>?
+        var isInfoPanelInstalled = false
     }
 }
 #endif
