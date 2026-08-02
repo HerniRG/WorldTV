@@ -144,7 +144,7 @@ struct PlaybackUseCaseTests {
             countries: [
                 Country(code: "ES", name: "Spain", languageCodes: ["spa"], flag: "🇪🇸")
             ],
-            categories: [ChannelCategory(id: "news", name: "News")],
+            categories: [ChannelCategory(id: "news", name: "News", description: "News and current affairs")],
             streamsByChannelID: ["news": streams],
             logosByChannelID: [:],
             feeds: feeds

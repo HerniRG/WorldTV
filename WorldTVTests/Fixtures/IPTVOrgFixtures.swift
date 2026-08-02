@@ -54,7 +54,7 @@ enum IPTVOrgFixtures {
                 IPTVOrgCountryDTO(code: "ES", name: "Spain", languages: ["spa"], flag: "🇪🇸")
             ],
             categories: [
-                IPTVOrgCategoryDTO(id: "news", name: "News")
+                IPTVOrgCategoryDTO(id: "news", name: "News", description: "News and current affairs")
             ],
             blocklist: [
                 IPTVOrgBlocklistDTO(channel: "Blocked.es")

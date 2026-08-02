@@ -17,6 +17,12 @@ struct CategoryCard: View {
                 Text("\(item.channelCount) \(String(localized: "category.channels"))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                if let description = item.category.description, !description.isEmpty {
+                    Text(description)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(2)
+                }
             }
             Spacer()
             Image(systemName: "chevron.right")

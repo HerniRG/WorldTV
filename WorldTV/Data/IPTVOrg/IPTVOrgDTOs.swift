@@ -78,6 +78,13 @@ struct IPTVOrgCountryDTO: Codable, Sendable {
 struct IPTVOrgCategoryDTO: Codable, Sendable {
     let id: String
     let name: String
+    let description: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case description
+    }
 }
 
 struct IPTVOrgBlocklistDTO: Codable, Sendable {

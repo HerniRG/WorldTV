@@ -125,7 +125,7 @@ struct IPTVOrgMapper: Sendable {
     }
 
     private func mapCategory(_ dto: IPTVOrgCategoryDTO) -> ChannelCategory {
-        ChannelCategory(id: dto.id, name: dto.name)
+        ChannelCategory(id: dto.id, name: dto.name, description: dto.description)
     }
 
     private func secureStreamURL(from value: String) -> URL? {

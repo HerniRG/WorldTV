@@ -95,8 +95,8 @@ private enum SearchFixture {
                 Country(code: "US", name: "United States", languageCodes: [], flag: "🇺🇸")
             ],
             categories: [
-                ChannelCategory(id: "news", name: "News"),
-                ChannelCategory(id: "sports", name: "Sports")
+                ChannelCategory(id: "news", name: "News", description: "News and current affairs"),
+                ChannelCategory(id: "sports", name: "Sports", description: "Sports and live events")
             ],
             streamsByChannelID: [
                 "news.es": [
