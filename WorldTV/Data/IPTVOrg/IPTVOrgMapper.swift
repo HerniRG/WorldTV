@@ -44,7 +44,11 @@ struct IPTVOrgMapper: Sendable {
             categoryIDs: dto.categories,
             isNSFW: dto.isNSFW,
             network: dto.network,
-            owners: dto.owners
+            owners: dto.owners,
+            launched: dto.launched,
+            closed: dto.closed,
+            replacedBy: dto.replaced_by,
+            website: dto.website
         )
     }
 

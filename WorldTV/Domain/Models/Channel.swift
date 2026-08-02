@@ -9,6 +9,10 @@ struct Channel: Identifiable, Hashable, Sendable {
     let isNSFW: Bool
     var network: String? = nil
     var owners: [String] = []
+    let launched: String?
+    let closed: String?
+    let replacedBy: String?
+    let website: String?
 
     var broadcasterName: String {
         if let network, !network.isEmpty {

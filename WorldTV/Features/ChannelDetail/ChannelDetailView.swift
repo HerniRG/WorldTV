@@ -168,7 +168,8 @@ struct ChannelDetailView: View {
     }
 
     private func metadata(_ content: ChannelDetailContent) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let channel = content.channel
+        return VStack(alignment: .leading, spacing: 10) {
             if !content.categoryNames.isEmpty {
                 Label(
                     content.categoryNames.joined(separator: " · "),
@@ -176,16 +177,46 @@ struct ChannelDetailView: View {
                 )
                 .font(.subheadline)
             }
-            if let network = content.channel.network, !network.isEmpty {
+            if let network = channel.network, !network.isEmpty {
                 Label(network, systemImage: "building.2")
                     .font(.subheadline)
             }
-            if !content.channel.owners.isEmpty {
+            if !channel.owners.isEmpty {
                 Label(
-                    content.channel.owners.joined(separator: " · "),
+                    channel.owners.joined(separator: " · "),
                     systemImage: "person.2"
                 )
                 .font(.subheadline)
+            }
+            if let launched = channel.launched, !launched.isEmpty {
+                Label("channel.launched \(launched)", systemImage: "calendar.badge.plus")
+                    .font(.subheadline)
+            }
+            if let closed = channel.closed, !closed.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label("channel.closed \(closed)", systemImage: "calendar.badge.minus")
+                        .font(.subheadline)
+                    if let replacedBy = channel.replacedBy, !replacedBy.isEmpty {
+                        HStack(spacing: 8) {
+                            Text("channel.replacedBy")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            if let url = URL(string: "worldtv://channel/\(replacedBy)") {
+                                Link(replacedBy, destination: url)
+                                    .font(.caption)
+                                    .foregroundStyle(.blue)
+                            } else {
+                                Text(replacedBy)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+            }
+            if let website = channel.website, !website.isEmpty, let url = URL(string: website) {
+                Link("channel.website", destination: url)
+                    .font(.subheadline)
             }
             if content.isGeoBlocked {
                 Label("channel.geo.warning", systemImage: "globe.europe.africa")
