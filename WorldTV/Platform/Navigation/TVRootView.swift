@@ -8,6 +8,7 @@ struct TVRootView: View {
     @State private var selectedSection = AppSection.home
     @State private var searchRequest: TVSearchRequest?
     @State private var focusSourcesRequest = 0
+    @State private var navigationResetRequest = 0
     @State private var tabBarHasFocus = true
     @State private var presentedChannel: TVDeepLinkChannel?
 
@@ -23,6 +24,7 @@ struct TVRootView: View {
                     container: container,
                     tvSearchRequest: section == .search ? searchRequest : nil,
                     tvFocusSourcesRequest: section == .settings ? focusSourcesRequest : 0,
+                    tvNavigationResetRequest: navigationResetRequest,
                     tvOpenTopLevelDestination: openTopLevelDestination
                 )
                 .tabItem {
@@ -45,6 +47,7 @@ struct TVRootView: View {
         }
         .onChange(of: selectedSection) {
             selectedSectionRawValue = selectedSection.rawValue
+            navigationResetRequest += 1
         }
         .onReceive(
             NotificationCenter.default.publisher(

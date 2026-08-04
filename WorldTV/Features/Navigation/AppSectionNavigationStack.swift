@@ -9,6 +9,7 @@ struct AppSectionNavigationStack: View {
     let container: AppContainer
     var tvSearchRequest: TVSearchRequest?
     var tvFocusSourcesRequest = 0
+    var tvNavigationResetRequest = 0
     var tvOpenTopLevelDestination: @MainActor (TVTopLevelDestination) -> Void = { _ in }
 
     var body: some View {
@@ -21,6 +22,7 @@ struct AppSectionNavigationStack: View {
                     recordRecentlyWatched: container.recordRecentlyWatched
                 )
             )
+            .id(tvNavigationResetRequest)
         #else
         navigationStack
         #endif
