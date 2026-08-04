@@ -6,6 +6,9 @@ struct SettingsView: View {
     @AppStorage("autoplayChannels") private var autoplayChannels = true
     @AppStorage("preferredQuality") private var preferredQuality = "automatic"
     @State private var confirmation: Confirmation?
+    #if os(tvOS)
+    @FocusState private var focusedControl: SettingsFocus?
+    #endif
 
     let favoritesStore: FavoritesStore
     let loadPlaylistSources: LoadPlaylistSourcesUseCase
@@ -20,7 +23,8 @@ struct SettingsView: View {
         loadPlaylistSources: LoadPlaylistSourcesUseCase,
         addPlaylistSource: AddPlaylistSourceUseCase,
         removePlaylistSource: RemovePlaylistSourceUseCase,
-        favoritesStore: FavoritesStore
+        favoritesStore: FavoritesStore,
+        focusSourcesRequest: Int = 0
     ) {
         _viewModel = State(
             initialValue: SettingsViewModel(
@@ -34,7 +38,10 @@ struct SettingsView: View {
         self.loadPlaylistSources = loadPlaylistSources
         self.addPlaylistSource = addPlaylistSource
         self.removePlaylistSource = removePlaylistSource
+        self.focusSourcesRequest = focusSourcesRequest
     }
+
+    private let focusSourcesRequest: Int
 
     var body: some View {
         Form {
@@ -64,6 +71,9 @@ struct SettingsView: View {
                 } label: {
                     Label("sources.manage", systemImage: "list.bullet.rectangle")
                 }
+                #if os(tvOS)
+                .focused($focusedControl, equals: .sources)
+                #endif
                 Button {
                     Task {
                         await viewModel.refresh()
@@ -112,6 +122,18 @@ struct SettingsView: View {
             await favoritesStore.loadIfNeeded()
             await viewModel.load()
         }
+        #if os(tvOS)
+        .onAppear {
+            if focusSourcesRequest > 0 {
+                focusedControl = .sources
+            }
+        }
+        .onChange(of: focusSourcesRequest) { _, newValue in
+            if newValue > 0 {
+                focusedControl = .sources
+            }
+        }
+        #endif
         .confirmationDialog(
             "settings.confirm.title",
             isPresented: Binding(
@@ -146,6 +168,12 @@ struct SettingsView: View {
         }
     }
 }
+
+#if os(tvOS)
+private enum SettingsFocus: Hashable {
+    case sources
+}
+#endif
 
 private enum Confirmation {
     case favorites

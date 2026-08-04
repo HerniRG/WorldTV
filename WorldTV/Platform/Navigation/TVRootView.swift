@@ -7,6 +7,7 @@ struct TVRootView: View {
         AppSection.home.rawValue
     @State private var selectedSection = AppSection.home
     @State private var searchRequest: TVSearchRequest?
+    @State private var focusSourcesRequest = 0
     @State private var tabBarHasFocus = true
     @State private var presentedChannel: TVDeepLinkChannel?
 
@@ -21,6 +22,7 @@ struct TVRootView: View {
                     homeViewModel: homeViewModel,
                     container: container,
                     tvSearchRequest: section == .search ? searchRequest : nil,
+                    tvFocusSourcesRequest: section == .settings ? focusSourcesRequest : 0,
                     tvOpenTopLevelDestination: openTopLevelDestination
                 )
                 .tabItem {
@@ -116,6 +118,9 @@ struct TVRootView: View {
         switch destination {
         case .section(let section):
             selectedSection = section
+        case .sources:
+            focusSourcesRequest += 1
+            selectedSection = .settings
         case .searchCategory(let categoryID):
             searchRequest = TVSearchRequest(categoryID: categoryID)
             selectedSection = .search

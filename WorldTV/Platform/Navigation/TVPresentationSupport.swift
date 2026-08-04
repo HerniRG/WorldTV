@@ -14,6 +14,7 @@ private struct OpenTVTopLevelDestinationKey: EnvironmentKey {
 
 enum TVTopLevelDestination {
     case section(AppSection)
+    case sources
     case searchCategory(String)
     case searchCountry(String)
 }

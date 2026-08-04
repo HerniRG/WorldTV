@@ -8,6 +8,7 @@ struct AppSectionNavigationStack: View {
     let homeViewModel: HomeViewModel
     let container: AppContainer
     var tvSearchRequest: TVSearchRequest?
+    var tvFocusSourcesRequest = 0
     var tvOpenTopLevelDestination: @MainActor (TVTopLevelDestination) -> Void = { _ in }
 
     var body: some View {
@@ -78,7 +79,8 @@ struct AppSectionNavigationStack: View {
                 loadPlaylistSources: container.loadPlaylistSources,
                 addPlaylistSource: container.addPlaylistSource,
                 removePlaylistSource: container.removePlaylistSource,
-                favoritesStore: container.favoritesStore
+                favoritesStore: container.favoritesStore,
+                focusSourcesRequest: tvFocusSourcesRequest
             )
         }
     }

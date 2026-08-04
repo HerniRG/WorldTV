@@ -19,7 +19,7 @@ struct HomeView: View {
                 } actions: {
                     NavigationTile(
                         route: .sources,
-                        tvDestination: .section(.settings),
+                        tvDestination: .sources,
                         accessibilityID: "home.add.source",
                         tvAccessibilityID: "home.add.source"
                     ) {
