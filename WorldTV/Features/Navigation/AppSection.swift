@@ -5,7 +5,6 @@ enum AppSection: String, CaseIterable, Hashable, Identifiable {
     case countries
     case search
     case favorites
-    case sources
     case settings
 
     var id: String { rawValue }
@@ -20,8 +19,6 @@ enum AppSection: String, CaseIterable, Hashable, Identifiable {
             "search.title"
         case .favorites:
             "favorites.title"
-        case .sources:
-            "sources.title"
         case .settings:
             "settings.title"
         }
@@ -37,8 +34,6 @@ enum AppSection: String, CaseIterable, Hashable, Identifiable {
             "magnifyingglass"
         case .favorites:
             "star"
-        case .sources:
-            "list.bullet.rectangle"
         case .settings:
             "gear"
         }
