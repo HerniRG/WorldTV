@@ -30,8 +30,11 @@ struct PlaylistSourceUseCaseTests {
         let store = InMemoryPlaylistSourceStore()
         let add = AddPlaylistSourceUseCase(store: store) {}
 
-        #expect(throws: PlaylistSourceError.unsupportedURLScheme) {
-            try await add.execute(name: "Local", urlString: "file:///tmp/demo.m3u")
+        do {
+            _ = try await add.execute(name: "Local", urlString: "file:///tmp/demo.m3u")
+            Issue.record("Expected unsupportedURLScheme")
+        } catch let error as PlaylistSourceError {
+            #expect(error == .unsupportedURLScheme)
         }
     }
 }
