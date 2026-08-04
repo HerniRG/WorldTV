@@ -21,13 +21,17 @@ struct PlaylistSourcesView: View {
             Section("sources.addSection") {
                 VStack(alignment: .leading, spacing: 14) {
                     TextField("sources.namePlaceholder", text: $name)
+                        #if os(iOS) || os(tvOS)
                         .textInputAutocapitalization(.never)
+                        #endif
                         .autocorrectionDisabled()
                         #if os(tvOS)
                         .modifier(SourcesFieldFocusModifier())
                         #endif
                     TextField("sources.urlPlaceholder", text: $url)
+                        #if os(iOS) || os(tvOS)
                         .textInputAutocapitalization(.never)
+                        #endif
                         .autocorrectionDisabled()
                         #if os(tvOS)
                         .modifier(SourcesFieldFocusModifier())
