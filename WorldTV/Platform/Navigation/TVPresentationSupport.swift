@@ -19,8 +19,7 @@ enum TVTopLevelDestination {
     case searchCountry(String)
 }
 
-struct TVSearchRequest {
-    let id = UUID()
+struct TVSearchRequest: Equatable {
     let categoryID: String?
     let countryCode: String?
 

@@ -7,7 +7,8 @@ struct SettingsView: View {
     @AppStorage("preferredQuality") private var preferredQuality = "automatic"
     @State private var confirmation: Confirmation?
     #if os(tvOS)
-    @FocusState private var focusedControl: SettingsFocus?
+    @Environment(\.resetFocus) private var resetFocus
+    @Namespace private var focusNamespace
     #endif
 
     let favoritesStore: FavoritesStore
@@ -18,7 +19,7 @@ struct SettingsView: View {
         clearCatalogCache: ClearCatalogCacheUseCase,
         loadCatalogCacheDate: LoadCatalogCacheDateUseCase,
         favoritesStore: FavoritesStore,
-        focusSourcesRequest: Int = 0
+        focusTarget: SettingsFocusTarget? = nil
     ) {
         _viewModel = State(
             initialValue: SettingsViewModel(
@@ -29,10 +30,10 @@ struct SettingsView: View {
             )
         )
         self.favoritesStore = favoritesStore
-        self.focusSourcesRequest = focusSourcesRequest
+        self.focusTarget = focusTarget
     }
 
-    private let focusSourcesRequest: Int
+    private let focusTarget: SettingsFocusTarget?
 
     var body: some View {
         Form {
@@ -43,12 +44,20 @@ struct SettingsView: View {
 
             Section("settings.section.playback") {
                 Toggle("settings.autoplay", isOn: $autoplayChannels)
+                #if os(tvOS)
+                NavigationLink(value: AppRoute.settingsQuality) {
+                    LabeledContent("settings.quality") {
+                        Text(preferredQualityLabel)
+                    }
+                }
+                #else
                 Picker("settings.quality", selection: $preferredQuality) {
                     Text("settings.quality.automatic").tag("automatic")
                     Text("720p").tag("720")
                     Text("1080p").tag("1080")
                     Text("2160p").tag("2160")
                 }
+                #endif
                 Toggle("settings.geoblocked", isOn: $showGeoBlockedChannels)
             }
 
@@ -57,7 +66,10 @@ struct SettingsView: View {
                     Label("sources.manage", systemImage: "list.bullet.rectangle")
                 }
                 #if os(tvOS)
-                .focused($focusedControl, equals: .sources)
+                .prefersDefaultFocus(
+                    focusTarget == .sources,
+                    in: focusNamespace
+                )
                 #endif
                 Button {
                     Task {
@@ -102,6 +114,9 @@ struct SettingsView: View {
                     .accessibilityAddTraits(.isStaticText)
             }
         }
+        #if os(tvOS)
+        .focusScope(focusNamespace)
+        #endif
         .platformNavigationTitle("settings.title")
         .task {
             await favoritesStore.loadIfNeeded()
@@ -109,13 +124,13 @@ struct SettingsView: View {
         }
         #if os(tvOS)
         .onAppear {
-            if focusSourcesRequest > 0 {
-                focusSources()
+            if focusTarget == .sources {
+                resetFocus(in: focusNamespace)
             }
         }
-        .onChange(of: focusSourcesRequest) { _, newValue in
-            if newValue > 0 {
-                focusSources()
+        .onChange(of: focusTarget) { _, newValue in
+            if newValue == .sources {
+                resetFocus(in: focusNamespace)
             }
         }
         #endif
@@ -137,11 +152,12 @@ struct SettingsView: View {
     }
 
     #if os(tvOS)
-    private func focusSources() {
-        focusedControl = nil
-        Task { @MainActor in
-            await Task.yield()
-            focusedControl = .sources
+    private var preferredQualityLabel: LocalizedStringKey {
+        switch preferredQuality {
+        case "720": return "720p"
+        case "1080": return "1080p"
+        case "2160": return "2160p"
+        default: return "settings.quality.automatic"
         }
     }
     #endif
@@ -164,11 +180,42 @@ struct SettingsView: View {
     }
 }
 
-#if os(tvOS)
-private enum SettingsFocus: Hashable {
+struct SettingsQualityView: View {
+    @AppStorage("preferredQuality") private var preferredQuality = "automatic"
+
+    private let options = [
+        (id: "automatic", key: "settings.quality.automatic"),
+        (id: "720", key: "720p"),
+        (id: "1080", key: "1080p"),
+        (id: "2160", key: "2160p")
+    ]
+
+    var body: some View {
+        List {
+            Section {
+                ForEach(options, id: \.id) { option in
+                    Button {
+                        preferredQuality = option.id
+                    } label: {
+                        HStack {
+                            Text(LocalizedStringKey(option.key))
+                            Spacer()
+                            if preferredQuality == option.id {
+                                Image(systemName: "checkmark")
+                                    .accessibilityHidden(true)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .platformNavigationTitle("settings.quality")
+    }
+}
+
+enum SettingsFocusTarget: Hashable {
     case sources
 }
-#endif
 
 private enum Confirmation {
     case favorites

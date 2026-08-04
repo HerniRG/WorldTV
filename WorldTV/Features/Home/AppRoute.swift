@@ -4,6 +4,7 @@ enum AppRoute: Hashable {
     case countries
     case favorites
     case sources
+    case settingsQuality
     case search
     case searchCategory(String)
     case about

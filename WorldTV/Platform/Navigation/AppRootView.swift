@@ -13,7 +13,7 @@ struct AppRootView: View {
         AppSection.home.rawValue
     #endif
     @State private var presentedPlayer: PresentedPlayer?
-    @State private var navigationResetRequest = 0
+    @State private var navigationPaths: [AppSection: [AppRoute]] = [:]
 
     let homeViewModel: HomeViewModel
     let container: AppContainer
@@ -27,9 +27,6 @@ struct AppRootView: View {
                 presentedPlayer = PresentedPlayer(channelID: channelID, feedID: feedID)
             }
             .playerPresentation($presentedPlayer, container: container)
-            .onChange(of: selectedSectionRawValue) { _, _ in
-                navigationResetRequest += 1
-            }
     }
 
     @ViewBuilder
@@ -40,12 +37,11 @@ struct AppRootView: View {
                 .navigationSplitViewColumnWidth(min: 190, ideal: 240)
         } detail: {
             AppSectionNavigationStack(
+                path: pathBinding(for: sidebarSelection.wrappedValue ?? .home),
                 section: sidebarSelection.wrappedValue ?? .home,
                 homeViewModel: homeViewModel,
-                container: container,
-                navigationResetRequest: navigationResetRequest
+                container: container
             )
-            .id("\(sidebarSelection.wrappedValue?.rawValue ?? AppSection.home.rawValue)-\(navigationResetRequest)")
         }
         #else
         if horizontalSizeClass == .regular {
@@ -54,23 +50,21 @@ struct AppRootView: View {
                     .navigationSplitViewColumnWidth(min: 220, ideal: 280)
             } detail: {
                 AppSectionNavigationStack(
+                    path: pathBinding(for: sidebarSelection.wrappedValue ?? .home),
                     section: sidebarSelection.wrappedValue ?? .home,
                     homeViewModel: homeViewModel,
-                    container: container,
-                    navigationResetRequest: navigationResetRequest
+                    container: container
                 )
-                .id("\(sidebarSelection.wrappedValue?.rawValue ?? AppSection.home.rawValue)-\(navigationResetRequest)")
             }
         } else {
             TabView(selection: selectedSection) {
                 ForEach(AppSection.allCases) { section in
                     AppSectionNavigationStack(
+                        path: pathBinding(for: section),
                         section: section,
                         homeViewModel: homeViewModel,
-                        container: container,
-                        navigationResetRequest: navigationResetRequest
+                        container: container
                     )
-                    .id("\(section.rawValue)-\(navigationResetRequest)")
                     .tabItem {
                         Label(
                             LocalizedStringKey(section.localizationKey),
@@ -95,6 +89,13 @@ struct AppRootView: View {
         Binding(
             get: { AppSection(rawValue: selectedSectionRawValue) ?? .home },
             set: { selectedSectionRawValue = $0.rawValue }
+        )
+    }
+
+    private func pathBinding(for section: AppSection) -> Binding<[AppRoute]> {
+        Binding(
+            get: { navigationPaths[section, default: []] },
+            set: { navigationPaths[section] = $0 }
         )
     }
 }
@@ -139,7 +140,6 @@ private extension View {
                 initialFeedID: presentation.feedID,
                 closePresentation: { presentedPlayer.wrappedValue = nil }
             )
-            .id(presentation.id)
         }
         #endif
     }

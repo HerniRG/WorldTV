@@ -25,6 +25,8 @@ struct AppRouteDestinationModifier: ViewModifier {
                 addSource: container.addPlaylistSource,
                 removeSource: container.removePlaylistSource
             )
+        case .settingsQuality:
+            SettingsQualityView()
         case .search:
             SearchView(
                 searchChannels: container.searchChannels,

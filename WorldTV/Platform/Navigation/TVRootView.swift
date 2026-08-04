@@ -5,10 +5,7 @@ import UIKit
 struct TVRootView: View {
     @SceneStorage("tvos.selectedSection") private var selectedSectionRawValue =
         AppSection.home.rawValue
-    @State private var selectedSection = AppSection.home
-    @State private var searchRequest: TVSearchRequest?
-    @State private var focusSourcesRequest = 0
-    @State private var navigationResetRequest = 0
+    @State private var navigation = TVNavigationCoordinator()
     @State private var tabBarHasFocus = true
     @State private var presentedChannel: TVDeepLinkChannel?
 
@@ -16,42 +13,57 @@ struct TVRootView: View {
     let container: AppContainer
 
     var body: some View {
-        TabView(selection: $selectedSection) {
-            ForEach(AppSection.allCases) { section in
-                AppSectionNavigationStack(
-                    section: section,
-                    homeViewModel: homeViewModel,
-                    container: container,
-                    tvSearchRequest: section == .search ? searchRequest : nil,
-                    tvFocusSourcesRequest: section == .settings ? focusSourcesRequest : 0,
-                    navigationResetRequest: navigationResetRequest,
-                    tvOpenTopLevelDestination: openTopLevelDestination
-                )
-                .id("\(section.rawValue)-\(navigationResetRequest)")
-                .tabItem {
-                    Label(
-                        LocalizedStringKey(section.localizationKey),
-                        systemImage: section.systemImage
+        @Bindable var navigation = navigation
+
+        NavigationStack(path: $navigation.path) {
+            TabView(selection: $navigation.selectedSection) {
+                ForEach(AppSection.allCases) { section in
+                    AppSectionContent(
+                        section: section,
+                        homeViewModel: homeViewModel,
+                        container: container,
+                        tvSearchRequest: section == .search
+                            ? navigation.searchRequest
+                            : nil,
+                        settingsFocusTarget: section == .settings
+                            ? navigation.settingsFocusTarget
+                            : nil,
+                        countryFocusReturn: navigation.countryFocusReturn,
+                        tvOpenTopLevelDestination: openTopLevelDestination
                     )
+                    .tabItem {
+                        Label(
+                            LocalizedStringKey(section.localizationKey),
+                            systemImage: section.systemImage
+                        )
+                    }
+                    .tag(section)
                 }
-                .tag(section)
             }
+            .modifier(AppRouteDestinationModifier(container: container))
+        }
+        .environment(
+            \.playerServices,
+            PlayerServices(
+                resolveSources: container.resolvePlaybackSources,
+                recordRecentlyWatched: container.recordRecentlyWatched
+            )
+        )
+        .onChange(of: navigation.path) { oldPath, newPath in
+            navigation.didChangePath(from: oldPath, to: newPath)
+        }
+        .onChange(of: navigation.selectedSection) { _, newSection in
+            selectedSectionRawValue = newSection.rawValue
+            navigation.didSelectSection(newSection)
         }
         .onAppear {
-            selectedSection = AppSection(rawValue: selectedSectionRawValue) ?? .home
+            navigation.restoreSection(rawValue: selectedSectionRawValue)
         }
         .task {
             // HomeView may not be created when tvOS restores the last selected tab.
             // Refresh the shared payload at app startup so Top Shelf is never
             // dependent on the Home tab being visited first.
             await container.topShelfPayloadWriter.write()
-        }
-        .onChange(of: selectedSection) {
-            selectedSectionRawValue = selectedSection.rawValue
-            navigationResetRequest += 1
-            if selectedSection != .settings {
-                focusSourcesRequest = 0
-            }
         }
         .onReceive(
             NotificationCenter.default.publisher(
@@ -86,7 +98,6 @@ struct TVRootView: View {
                     presentedChannel = nil
                 }
             )
-            .id(channel.channelID)
         }
     }
 
@@ -102,11 +113,11 @@ struct TVRootView: View {
     }
 
     private var exitCommand: (() -> Void)? {
-        guard selectedSection != .home, tabBarHasFocus else {
+        guard navigation.selectedSection != .home, tabBarHasFocus else {
             return nil
         }
         return {
-            selectedSection = .home
+            navigation.open(.section(.home))
         }
     }
 
@@ -122,19 +133,7 @@ struct TVRootView: View {
     }
 
     private func openTopLevelDestination(_ destination: TVTopLevelDestination) {
-        switch destination {
-        case .section(let section):
-            selectedSection = section
-        case .sources:
-            focusSourcesRequest += 1
-            selectedSection = .settings
-        case .searchCategory(let categoryID):
-            searchRequest = TVSearchRequest(categoryID: categoryID)
-            selectedSection = .search
-        case .searchCountry(let countryCode):
-            searchRequest = TVSearchRequest(countryCode: countryCode)
-            selectedSection = .search
-        }
+        navigation.open(destination)
     }
 }
 

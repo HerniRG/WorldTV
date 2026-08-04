@@ -6,21 +6,26 @@ struct SearchView: View {
     @AppStorage("showGeoBlockedChannels") private var showGeoBlockedChannels = true
 
     let favoritesStore: FavoritesStore
+    let topLevelRequest: TVSearchRequest?
 
     init(
         searchChannels: SearchChannelsUseCase,
         favoritesStore: FavoritesStore,
         initialCategoryID: String? = nil,
-        initialCountryCode: String? = nil
+        initialCountryCode: String? = nil,
+        topLevelRequest: TVSearchRequest? = nil
     ) {
         _viewModel = State(
             initialValue: SearchViewModel(
                 searchChannels: searchChannels,
-                initialCategoryID: initialCategoryID,
-                initialCountryCode: initialCountryCode
+                initialCategoryID: topLevelRequest?.categoryID
+                    ?? initialCategoryID,
+                initialCountryCode: topLevelRequest?.countryCode
+                    ?? initialCountryCode
             )
         )
         self.favoritesStore = favoritesStore
+        self.topLevelRequest = topLevelRequest
     }
 
     var body: some View {
@@ -76,6 +81,15 @@ struct SearchView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .playlistSourcesDidChange)) { _ in
             viewModel.refresh()
+        }
+        .onChange(of: topLevelRequest) { _, newRequest in
+            guard let newRequest else {
+                return
+            }
+            viewModel.applyTopLevelFilter(
+                categoryID: newRequest.categoryID,
+                countryCode: newRequest.countryCode
+            )
         }
     }
 

@@ -82,6 +82,19 @@ final class SearchViewModel {
         search(immediately: true)
     }
 
+    func applyTopLevelFilter(categoryID: String?, countryCode: String?) {
+        guard
+            selectedCategoryID != categoryID
+                || selectedCountryCode != countryCode
+        else {
+            return
+        }
+
+        selectedCategoryID = categoryID
+        selectedCountryCode = countryCode
+        search(immediately: true)
+    }
+
     private var criteria: ChannelSearchCriteria {
         ChannelSearchCriteria(
             query: query,
