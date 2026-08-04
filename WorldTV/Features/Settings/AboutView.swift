@@ -14,7 +14,7 @@ struct AboutView: View {
             }
 
             Section("about.attribution") {
-                Text("Sources are supplied by the user. WorldTV does not include or curate channel streams.")
+                Text("sources.aboutDisclaimer")
                 if let destination = AboutDestination.sourceCode.url {
                     Link("about.sourceCode", destination: destination)
                 }

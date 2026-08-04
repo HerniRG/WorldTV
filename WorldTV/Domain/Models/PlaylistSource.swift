@@ -22,10 +22,10 @@ enum PlaylistSourceError: Error, Equatable, LocalizedError, Sendable {
 
     var errorDescription: String? {
         switch self {
-        case .invalidURL: "The source URL is invalid."
-        case .unsupportedURLScheme: "Only HTTP and HTTPS playlist URLs are supported."
-        case .emptyPlaylist: "The playlist is empty."
-        case .noPlayableEntries: "The playlist does not contain playable entries."
+        case .invalidURL: String(localized: "sources.error.invalidURL")
+        case .unsupportedURLScheme: String(localized: "sources.error.unsupportedScheme")
+        case .emptyPlaylist: String(localized: "sources.error.emptyPlaylist")
+        case .noPlayableEntries: String(localized: "sources.error.noPlayableEntries")
         }
     }
 }

@@ -62,7 +62,7 @@ struct SettingsView: View {
                         removeSource: removePlaylistSource
                     )
                 } label: {
-                    Label("Manage sources", systemImage: "list.bullet.rectangle")
+                    Label("sources.manage", systemImage: "list.bullet.rectangle")
                 }
                 Button {
                     Task {

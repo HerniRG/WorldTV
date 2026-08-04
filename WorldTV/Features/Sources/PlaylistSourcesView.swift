@@ -14,26 +14,37 @@ struct PlaylistSourcesView: View {
     var body: some View {
         Form {
             #if os(tvOS)
-            TVScreenHeader("Sources", systemImage: "list.bullet.rectangle")
+            TVScreenHeader("sources.title", systemImage: "list.bullet.rectangle")
                 .listRowBackground(Color.clear)
             #endif
 
-            Section("Add playlist") {
-                TextField("Name (optional)", text: $name)
-                TextField("M3U or M3U8 URL", text: $url)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                Button {
-                    Task { await add() }
-                } label: {
-                    Label("Add source", systemImage: "plus.circle.fill")
+            Section("sources.addSection") {
+                VStack(alignment: .leading, spacing: 14) {
+                    TextField("sources.namePlaceholder", text: $name)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    TextField("sources.urlPlaceholder", text: $url)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    Button {
+                        Task { await add() }
+                    } label: {
+                        Label("sources.addButton", systemImage: "plus.circle.fill")
+                    }
+                    .disabled(url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isWorking)
+                    #if os(tvOS)
+                    .frame(minHeight: 54)
+                    .worldTVCardButtonStyle()
+                    #endif
                 }
-                .disabled(url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isWorking)
+                #if os(tvOS)
+                .padding(.vertical, 8)
+                #endif
             }
 
-            Section("Your sources") {
+            Section("sources.listSection") {
                 if sources.isEmpty {
-                    Text("No sources added yet. Add a playlist URL to begin.")
+                    Text("sources.empty")
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(sources) { source in
@@ -42,14 +53,15 @@ struct PlaylistSourcesView: View {
                             HStack {
                                 sourceDetails(source)
                                 Spacer()
-                                Button("Delete", role: .destructive) {
+                                Button("sources.delete", role: .destructive) {
                                     Task { await remove(source) }
                                 }
+                                .frame(minHeight: 54)
                             }
                             #else
                             sourceDetails(source)
                                 .swipeActions {
-                                    Button("Delete", role: .destructive) {
+                                    Button("sources.delete", role: .destructive) {
                                         Task { await remove(source) }
                                     }
                                 }
@@ -60,7 +72,7 @@ struct PlaylistSourcesView: View {
             }
 
             Section {
-                Text("WorldTV does not provide channels or playlists. Add only sources you are authorized to access.")
+                Text("sources.disclaimer")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -71,7 +83,10 @@ struct PlaylistSourcesView: View {
             }
             if isWorking { ProgressView() }
         }
-        .platformNavigationTitle("Sources")
+        .platformNavigationTitle("sources.title")
+        #if os(tvOS)
+        .tvShelfBehavior()
+        #endif
         .task { await reload() }
     }
 
@@ -104,10 +119,11 @@ struct PlaylistSourcesView: View {
     private func sourceDetails(_ source: PlaylistSource) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(source.name)
+                .font(.headline)
             Text(source.url.absoluteString)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-                .lineLimit(2)
+                .lineLimit(1)
         }
     }
 }

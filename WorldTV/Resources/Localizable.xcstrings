@@ -7113,6 +7113,231 @@
         }
       }
     },
+    "sources.aboutDisclaimer" : {
+      "comment" : "Attribution text explaining that the app does not provide or curate streams.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "المصادر يضيفها المستخدم. لا تتضمن WorldTV بث القنوات أو تختارها." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Quellen werden vom Benutzer hinzugefügt. WorldTV stellt keine Senderstreams bereit und kuratiert sie nicht." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sources are added by the user. WorldTV does not provide or curate channel streams." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Las fuentes las añade el usuario. WorldTV no proporciona ni selecciona emisiones de canales." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Les sources sont ajoutées par l’utilisateur. WorldTV ne fournit ni ne sélectionne les flux des chaînes." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "स्रोत उपयोगकर्ता जोड़ता है। WorldTV चैनल स्ट्रीम उपलब्ध या चयनित नहीं करता।" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Le fonti vengono aggiunte dall’utente. WorldTV non fornisce né seleziona i flussi dei canali." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ソースはユーザーが追加します。WorldTV はチャンネルの配信を提供または選定しません。" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "As fontes são adicionadas pelo utilizador. A WorldTV não fornece nem seleciona transmissões de canais." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "来源由用户添加。WorldTV 不提供或筛选频道流。" } }
+      }
+    },
+    "sources.addButton" : {
+      "comment" : "Button that adds a playlist source.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إضافة مصدر" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Quelle hinzufügen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add source" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Añadir fuente" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajouter une source" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "स्रोत जोड़ें" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Aggiungi fonte" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ソースを追加" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Adicionar fonte" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "添加来源" } }
+      }
+    },
+    "sources.addSection" : {
+      "comment" : "Section containing the playlist source form.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إضافة قائمة تشغيل" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wiedergabeliste hinzufügen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add playlist" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Añadir lista" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajouter une liste" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "प्लेलिस्ट जोड़ें" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Aggiungi playlist" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プレイリストを追加" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Adicionar playlist" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "添加播放列表" } }
+      }
+    },
+    "sources.delete" : {
+      "comment" : "Button that removes a playlist source.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "حذف" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Löschen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Eliminar" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Supprimer" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "हटाएँ" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Elimina" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "削除" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Apagar" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "删除" } }
+      }
+    },
+    "sources.disclaimer" : {
+      "comment" : "Legal disclaimer displayed below the source form.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا توفر WorldTV القنوات أو قوائم التشغيل. أضف فقط المصادر التي يحق لك الوصول إليها." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "WorldTV stellt keine Sender oder Wiedergabelisten bereit. Füge nur Quellen hinzu, auf die du zugreifen darfst." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "WorldTV does not provide channels or playlists. Add only sources you are authorized to access." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "WorldTV no proporciona canales ni listas. Añade solo fuentes a las que tengas autorización para acceder." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "WorldTV ne fournit ni chaînes ni listes de lecture. Ajoutez uniquement des sources auxquelles vous êtes autorisé à accéder." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "WorldTV चैनल या प्लेलिस्ट उपलब्ध नहीं कराता। केवल उन्हीं स्रोतों को जोड़ें जिन तक पहुंचने की आपको अनुमति है।" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "WorldTV non fornisce canali o playlist. Aggiungi solo fonti a cui sei autorizzato ad accedere." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "WorldTV はチャンネルやプレイリストを提供しません。アクセスが許可されたソースのみ追加してください。" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "A WorldTV não fornece canais nem playlists. Adicione apenas fontes a que está autorizado a aceder." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "WorldTV 不提供频道或播放列表。请仅添加您获授权访问的来源。" } }
+      }
+    },
+    "sources.empty" : {
+      "comment" : "Message shown when no playlist sources have been added.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "لم تتم إضافة مصادر بعد. أضف عنوان قائمة تشغيل للبدء." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Noch keine Quellen hinzugefügt. Füge eine Wiedergabelisten-URL hinzu, um zu beginnen." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No sources added yet. Add a playlist URL to begin." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aún no hay fuentes. Añade una URL de lista para empezar." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucune source ajoutée. Ajoutez une URL de liste pour commencer." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "अभी कोई स्रोत नहीं जोड़ा गया। शुरू करने के लिए प्लेलिस्ट URL जोड़ें।" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Nessuna fonte aggiunta. Aggiungi un URL di playlist per iniziare." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "まだソースが追加されていません。開始するにはプレイリストの URL を追加してください。" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Ainda não foram adicionadas fontes. Adicione um URL de playlist para começar." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "尚未添加来源。请添加播放列表 URL 以开始使用。" } }
+      }
+    },
+    "sources.error.emptyPlaylist" : {
+      "comment" : "Error shown when a playlist contains no entries.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "قائمة التشغيل فارغة." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Die Wiedergabeliste ist leer." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The playlist is empty." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "La lista está vacía." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "La liste de lecture est vide." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "प्लेलिस्ट खाली है।" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "La playlist è vuota." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プレイリストは空です。" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "A playlist está vazia." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "播放列表为空。" } }
+      }
+    },
+    "sources.error.invalidURL" : {
+      "comment" : "Error shown when a source URL cannot be parsed.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "عنوان URL للمصدر غير صالح." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Die Quell-URL ist ungültig." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The source URL is invalid." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "La URL de la fuente no es válida." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "L’URL de la source n’est pas valide." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "स्रोत URL अमान्य है।" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "L’URL della fonte non è valido." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ソース URL が無効です。" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "O URL da fonte é inválido." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "来源 URL 无效。" } }
+      }
+    },
+    "sources.error.noPlayableEntries" : {
+      "comment" : "Error shown when a playlist has no playable entries.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا تحتوي قائمة التشغيل على عناصر قابلة للتشغيل." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Die Wiedergabeliste enthält keine abspielbaren Einträge." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The playlist does not contain playable entries." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "La lista no contiene elementos reproducibles." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "La liste ne contient aucun élément lisible." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "प्लेलिस्ट में चलाए जा सकने वाले आइटम नहीं हैं।" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "La playlist non contiene elementi riproducibili." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "プレイリストに再生可能な項目がありません。" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "A playlist não contém itens reproduzíveis." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "播放列表不包含可播放项目。" } }
+      }
+    },
+    "sources.error.unsupportedScheme" : {
+      "comment" : "Error shown when a source uses a non-HTTP URL scheme.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا يتم دعم سوى عناوين قوائم التشغيل HTTP وHTTPS." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Nur HTTP- und HTTPS-Wiedergabelisten-URLs werden unterstützt." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Only HTTP and HTTPS playlist URLs are supported." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Solo se admiten URL de listas HTTP y HTTPS." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Seules les URL de listes HTTP et HTTPS sont prises en charge." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "केवल HTTP और HTTPS प्लेलिस्ट URL समर्थित हैं।" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Sono supportati solo gli URL di playlist HTTP e HTTPS." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "HTTP と HTTPS のプレイリスト URL のみ対応しています。" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Apenas são suportados URLs de playlists HTTP e HTTPS." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "仅支持 HTTP 和 HTTPS 播放列表 URL。" } }
+      }
+    },
+    "sources.listSection" : {
+      "comment" : "Section listing the user's playlist sources.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "مصادرك" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Deine Quellen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your sources" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Tus fuentes" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Vos sources" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "आपके स्रोत" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Le tue fonti" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "あなたのソース" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "As suas fontes" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "您的来源" } }
+      }
+    },
+    "sources.manage" : {
+      "comment" : "Navigation link that opens playlist source management.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إدارة المصادر" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Quellen verwalten" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Manage sources" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Gestionar fuentes" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Gérer les sources" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "स्रोत प्रबंधित करें" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Gestisci fonti" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ソースを管理" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Gerir fontes" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "管理来源" } }
+      }
+    },
+    "sources.namePlaceholder" : {
+      "comment" : "Optional name field for a playlist source.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "الاسم (اختياري)" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Name (optional)" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Name (optional)" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Nombre (opcional)" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Nom (facultatif)" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "नाम (वैकल्पिक)" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Nome (facoltativo)" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "名前（任意）" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Nome (opcional)" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "名称（可选）" } }
+      }
+    },
+    "sources.title" : {
+      "comment" : "Title of the playlist sources screen and navigation item.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "المصادر" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Quellen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sources" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Fuentes" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Sources" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "स्रोत" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Fonti" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ソース" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Fontes" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "来源" } }
+      }
+    },
+    "sources.urlPlaceholder" : {
+      "comment" : "URL field for an M3U or M3U8 playlist source.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "عنوان URL لـ M3U أو M3U8" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "M3U- oder M3U8-URL" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "M3U or M3U8 URL" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "URL M3U o M3U8" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "URL M3U ou M3U8" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "M3U या M3U8 URL" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "URL M3U o M3U8" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "M3U または M3U8 URL" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "URL M3U ou M3U8" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "M3U 或 M3U8 URL" } }
+      }
+    },
     "Sources" : {
       "comment" : "Title of the playlist sources screen.",
       "isCommentAutoGenerated" : true

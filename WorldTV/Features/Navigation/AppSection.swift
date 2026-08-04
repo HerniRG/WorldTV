@@ -21,7 +21,7 @@ enum AppSection: String, CaseIterable, Hashable, Identifiable {
         case .favorites:
             "favorites.title"
         case .sources:
-            "Sources"
+            "sources.title"
         case .settings:
             "settings.title"
         }
