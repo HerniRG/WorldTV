@@ -35,6 +35,8 @@ struct PlaylistSourceUseCaseTests {
             Issue.record("Expected unsupportedURLScheme")
         } catch let error as PlaylistSourceError {
             #expect(error == .unsupportedURLScheme)
+        } catch {
+            Issue.record("Unexpected error: \(error)")
         }
     }
 }
