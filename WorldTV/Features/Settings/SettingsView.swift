@@ -8,12 +8,18 @@ struct SettingsView: View {
     @State private var confirmation: Confirmation?
 
     let favoritesStore: FavoritesStore
+    let loadPlaylistSources: LoadPlaylistSourcesUseCase
+    let addPlaylistSource: AddPlaylistSourceUseCase
+    let removePlaylistSource: RemovePlaylistSourceUseCase
 
     init(
         refreshCatalog: RefreshCatalogUseCase,
         clearRecentlyWatched: ClearRecentlyWatchedUseCase,
         clearCatalogCache: ClearCatalogCacheUseCase,
         loadCatalogCacheDate: LoadCatalogCacheDateUseCase,
+        loadPlaylistSources: LoadPlaylistSourcesUseCase,
+        addPlaylistSource: AddPlaylistSourceUseCase,
+        removePlaylistSource: RemovePlaylistSourceUseCase,
         favoritesStore: FavoritesStore
     ) {
         _viewModel = State(
@@ -25,6 +31,9 @@ struct SettingsView: View {
             )
         )
         self.favoritesStore = favoritesStore
+        self.loadPlaylistSources = loadPlaylistSources
+        self.addPlaylistSource = addPlaylistSource
+        self.removePlaylistSource = removePlaylistSource
     }
 
     var body: some View {
@@ -46,6 +55,15 @@ struct SettingsView: View {
             }
 
             Section("settings.section.catalog") {
+                NavigationLink {
+                    PlaylistSourcesView(
+                        loadSources: loadPlaylistSources,
+                        addSource: addPlaylistSource,
+                        removeSource: removePlaylistSource
+                    )
+                } label: {
+                    Label("Manage sources", systemImage: "list.bullet.rectangle")
+                }
                 Button {
                     Task {
                         await viewModel.refresh()

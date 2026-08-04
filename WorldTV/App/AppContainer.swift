@@ -18,6 +18,9 @@ struct AppContainer {
     let clearRecentlyWatched: ClearRecentlyWatchedUseCase
     let clearCatalogCache: ClearCatalogCacheUseCase
     let loadCatalogCacheDate: LoadCatalogCacheDateUseCase
+    let loadPlaylistSources: LoadPlaylistSourcesUseCase
+    let addPlaylistSource: AddPlaylistSourceUseCase
+    let removePlaylistSource: RemovePlaylistSourceUseCase
     let topShelfPayloadWriter: TopShelfPayloadWriter
 
     static func live() -> AppContainer {
@@ -34,17 +37,21 @@ struct AppContainer {
         configuration.urlCache = urlCache
 
         let httpClient = URLSessionHTTPClient(session: URLSession(configuration: configuration))
-        let apiClient = IPTVOrgAPIClient(httpClient: httpClient)
         let baseDirectory = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
         ).first ?? FileManager.default.temporaryDirectory
-        let cache = FileCatalogCache(
+        let sourceStore = FilePlaylistSourceStore(
             fileURL: baseDirectory
                 .appendingPathComponent("WorldTV", isDirectory: true)
-                .appendingPathComponent("catalog.json")
+                .appendingPathComponent("playlist-sources.json")
         )
-        let repository = DefaultCatalogRepository(apiClient: apiClient, cache: cache)
+        let metadataStore = FileCatalogMetadataStore(
+            fileURL: baseDirectory
+                .appendingPathComponent("WorldTV", isDirectory: true)
+                .appendingPathComponent("catalog-metadata.json")
+        )
+        let repository = PlaylistCatalogRepository(sourceStore: sourceStore, httpClient: httpClient)
         let recentlyWatchedRepository = UserDefaultsRecentlyWatchedRepository()
         let favoritesRepository = UserDefaultsFavoritesRepository()
         let favoritesStore = FavoritesStore(
@@ -80,12 +87,24 @@ struct AppContainer {
                 favoritesRepository: favoritesRepository
             ),
             favoritesStore: favoritesStore,
-            refreshCatalog: RefreshCatalogUseCase(repository: repository),
+            refreshCatalog: RefreshCatalogUseCase(repository: repository, metadataStore: metadataStore),
             clearRecentlyWatched: ClearRecentlyWatchedUseCase(
                 repository: recentlyWatchedRepository
             ),
-            clearCatalogCache: ClearCatalogCacheUseCase(cache: cache),
-            loadCatalogCacheDate: LoadCatalogCacheDateUseCase(cache: cache),
+            clearCatalogCache: ClearCatalogCacheUseCase(
+                cache: metadataStore,
+                invalidate: { await repository.invalidate() }
+            ),
+            loadCatalogCacheDate: LoadCatalogCacheDateUseCase(cache: metadataStore),
+            loadPlaylistSources: LoadPlaylistSourcesUseCase(store: sourceStore),
+            addPlaylistSource: AddPlaylistSourceUseCase(
+                store: sourceStore,
+                invalidate: { await repository.invalidate() }
+            ),
+            removePlaylistSource: RemovePlaylistSourceUseCase(
+                store: sourceStore,
+                invalidate: { await repository.invalidate() }
+            ),
             topShelfPayloadWriter: TopShelfPayloadWriter(
                 repository: repository,
                 recentlyWatchedRepository: recentlyWatchedRepository,

@@ -74,6 +74,9 @@ struct SearchView: View {
                 viewModel.refresh()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .playlistSourcesDidChange)) { _ in
+            viewModel.refresh()
+        }
     }
 
     private var filtersButton: some View {

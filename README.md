@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Swift 6](https://img.shields.io/badge/Swift-6-orange.svg)](https://www.swift.org)
 
-WorldTV is a native SwiftUI application for discovering and playing free, publicly accessible television streams from around the world. It uses the structured datasets published by [iptv-org](https://github.com/iptv-org/iptv) and shares its domain and data layers across Apple platforms.
+WorldTV is a native SwiftUI application for playing user-supplied M3U/M3U8 playlists across Apple platforms. The app starts with no channels or bundled streams: users add playlist URLs they are authorized to access, and the same catalog, search, favorites, and playback features work with every compatible source.
 
 WorldTV does not host, mirror, or retransmit channels.
 
@@ -94,11 +94,11 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for catalog indexing, concurrency, playba
 
 ## Data source and privacy
 
-Catalog metadata comes from public [iptv-org API datasets](docs/DATA_SOURCES.md). Availability is controlled by third parties and individual links may stop working, be restricted by location, or have rights that vary by jurisdiction.
+WorldTV does not publish, curate, or bundle channel streams. Catalog metadata and playback URLs come from playlists added by the user. Availability is controlled by third parties and individual links may stop working, be restricted by location, or have rights that vary by jurisdiction.
 
 WorldTV:
 
-- accepts HTTPS catalog resources and streams by default;
+- accepts HTTPS M3U/M3U8 playlist resources and streams by default;
 - excludes NSFW, blocklisted, closed, orphaned, and invalid entries;
 - stores preferences, favorites, history, and catalog cache only on the device;
 - includes no accounts, analytics, advertisements, or tracking.

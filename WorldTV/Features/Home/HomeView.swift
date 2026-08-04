@@ -38,6 +38,9 @@ struct HomeView: View {
         .onAppear {
             viewModel.reloadVisibleContent()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .playlistSourcesDidChange)) { _ in
+            viewModel.reloadVisibleContent()
+        }
         .modifier(CatalogRefreshToolbar(action: viewModel.refresh))
     }
 

@@ -31,7 +31,7 @@ This document is the copy-ready source for the first App Store Connect record. R
 
 > Discover television from around the world with a native app for iPhone, iPad, Apple TV, and Mac.
 >
-> WorldTV+ organizes free, publicly accessible channel streams from the open-source iptv-org catalog. Browse by country or category, search locally, filter by quality and availability, save favorites, and return to recently watched channels.
+> WorldTV+ is a private playlist player. It starts empty and lets users add M3U/M3U8 sources they are authorized to access. Browse by country or category, search locally, filter by quality and availability, save favorites, and return to recently watched channels.
 >
 > Highlights:
 >
@@ -63,7 +63,7 @@ This document is the copy-ready source for the first App Store Connect record. R
 
 > Descubre televisión de todo el mundo con una aplicación nativa para iPhone, iPad, Apple TV y Mac.
 >
-> WorldTV+ organiza emisiones gratuitas y públicamente accesibles del catálogo open source de iptv-org. Explora por país o categoría, busca localmente, filtra por calidad y disponibilidad, guarda favoritos y vuelve a los canales vistos recientemente.
+> WorldTV+ es un reproductor de listas privado. Empieza vacío y permite añadir fuentes M3U/M3U8 a las que el usuario tenga autorización de acceso. Explora por país o categoría, busca localmente, filtra por calidad y disponibilidad, guarda favoritos y vuelve a los canales vistos recientemente.
 >
 > Funciones principales:
 >
@@ -83,7 +83,7 @@ This document is the copy-ready source for the first App Store Connect record. R
 
 ## Apple TV privacy policy text
 
-> WorldTV+ does not collect personal data, use analytics or advertising SDKs, or track users. Favorites, recently watched channels, preferences, and catalog cache are stored only in the app sandbox on the device. WorldTV+ connects directly to the public iptv-org API and independent channel servers to retrieve catalog data, artwork, and streams. These third-party services receive technical request data such as an IP address under their own practices. Full policy: https://github.com/HerniRG/WorldTV/blob/main/PRIVACY.md
+> WorldTV+ does not collect personal data, use analytics or advertising SDKs, or track users. Favorites, recently watched channels, preferences, playlist URLs, and catalog metadata are stored only in the app sandbox on the device. WorldTV+ connects directly to playlist hosts and stream hosts selected by the user. These third-party services receive technical request data such as an IP address under their own practices. Full policy: https://github.com/HerniRG/WorldTV/blob/main/PRIVACY.md
 
 ## App privacy answers
 
@@ -99,11 +99,11 @@ These answers are based on the source at version 1.0 build 1. Re-audit them when
 
 > WorldTV+ requires no account, subscription, purchase, or special hardware.
 >
-> On first launch, the app downloads public structured catalog data from iptv-org. Select a channel card to request playback. Live stream availability is controlled by independent providers; if one source fails, the app tries a limited number of alternatives or presents a localized error.
+> On first launch, the app is empty. Add an M3U/M3U8 URL in Sources, then select a channel card to request playback. Live stream availability is controlled by the selected providers; if one source fails, the app skips that source and presents an error when no playable source remains.
 >
 > The app excludes entries identified as NSFW, blocklisted, closed, unassociated, or invalid. Favorites, history, settings, and cache are local only. The app contains no analytics, advertising, tracking, DRM bypass, proxy, or geoblocking-evasion behavior.
 >
-> About and attributions are available from Settings → About and attributions. Privacy, disclaimer, source, iptv-org attribution, and channel-removal links are available there.
+> About and legal information are available from Settings → About. Playlist sources are managed separately from Settings → Manage sources.
 
 ## Content-rights declaration
 

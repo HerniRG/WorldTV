@@ -14,10 +14,7 @@ struct AboutView: View {
             }
 
             Section("about.attribution") {
-                Text("about.iptvOrg")
-                if let destination = AboutDestination.iptvOrg.url {
-                    Link("about.openIPTVOrg", destination: destination)
-                }
+                Text("Sources are supplied by the user. WorldTV does not include or curate channel streams.")
                 if let destination = AboutDestination.sourceCode.url {
                     Link("about.sourceCode", destination: destination)
                 }

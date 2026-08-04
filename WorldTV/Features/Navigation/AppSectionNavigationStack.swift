@@ -69,12 +69,21 @@ struct AppSectionNavigationStack: View {
                 loadFavoriteChannels: container.loadFavoriteChannels,
                 favoritesStore: container.favoritesStore
             )
+        case .sources:
+            PlaylistSourcesView(
+                loadSources: container.loadPlaylistSources,
+                addSource: container.addPlaylistSource,
+                removeSource: container.removePlaylistSource
+            )
         case .settings:
             SettingsView(
                 refreshCatalog: container.refreshCatalog,
                 clearRecentlyWatched: container.clearRecentlyWatched,
                 clearCatalogCache: container.clearCatalogCache,
                 loadCatalogCacheDate: container.loadCatalogCacheDate,
+                loadPlaylistSources: container.loadPlaylistSources,
+                addPlaylistSource: container.addPlaylistSource,
+                removePlaylistSource: container.removePlaylistSource,
                 favoritesStore: container.favoritesStore
             )
         }

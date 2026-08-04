@@ -48,6 +48,9 @@ struct FavoritesView: View {
         .onAppear {
             viewModel.reload()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .playlistSourcesDidChange)) { _ in
+            viewModel.reload()
+        }
     }
 
     private func grid(_ channels: [ChannelCatalogItem]) -> some View {

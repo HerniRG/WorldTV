@@ -33,4 +33,8 @@ final class CountriesViewModel: LoadableViewModel<[CountryCatalogItem]> {
     func localizedName(for country: Country) -> String {
         Locale.current.localizedString(forRegionCode: country.code) ?? country.name
     }
+
+    func reloadSources() {
+        Task { await super.reload() }
+    }
 }

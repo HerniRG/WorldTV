@@ -27,9 +27,6 @@ final class HomeViewModel: LoadableViewModel<HomeContent> {
     }
 
     func reloadVisibleContent() {
-        guard case .loaded = state else {
-            return
-        }
         Task {
             await super.reloadSilently()
         }

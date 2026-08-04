@@ -35,6 +35,9 @@ struct CountriesView: View {
         .task(id: viewModel.state.isIdle) {
             await viewModel.loadIfNeeded()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .playlistSourcesDidChange)) { _ in
+            viewModel.reloadSources()
+        }
     }
 
     private var countryGrid: some View {
