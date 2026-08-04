@@ -82,6 +82,9 @@ struct AppSectionNavigationStack: View {
                 favoritesStore: container.favoritesStore,
                 focusSourcesRequest: tvFocusSourcesRequest
             )
+            #if os(tvOS)
+            .id(tvFocusSourcesRequest)
+            #endif
         }
     }
 }
