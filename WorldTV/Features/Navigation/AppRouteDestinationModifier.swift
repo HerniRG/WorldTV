@@ -19,6 +19,12 @@ struct AppRouteDestinationModifier: ViewModifier {
                 loadFavoriteChannels: container.loadFavoriteChannels,
                 favoritesStore: container.favoritesStore
             )
+        case .sources:
+            PlaylistSourcesView(
+                loadSources: container.loadPlaylistSources,
+                addSource: container.addPlaylistSource,
+                removeSource: container.removePlaylistSource
+            )
         case .search:
             SearchView(
                 searchChannels: container.searchChannels,

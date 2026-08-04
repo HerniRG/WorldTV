@@ -15,7 +15,18 @@ struct HomeView: View {
                 ContentUnavailableView(
                     "catalog.empty.title",
                     systemImage: "tv.slash",
-                    description: Text("catalog.empty.message")
+                    description: Text("catalog.empty.message"),
+                    actions: {
+                        NavigationTile(
+                            route: .sources,
+                            tvDestination: .section(.settings),
+                            accessibilityID: "home.add.source",
+                            tvAccessibilityID: "home.add.source"
+                        ) {
+                            Label("sources.addButton", systemImage: "plus.circle.fill")
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
                 )
             case .failed:
                 ContentUnavailableView {

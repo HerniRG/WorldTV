@@ -45,6 +45,8 @@ struct PlaylistSourcesView: View {
                     #if os(tvOS)
                     .frame(minHeight: 54)
                     .buttonStyle(SourcesFocusButtonStyle())
+                    #else
+                    .buttonStyle(.borderedProminent)
                     #endif
                 }
                 #if os(tvOS)
