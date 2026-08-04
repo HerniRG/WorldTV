@@ -125,12 +125,12 @@ struct SettingsView: View {
         #if os(tvOS)
         .onAppear {
             if focusSourcesRequest > 0 {
-                focusedControl = .sources
+                focusSources()
             }
         }
         .onChange(of: focusSourcesRequest) { _, newValue in
             if newValue > 0 {
-                focusedControl = .sources
+                focusSources()
             }
         }
         #endif
@@ -150,6 +150,16 @@ struct SettingsView: View {
             }
         }
     }
+
+    #if os(tvOS)
+    private func focusSources() {
+        focusedControl = nil
+        Task { @MainActor in
+            await Task.yield()
+            focusedControl = .sources
+        }
+    }
+    #endif
 
     private func performConfirmation() {
         let action = confirmation
