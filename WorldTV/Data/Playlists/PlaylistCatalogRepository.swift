@@ -4,9 +4,20 @@ actor PlaylistCatalogRepository: ChannelRepository {
     private let sourceStore: any PlaylistSourceStore
     private let httpClient: any HTTPClient
     private let parser: M3UPlaylistParser
+    private let specializedLoader: (@Sendable (PlaylistSource) async throws -> Catalog?)?
     private var catalog: Catalog?
 
-    init(sourceStore: any PlaylistSourceStore, httpClient: any HTTPClient, parser: M3UPlaylistParser = M3UPlaylistParser()) { self.sourceStore = sourceStore; self.httpClient = httpClient; self.parser = parser }
+    init(
+        sourceStore: any PlaylistSourceStore,
+        httpClient: any HTTPClient,
+        parser: M3UPlaylistParser = M3UPlaylistParser(),
+        specializedLoader: (@Sendable (PlaylistSource) async throws -> Catalog?)? = nil
+    ) {
+        self.sourceStore = sourceStore
+        self.httpClient = httpClient
+        self.parser = parser
+        self.specializedLoader = specializedLoader
+    }
 
     func loadCatalog(forceRefresh: Bool) async throws -> Catalog {
         if let catalog, !forceRefresh { return catalog }
@@ -14,6 +25,17 @@ actor PlaylistCatalogRepository: ChannelRepository {
         guard !sources.isEmpty else { let empty = emptyCatalog(); catalog = empty; return empty }
         var catalogs: [Catalog] = []
         for source in sources {
+            // Some providers expose richer metadata through a companion API. If that
+            // endpoint is temporarily unavailable, keep the user-provided playlist
+            // usable through the generic parser.
+            do {
+                if let specializedCatalog = try await specializedLoader?(source) {
+                    catalogs.append(specializedCatalog)
+                    continue
+                }
+            } catch {
+                // Fall through to the generic playlist loader below.
+            }
             do {
                 var request = URLRequest(url: source.url)
                 request.setValue("application/vnd.apple.mpegurl, audio/mpegurl, text/plain, */*", forHTTPHeaderField: "Accept")

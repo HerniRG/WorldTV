@@ -37,6 +37,8 @@ struct AppContainer {
         configuration.urlCache = urlCache
 
         let httpClient = URLSessionHTTPClient(session: URLSession(configuration: configuration))
+        let iptvOrgAPIClient = IPTVOrgAPIClient(httpClient: httpClient)
+        let iptvOrgMapper = IPTVOrgMapper()
         let baseDirectory = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
@@ -51,7 +53,20 @@ struct AppContainer {
                 .appendingPathComponent("WorldTV", isDirectory: true)
                 .appendingPathComponent("catalog-metadata.json")
         )
-        let repository = PlaylistCatalogRepository(sourceStore: sourceStore, httpClient: httpClient)
+        let repository = PlaylistCatalogRepository(
+            sourceStore: sourceStore,
+            httpClient: httpClient,
+            specializedLoader: { source in
+                guard
+                    source.url.host?.lowercased() == "iptv-org.github.io",
+                    source.url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/")).lowercased() == "iptv/index.m3u"
+                else {
+                    return nil
+                }
+                let payload = try await iptvOrgAPIClient.fetchCatalog()
+                return iptvOrgMapper.map(payload)
+            }
+        )
         let recentlyWatchedRepository = UserDefaultsRecentlyWatchedRepository()
         let favoritesRepository = UserDefaultsFavoritesRepository()
         let favoritesStore = FavoritesStore(
