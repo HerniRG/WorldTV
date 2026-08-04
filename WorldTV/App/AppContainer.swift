@@ -39,7 +39,9 @@ struct AppContainer {
         let httpClient = URLSessionHTTPClient(session: URLSession(configuration: configuration))
         let iptvOrgAPIClient = IPTVOrgAPIClient(httpClient: httpClient)
         let iptvOrgMapper = IPTVOrgMapper()
-        let baseDirectory = FileManager.default.urls(
+        let baseDirectory = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: "group.hrgapps.WorldTV"
+        ) ?? FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
         ).first ?? FileManager.default.temporaryDirectory
