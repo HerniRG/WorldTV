@@ -48,6 +48,9 @@ struct TVRootView: View {
         .onChange(of: selectedSection) {
             selectedSectionRawValue = selectedSection.rawValue
             navigationResetRequest += 1
+            if selectedSection != .settings {
+                focusSourcesRequest = 0
+            }
         }
         .onReceive(
             NotificationCenter.default.publisher(
