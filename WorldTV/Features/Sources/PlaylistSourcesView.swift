@@ -23,9 +23,15 @@ struct PlaylistSourcesView: View {
                     TextField("sources.namePlaceholder", text: $name)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
+                        #if os(tvOS)
+                        .modifier(SourcesFieldFocusModifier())
+                        #endif
                     TextField("sources.urlPlaceholder", text: $url)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
+                        #if os(tvOS)
+                        .modifier(SourcesFieldFocusModifier())
+                        #endif
                     Button {
                         Task { await add() }
                     } label: {
@@ -34,7 +40,7 @@ struct PlaylistSourcesView: View {
                     .disabled(url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isWorking)
                     #if os(tvOS)
                     .frame(minHeight: 54)
-                    .worldTVCardButtonStyle()
+                    .buttonStyle(SourcesFocusButtonStyle())
                     #endif
                 }
                 #if os(tvOS)
@@ -57,6 +63,7 @@ struct PlaylistSourcesView: View {
                                     Task { await remove(source) }
                                 }
                                 .frame(minHeight: 54)
+                                .buttonStyle(SourcesFocusButtonStyle(isDestructive: true))
                             }
                             #else
                             sourceDetails(source)
@@ -127,6 +134,60 @@ struct PlaylistSourcesView: View {
         }
     }
 }
+
+#if os(tvOS)
+private struct SourcesFieldFocusModifier: ViewModifier {
+    @Environment(\.isFocused) private var isFocused
+
+    func body(content: Content) -> some View {
+        content
+            .padding(.horizontal, 16)
+            .frame(minHeight: 60)
+            .foregroundStyle(isFocused ? Color.white : Color.primary)
+            .background {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(isFocused ? Color.accentColor.opacity(0.28) : Color.clear)
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isFocused ? Color.accentColor : Color.clear, lineWidth: 3)
+            }
+    }
+}
+
+private struct SourcesFocusButtonStyle: ButtonStyle {
+    var isDestructive = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        FocusedButton(configuration: configuration, isDestructive: isDestructive)
+    }
+
+    private struct FocusedButton: View {
+        let configuration: Configuration
+        let isDestructive: Bool
+        @Environment(\.isFocused) private var isFocused
+
+        var body: some View {
+            configuration.label
+                .foregroundStyle(isFocused ? Color.white : Color.primary)
+                .padding(.horizontal, 18)
+                .background {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(
+                            isFocused
+                                ? (isDestructive ? Color.red : Color.accentColor)
+                                : Color.clear
+                        )
+                }
+                .overlay {
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(isFocused ? Color.white.opacity(0.9) : Color.clear, lineWidth: 3)
+                }
+                .opacity(configuration.isPressed ? 0.75 : 1)
+        }
+    }
+}
+#endif
 
 extension Notification.Name {
     static let playlistSourcesDidChange = Notification.Name("WorldTV.playlistSourcesDidChange")
