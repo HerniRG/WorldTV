@@ -2,10 +2,12 @@ import AVFoundation
 import AVKit
 import Foundation
 import Observation
+import OSLog
 
 @Observable
 @MainActor
 final class PlayerViewModel {
+    private static let logger = Logger(subsystem: "com.hernirg.worldtv", category: "Playback")
     private(set) var state: PlaybackState = .idle
     private(set) var channelName = ""
     private(set) var currentSourceNumber = 0
@@ -29,6 +31,7 @@ final class PlayerViewModel {
     private var didRecordPlayback = false
     private var autoplay = true
     private var preferredQuality: Int?
+    private var lastPlaybackError: NSError?
 
     init(
         channelID: String,
@@ -142,6 +145,7 @@ final class PlayerViewModel {
         state = .preparing
         currentSourceNumber = currentSourceIndex + 1
         currentSourceTitle = sources[currentSourceIndex].title
+        lastPlaybackError = nil
 
         let item = makePlayerItem(
             from: sources[currentSourceIndex],
@@ -186,11 +190,27 @@ final class PlayerViewModel {
                 state = .paused
             }
         case .failed:
+            lastPlaybackError = itemError
+            Self.logPlaybackFailure(source: sources[currentSourceIndex], error: itemError)
             attempt?.cancel()
             attempt = nil
             tryAnotherSource()
         @unknown default:
             fail(.unavailable)
+        }
+    }
+
+    private var itemError: NSError? {
+        player.currentItem?.error as NSError?
+    }
+
+    private static func logPlaybackFailure(source: PlaybackSource, error: NSError?) {
+        let host = source.url.host ?? "unknown-host"
+        let path = source.url.path.isEmpty ? "/" : source.url.path
+        if let error {
+            logger.error("Stream failed host=\(host, privacy: .public) path=\(path, privacy: .public) domain=\(error.domain, privacy: .public) code=\(error.code, privacy: .public) description=\(error.localizedDescription, privacy: .public)")
+        } else {
+            logger.error("Stream failed host=\(host, privacy: .public) path=\(path, privacy: .public) without AVPlayer error")
         }
     }
 
