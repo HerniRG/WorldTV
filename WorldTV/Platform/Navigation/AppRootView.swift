@@ -45,6 +45,7 @@ struct AppRootView: View {
                 container: container,
                 navigationResetRequest: navigationResetRequest
             )
+            .id("\(sidebarSelection.wrappedValue?.rawValue ?? AppSection.home.rawValue)-\(navigationResetRequest)")
         }
         #else
         if horizontalSizeClass == .regular {
@@ -58,6 +59,7 @@ struct AppRootView: View {
                     container: container,
                     navigationResetRequest: navigationResetRequest
                 )
+                .id("\(sidebarSelection.wrappedValue?.rawValue ?? AppSection.home.rawValue)-\(navigationResetRequest)")
             }
         } else {
             TabView(selection: selectedSection) {
@@ -68,6 +70,7 @@ struct AppRootView: View {
                         container: container,
                         navigationResetRequest: navigationResetRequest
                     )
+                    .id("\(section.rawValue)-\(navigationResetRequest)")
                     .tabItem {
                         Label(
                             LocalizedStringKey(section.localizationKey),

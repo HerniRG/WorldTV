@@ -27,6 +27,7 @@ struct TVRootView: View {
                     navigationResetRequest: navigationResetRequest,
                     tvOpenTopLevelDestination: openTopLevelDestination
                 )
+                .id("\(section.rawValue)-\(navigationResetRequest)")
                 .tabItem {
                     Label(
                         LocalizedStringKey(section.localizationKey),
