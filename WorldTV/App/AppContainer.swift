@@ -39,20 +39,13 @@ struct AppContainer {
         let httpClient = URLSessionHTTPClient(session: URLSession(configuration: configuration))
         let iptvOrgAPIClient = IPTVOrgAPIClient(httpClient: httpClient)
         let iptvOrgMapper = IPTVOrgMapper()
-        let baseDirectory = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.hrgapps.WorldTV"
-        ) ?? FileManager.default.urls(
-            for: .applicationSupportDirectory,
-            in: .userDomainMask
-        ).first ?? FileManager.default.temporaryDirectory
+        let baseDirectory = Self.prepareStorageDirectory()
         let sourceStore = FilePlaylistSourceStore(
             fileURL: baseDirectory
-                .appendingPathComponent("WorldTV", isDirectory: true)
                 .appendingPathComponent("playlist-sources.json")
         )
         let metadataStore = FileCatalogMetadataStore(
             fileURL: baseDirectory
-                .appendingPathComponent("WorldTV", isDirectory: true)
                 .appendingPathComponent("catalog-metadata.json")
         )
         let repository = PlaylistCatalogRepository(
@@ -128,5 +121,35 @@ struct AppContainer {
                 favoritesRepository: favoritesRepository
             )
         )
+    }
+
+    private static func prepareStorageDirectory() -> URL {
+        let fileManager = FileManager.default
+        let legacyDirectory = fileManager.urls(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask
+        ).first?
+            .appendingPathComponent("WorldTV", isDirectory: true)
+            ?? fileManager.temporaryDirectory.appendingPathComponent("WorldTV", isDirectory: true)
+        let sharedDirectory = fileManager.containerURL(
+            forSecurityApplicationGroupIdentifier: "group.hrgapps.WorldTV"
+        )?.appendingPathComponent("WorldTV", isDirectory: true)
+            ?? legacyDirectory
+
+        guard sharedDirectory != legacyDirectory else { return sharedDirectory }
+
+        try? fileManager.createDirectory(at: sharedDirectory, withIntermediateDirectories: true)
+        for filename in ["playlist-sources.json", "catalog-metadata.json"] {
+            let legacyFile = legacyDirectory.appendingPathComponent(filename)
+            let sharedFile = sharedDirectory.appendingPathComponent(filename)
+            guard
+                fileManager.fileExists(atPath: legacyFile.path),
+                !fileManager.fileExists(atPath: sharedFile.path)
+            else {
+                continue
+            }
+            try? fileManager.copyItem(at: legacyFile, to: sharedFile)
+        }
+        return sharedDirectory
     }
 }
