@@ -13,6 +13,7 @@ struct AppRootView: View {
         AppSection.home.rawValue
     #endif
     @State private var presentedPlayer: PresentedPlayer?
+    @State private var navigationResetRequest = 0
 
     let homeViewModel: HomeViewModel
     let container: AppContainer
@@ -26,6 +27,9 @@ struct AppRootView: View {
                 presentedPlayer = PresentedPlayer(channelID: channelID, feedID: feedID)
             }
             .playerPresentation($presentedPlayer, container: container)
+            .onChange(of: selectedSectionRawValue) { _, _ in
+                navigationResetRequest += 1
+            }
     }
 
     @ViewBuilder
@@ -38,7 +42,8 @@ struct AppRootView: View {
             AppSectionNavigationStack(
                 section: sidebarSelection.wrappedValue ?? .home,
                 homeViewModel: homeViewModel,
-                container: container
+                container: container,
+                navigationResetRequest: navigationResetRequest
             )
         }
         #else
@@ -50,7 +55,8 @@ struct AppRootView: View {
                 AppSectionNavigationStack(
                     section: sidebarSelection.wrappedValue ?? .home,
                     homeViewModel: homeViewModel,
-                    container: container
+                    container: container,
+                    navigationResetRequest: navigationResetRequest
                 )
             }
         } else {
@@ -59,7 +65,8 @@ struct AppRootView: View {
                     AppSectionNavigationStack(
                         section: section,
                         homeViewModel: homeViewModel,
-                        container: container
+                        container: container,
+                        navigationResetRequest: navigationResetRequest
                     )
                     .tabItem {
                         Label(

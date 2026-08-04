@@ -9,7 +9,7 @@ struct AppSectionNavigationStack: View {
     let container: AppContainer
     var tvSearchRequest: TVSearchRequest?
     var tvFocusSourcesRequest = 0
-    var tvNavigationResetRequest = 0
+    var navigationResetRequest = 0
     var tvOpenTopLevelDestination: @MainActor (TVTopLevelDestination) -> Void = { _ in }
 
     var body: some View {
@@ -22,7 +22,6 @@ struct AppSectionNavigationStack: View {
                     recordRecentlyWatched: container.recordRecentlyWatched
                 )
             )
-            .id(tvNavigationResetRequest)
         #else
         navigationStack
         #endif
@@ -46,6 +45,9 @@ struct AppSectionNavigationStack: View {
                 code: code,
                 generation: countryFocusReturn.generation + 1
             )
+        }
+        .onChange(of: navigationResetRequest) { _, _ in
+            path.removeAll()
         }
     }
 
@@ -78,9 +80,6 @@ struct AppSectionNavigationStack: View {
                 clearRecentlyWatched: container.clearRecentlyWatched,
                 clearCatalogCache: container.clearCatalogCache,
                 loadCatalogCacheDate: container.loadCatalogCacheDate,
-                loadPlaylistSources: container.loadPlaylistSources,
-                addPlaylistSource: container.addPlaylistSource,
-                removePlaylistSource: container.removePlaylistSource,
                 favoritesStore: container.favoritesStore,
                 focusSourcesRequest: tvFocusSourcesRequest
             )

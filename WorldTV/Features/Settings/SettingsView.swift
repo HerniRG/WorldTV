@@ -11,18 +11,12 @@ struct SettingsView: View {
     #endif
 
     let favoritesStore: FavoritesStore
-    let loadPlaylistSources: LoadPlaylistSourcesUseCase
-    let addPlaylistSource: AddPlaylistSourceUseCase
-    let removePlaylistSource: RemovePlaylistSourceUseCase
 
     init(
         refreshCatalog: RefreshCatalogUseCase,
         clearRecentlyWatched: ClearRecentlyWatchedUseCase,
         clearCatalogCache: ClearCatalogCacheUseCase,
         loadCatalogCacheDate: LoadCatalogCacheDateUseCase,
-        loadPlaylistSources: LoadPlaylistSourcesUseCase,
-        addPlaylistSource: AddPlaylistSourceUseCase,
-        removePlaylistSource: RemovePlaylistSourceUseCase,
         favoritesStore: FavoritesStore,
         focusSourcesRequest: Int = 0
     ) {
@@ -35,9 +29,6 @@ struct SettingsView: View {
             )
         )
         self.favoritesStore = favoritesStore
-        self.loadPlaylistSources = loadPlaylistSources
-        self.addPlaylistSource = addPlaylistSource
-        self.removePlaylistSource = removePlaylistSource
         self.focusSourcesRequest = focusSourcesRequest
     }
 
@@ -62,13 +53,7 @@ struct SettingsView: View {
             }
 
             Section("settings.section.catalog") {
-                NavigationLink {
-                    PlaylistSourcesView(
-                        loadSources: loadPlaylistSources,
-                        addSource: addPlaylistSource,
-                        removeSource: removePlaylistSource
-                    )
-                } label: {
+                NavigationLink(value: AppRoute.sources) {
                     Label("sources.manage", systemImage: "list.bullet.rectangle")
                 }
                 #if os(tvOS)

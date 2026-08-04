@@ -24,7 +24,7 @@ struct TVRootView: View {
                     container: container,
                     tvSearchRequest: section == .search ? searchRequest : nil,
                     tvFocusSourcesRequest: section == .settings ? focusSourcesRequest : 0,
-                    tvNavigationResetRequest: navigationResetRequest,
+                    navigationResetRequest: navigationResetRequest,
                     tvOpenTopLevelDestination: openTopLevelDestination
                 )
                 .tabItem {
