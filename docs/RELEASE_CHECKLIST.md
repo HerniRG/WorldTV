@@ -30,9 +30,10 @@
 ## Screenshots
 
 Screenshots are captured automatically with `scripts/capture-screenshots.sh`
-(requires a network connection; the catalog is loaded live). It runs the
-dedicated `WorldTVUITests/ScreenshotTests` XCUITest class on the store devices
-and exports the PNGs from the xcresult bundle into `docs/screenshots/store/`:
+(requires a network connection and a configured playlist source so Home has
+content to show). It runs the dedicated `WorldTVUITests/ScreenshotTests`
+XCUITest class on the store devices and exports the PNGs from the xcresult
+bundle into `docs/screenshots/store/`:
 
 ```sh
 scripts/capture-screenshots.sh            # iPhone + iPad + Mac + tvOS

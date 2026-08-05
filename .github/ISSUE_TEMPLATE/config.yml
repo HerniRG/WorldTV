@@ -3,6 +3,6 @@ contact_links:
   - name: Security vulnerability
     url: https://github.com/HerniRG/WorldTV/security/advisories/new
     about: Report security issues privately.
-  - name: iptv-org catalog
+  - name: iptv-org source
     url: https://github.com/iptv-org/iptv/issues
-    about: Report issues with the upstream channel catalog.
+    about: Report issues with the optional iptv-org playlist source.

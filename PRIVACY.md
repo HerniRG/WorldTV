@@ -1,6 +1,6 @@
 # WorldTV Privacy Policy
 
-Last updated: July 29, 2026
+Last updated: August 5, 2026
 
 WorldTV is designed to work without accounts, analytics, advertising, or tracking. The app does not collect personal data and does not transmit favorites, viewing history, preferences, or catalog cache contents to WorldTV or its developer.
 
@@ -11,7 +11,8 @@ WorldTV stores the following information locally so its features can work:
 - favorite channel identifiers;
 - recently watched channel identifiers and dates;
 - playback and catalog preferences;
-- a temporary cache of public catalog data and channel artwork.
+- playlist source URLs added by the user;
+- a temporary cache of playlist data and channel artwork.
 
 This information remains inside the app's sandbox on your device. You can clear favorites, history, and catalog cache from Settings. Removing the app also removes its locally stored information according to the operating system's normal behavior.
 
@@ -19,7 +20,8 @@ This information remains inside the app's sandbox on your device. You can clear 
 
 WorldTV connects directly to:
 
-- the public iptv-org API to download channel metadata, stream addresses, country information, categories, and logos;
+- the playlist hosts whose URLs you add in Sources, to download and refresh playlists;
+- the public iptv-org API only when you add the iptv-org playlist as a source;
 - third-party channel and stream servers when you request artwork or play a channel;
 - GitHub when you choose an About, attribution, source-code, legal, privacy, or channel-removal link.
 
@@ -45,7 +47,7 @@ Privacy questions can be submitted through the public [WorldTV issue tracker](ht
 
 # Política de privacidad de WorldTV
 
-Última actualización: 29 de julio de 2026
+Última actualización: 5 de agosto de 2026
 
 WorldTV está diseñada para funcionar sin cuentas, analítica, publicidad ni seguimiento. La aplicación no recopila datos personales ni transmite a WorldTV o a su desarrollador los favoritos, el historial de reproducción, las preferencias o el contenido de la caché.
 
@@ -56,7 +58,8 @@ WorldTV guarda localmente la siguiente información para ofrecer sus funciones:
 - identificadores de canales favoritos;
 - identificadores y fechas de los canales vistos recientemente;
 - preferencias de reproducción y catálogo;
-- una caché temporal de datos públicos del catálogo y logotipos.
+- las URL de las listas de reproducción añadidas por el usuario;
+- una caché temporal de los datos de las listas y los logotipos.
 
 Esta información permanece dentro del contenedor privado de la aplicación. Puedes borrar los favoritos, el historial y la caché desde Ajustes. Al eliminar la aplicación también se elimina su información local conforme al comportamiento normal del sistema operativo.
 
@@ -64,7 +67,8 @@ Esta información permanece dentro del contenedor privado de la aplicación. Pue
 
 WorldTV se conecta directamente a:
 
-- la API pública de iptv-org para descargar metadatos, direcciones de emisiones, países, categorías y logotipos;
+- los servidores de las listas cuyas URL añades en Fuentes, para descargar y actualizar las listas;
+- la API pública de iptv-org únicamente cuando añades la lista de iptv-org como fuente;
 - servidores externos de canales y emisiones cuando solicitas una imagen o reproduces un canal;
 - GitHub cuando abres un enlace de información, atribución, código fuente, aviso legal, privacidad o retirada de canales.
 

@@ -2,7 +2,7 @@
 
 The approved App Icon and Apple TV Top Shelf artwork are now included. The checked-in Apple TV Home image is a real 1920×1080 simulator capture; the remaining store-facing captures are still pending.
 
-Capture with Spanish and English localizations where appropriate:
+Screenshots show the loaded app, so each capture run must configure at least one playlist source with channels whose names and logos can be shown. Capture with Spanish and English localizations where appropriate:
 
 | File | Destination | Required state |
 | --- | --- | --- |

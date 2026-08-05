@@ -52,6 +52,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Changed
 
+- The app now starts empty: channels come from user-added M3U/M3U8 playlist sources instead of a bundled catalog
+- iptv-org is now an optional user-added source enriched through the iptv-org API when selected
+- Playlist sources are validated before saving and persisted in app-private storage
 - Mapper accepts HTTP or HTTPS stream URLs while logos stay HTTPS-only, backed by a narrowly scoped `NSAllowsArbitraryLoadsForMedia` ATS exception
 - `PlayerViewModel` rewritten around a dedicated `PlaybackAttempt` with 15-second preparation and 20-second stall timeouts
 - Channel logos load through SwiftUI `AsyncImage` and the shared `URLCache`

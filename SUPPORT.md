@@ -1,6 +1,6 @@
 # WorldTV Support
 
-WorldTV is an open-source project. Before reporting a problem, update to the latest available version and try refreshing the catalog from Settings.
+WorldTV is an open-source project. Before reporting a problem, update to the latest available version, confirm that at least one playlist source is configured in Sources, and try refreshing the catalog from Settings.
 
 ## Get help
 
@@ -17,7 +17,7 @@ WorldTV cannot guarantee that a third-party stream remains online, works in ever
 
 # Soporte de WorldTV
 
-WorldTV es un proyecto de código abierto. Antes de comunicar un problema, actualiza a la última versión disponible e intenta actualizar el catálogo desde Ajustes.
+WorldTV es un proyecto de código abierto. Antes de comunicar un problema, actualiza a la última versión disponible, confirma que tienes al menos una fuente de lista configurada en Fuentes e intenta actualizar el catálogo desde Ajustes.
 
 ## Obtener ayuda
 

@@ -1,8 +1,18 @@
 # Data sources
 
-WorldTV currently consumes the public JSON API maintained by [iptv-org](https://github.com/iptv-org/iptv).
+WorldTV starts empty and does not bundle, publish, or curate any channels. All catalog content comes from playlist sources added by the user.
 
-## Endpoints
+## User-added playlists
+
+Users add M3U/M3U8 playlist URLs in Sources. The app downloads each playlist, parses its entries, and builds a local catalog that powers Home, countries, categories, search, favorites, and playback.
+
+- Playlist URLs over HTTPS are preferred; HTTP playlist and stream URLs are accepted.
+- Multiple independent playlists can be combined. Entries are merged and de-duplicated by channel identity, so overlapping playlists do not duplicate channels.
+- The app validates a playlist before saving the source and reports clear errors for invalid URLs, unsupported schemes, unreachable hosts, empty playlists, and playlists without playable entries.
+
+## Optional iptv-org enrichment
+
+Adding the public iptv-org index playlist (`https://iptv-org.github.io/iptv/index.m3u`) is supported as a user source like any other. For that specific source the app additionally reads the public JSON API maintained by [iptv-org](https://github.com/iptv-org/iptv) to enrich channel metadata:
 
 | Dataset | Endpoint | Purpose |
 | --- | --- | --- |
@@ -14,6 +24,8 @@ WorldTV currently consumes the public JSON API maintained by [iptv-org](https://
 | Blocklist | `https://iptv-org.github.io/api/blocklist.json` | Channels excluded by the upstream project |
 | Feeds | `https://iptv-org.github.io/api/feeds.json` | Regional feed variants and their languages |
 | Languages | `https://iptv-org.github.io/api/languages.json` | Language codes and localized names |
+
+The iptv-org datasets are never fetched automatically; they are only consulted when the user adds the iptv-org playlist as a source.
 
 ## Relationships
 
@@ -52,6 +64,6 @@ The cache can be removed from Settings. Favorites and history are separate local
 
 ## Availability and attribution
 
-iptv-org and individual stream providers are third parties. Dataset inclusion does not guarantee uptime, quality, geographic access, or rights in a particular jurisdiction.
+Playlist hosts and stream providers are third parties. Inclusion in a user playlist does not guarantee uptime, quality, geographic access, or rights in a particular jurisdiction.
 
 WorldTV does not claim ownership of channel names, logos, trademarks, metadata, or streams. See `DISCLAIMER.md` for the removal process and complete limitations.

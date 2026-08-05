@@ -5,7 +5,7 @@ The roadmap communicates intent, not a release guarantee.
 ## Completed foundation
 
 - Shared Swift 6 domain and data layers
-- Structured iptv-org catalog ingestion and exclusions
+- Empty-by-default catalog driven by user-added M3U/M3U8 playlist sources, with optional iptv-org enrichment
 - Persistent cache and degraded offline loading
 - Home, countries, channel grids, logos, search, and filters
 - AVPlayer playback with bounded fallback

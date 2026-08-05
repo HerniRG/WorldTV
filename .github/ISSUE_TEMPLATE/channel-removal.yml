@@ -18,8 +18,8 @@ body:
   - type: input
     id: identifier
     attributes:
-      label: iptv-org channel identifier
-      description: Include the stable identifier when known.
+      label: Channel identifier or playlist URL
+      description: Include the stable channel identifier or the source playlist URL when known.
     validations:
       required: false
   - type: input
@@ -56,5 +56,5 @@ body:
       options:
         - label: I have not included credentials, private tokens, personal documents, or other sensitive evidence.
           required: true
-        - label: I understand that WorldTV consumes an external catalog and cannot remove upstream records directly.
+        - label: I understand that WorldTV does not maintain a catalog and cannot remove channels from user playlists directly.
           required: true

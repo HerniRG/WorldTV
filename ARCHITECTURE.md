@@ -9,21 +9,21 @@ Use case
     ↓
 Domain repository protocol
     ↓
-Data repository → IPTVOrg API client → HTTP client
+Data repository → M3U parser / optional IPTVOrg API client → HTTP client
 ```
 
 ## Layers
 
 - `App`: constructs dependencies explicitly in `AppContainer`.
 - `Domain`: contains `Sendable` entities, repository contracts, load state, and use cases. It does not import SwiftUI, AVKit, or networking implementations.
-- `Data`: contains the HTTP client, iptv-org DTOs, mapping rules, filtering, joins, persistent cache, viewing history, favorites, and repository actors.
+- `Data`: contains the HTTP client, the M3U parser, playlist source persistence, iptv-org DTOs, mapping rules, filtering, joins, persistent cache, viewing history, favorites, and repository actors.
 - `Features`: contains UI state and SwiftUI presentation. UI ViewModels are explicitly isolated with `@MainActor`.
 - `Platform`: contains platform-native players, SwiftUI `AsyncImage` logo loading, the shared `LoadableViewModel` base, and platform navigation helpers.
 - `Resources`: contains localized English and Spanish UI strings.
 
 ## Catalog loading
 
-The API client fetches the eight datasets concurrently. `IPTVOrgMapper` then:
+The catalog is built from playlist sources added by the user. `PlaylistCatalogRepository` loads the saved source list and downloads each playlist through the HTTP client, parsing it with `M3UPlaylistParser`. When a source is the public iptv-org index playlist, the repository instead calls the iptv-org API client, which fetches its datasets concurrently and maps them with `IPTVOrgMapper`. `IPTVOrgMapper` then:
 
 1. Removes NSFW, blocked, and closed channels.
 2. Builds the set of valid channel identifiers.
@@ -32,7 +32,7 @@ The API client fetches the eight datasets concurrently. `IPTVOrgMapper` then:
 5. Groups streams and logos by channel identifier.
 6. Maps feeds (sorted main-first, then by name) and languages.
 
-`CatalogIndex` precalculates channels by identifier and country, countries by code, feeds by channel, language codes by channel (feed languages first, falling back to country languages), the preferred logo for each channel, and channels grouped by broadcaster or owner. Views and ViewModels therefore do not repeatedly join tens of thousands of records.
+`CatalogIndex` precalculates channels by identifier and country, countries by code, feeds by channel, language codes by channel (feed languages first, falling back to country languages), the preferred logo for each channel, and channels grouped by broadcaster or owner. Views and ViewModels therefore do not repeatedly join tens of thousands of records. Playlist entries and enriched catalogs are merged and de-duplicated by channel identity, so overlapping sources do not duplicate channels.
 
 The repository is an actor because it owns mutable in-memory catalog state. It reads a fresh persistent snapshot for up to 24 hours, refreshes from the network when required, and falls back to a stale snapshot if a refresh fails. Mapping, indexing, encoding, and decoding stay outside `MainActor`.
 
