@@ -39,6 +39,23 @@ struct PlaylistSourceUseCaseTests {
             Issue.record("Unexpected error: \(error)")
         }
     }
+
+    @Test
+    func validatesPlaylistBeforePersistingIt() async throws {
+        let store = InMemoryPlaylistSourceStore()
+        let add = AddPlaylistSourceUseCase(store: store) { _ in
+            throw PlaylistSourceError.noPlayableEntries
+        }
+
+        do {
+            _ = try await add.execute(name: "Invalid", urlString: "https://example.com/invalid.m3u")
+            Issue.record("Expected playlist validation to fail")
+        } catch let error as PlaylistSourceError {
+            #expect(error == .noPlayableEntries)
+        }
+
+        #expect(try await store.load().isEmpty)
+    }
 }
 
 private actor InMemoryPlaylistSourceStore: PlaylistSourceStore {

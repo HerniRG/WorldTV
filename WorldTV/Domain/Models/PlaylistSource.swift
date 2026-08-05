@@ -17,6 +17,7 @@ struct PlaylistSource: Codable, Hashable, Identifiable, Sendable {
 enum PlaylistSourceError: Error, Equatable, LocalizedError, Sendable {
     case invalidURL
     case unsupportedURLScheme
+    case unreachable
     case emptyPlaylist
     case noPlayableEntries
 
@@ -24,6 +25,7 @@ enum PlaylistSourceError: Error, Equatable, LocalizedError, Sendable {
         switch self {
         case .invalidURL: String(localized: "sources.error.invalidURL")
         case .unsupportedURLScheme: String(localized: "sources.error.unsupportedScheme")
+        case .unreachable: String(localized: "sources.error.unreachable")
         case .emptyPlaylist: String(localized: "sources.error.emptyPlaylist")
         case .noPlayableEntries: String(localized: "sources.error.noPlayableEntries")
         }

@@ -109,7 +109,20 @@ struct AppContainer {
             loadPlaylistSources: LoadPlaylistSourcesUseCase(store: sourceStore),
             addPlaylistSource: AddPlaylistSourceUseCase(
                 store: sourceStore,
-                invalidate: { await repository.invalidate() }
+                invalidate: { await repository.invalidate() },
+                validate: { source in
+                    var request = URLRequest(url: source.url)
+                    request.setValue("application/vnd.apple.mpegurl, audio/mpegurl, text/plain, */*", forHTTPHeaderField: "Accept")
+                    request.setValue("WorldTV/1.0", forHTTPHeaderField: "User-Agent")
+                    do {
+                        let data = try await httpClient.data(for: request)
+                        _ = try M3UPlaylistParser().parse(data, source: source)
+                    } catch let error as PlaylistSourceError {
+                        throw error
+                    } catch {
+                        throw PlaylistSourceError.unreachable
+                    }
+                }
             ),
             removePlaylistSource: RemovePlaylistSourceUseCase(
                 store: sourceStore,

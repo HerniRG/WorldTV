@@ -9,12 +9,22 @@ struct LoadPlaylistSourcesUseCase: Sendable {
 struct AddPlaylistSourceUseCase: Sendable {
     private let store: any PlaylistSourceStore
     private let invalidate: @Sendable () async -> Void
-    init(store: any PlaylistSourceStore, invalidate: @escaping @Sendable () async -> Void) { self.store = store; self.invalidate = invalidate }
+    private let validate: @Sendable (PlaylistSource) async throws -> Void
+    init(
+        store: any PlaylistSourceStore,
+        invalidate: @escaping @Sendable () async -> Void,
+        validate: @escaping @Sendable (PlaylistSource) async throws -> Void = { _ in }
+    ) {
+        self.store = store
+        self.invalidate = invalidate
+        self.validate = validate
+    }
     func execute(name: String, urlString: String) async throws -> PlaylistSource {
         guard let url = URL(string: urlString.trimmingCharacters(in: .whitespacesAndNewlines)) else { throw PlaylistSourceError.invalidURL }
         guard url.scheme?.lowercased() == "http" || url.scheme?.lowercased() == "https" else { throw PlaylistSourceError.unsupportedURLScheme }
         let cleanName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let source = PlaylistSource(name: cleanName.isEmpty ? (url.host() ?? "Playlist") : cleanName, url: url)
+        try await validate(source)
         try await store.add(source); await invalidate(); return source
     }
 }

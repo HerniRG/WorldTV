@@ -42,12 +42,7 @@ struct PlaylistSourcesView: View {
                         Label("sources.addButton", systemImage: "plus.circle.fill")
                     }
                     .disabled(url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isWorking)
-                    #if os(tvOS)
-                    .frame(minHeight: 54)
-                    .buttonStyle(SourcesFocusButtonStyle())
-                    #else
                     .buttonStyle(.borderedProminent)
-                    #endif
                 }
                 #if os(tvOS)
                 .padding(.vertical, 8)
