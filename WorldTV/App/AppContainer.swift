@@ -125,31 +125,65 @@ struct AppContainer {
 
     private static func prepareStorageDirectory() -> URL {
         let fileManager = FileManager.default
-        let legacyDirectory = fileManager.urls(
+        let applicationSupportDirectory = fileManager.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
         ).first?
             .appendingPathComponent("WorldTV", isDirectory: true)
-            ?? fileManager.temporaryDirectory.appendingPathComponent("WorldTV", isDirectory: true)
-        let sharedDirectory = fileManager.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.hrgapps.WorldTV"
-        )?.appendingPathComponent("WorldTV", isDirectory: true)
-            ?? legacyDirectory
+        let documentsDirectory = fileManager.urls(
+            for: .documentDirectory,
+            in: .userDomainMask
+        ).first?
+            .appendingPathComponent("WorldTV", isDirectory: true)
 
-        guard sharedDirectory != legacyDirectory else { return sharedDirectory }
+        let legacyDirectories = [
+            applicationSupportDirectory,
+            fileManager.containerURL(
+                forSecurityApplicationGroupIdentifier: "group.hrgapps.WorldTV"
+            )?.appendingPathComponent("WorldTV", isDirectory: true)
+        ].compactMap { $0 }
 
-        try? fileManager.createDirectory(at: sharedDirectory, withIntermediateDirectories: true)
-        for filename in ["playlist-sources.json", "catalog-metadata.json"] {
-            let legacyFile = legacyDirectory.appendingPathComponent(filename)
-            let sharedFile = sharedDirectory.appendingPathComponent(filename)
-            guard
-                fileManager.fileExists(atPath: legacyFile.path),
-                !fileManager.fileExists(atPath: sharedFile.path)
-            else {
-                continue
+        // Playlist sources belong to this app only. Keeping them in the app's
+        // own container also works when a physical-device provisioning profile
+        // does not include the optional App Group entitlement.
+        for directory in [documentsDirectory, applicationSupportDirectory].compactMap({ $0 }) {
+            if ensureDirectoryIsWritable(directory, fileManager: fileManager) {
+                migrateLegacyFiles(from: legacyDirectories, to: directory, fileManager: fileManager)
+                return directory
             }
-            try? fileManager.copyItem(at: legacyFile, to: sharedFile)
         }
-        return sharedDirectory
+
+        let temporaryDirectory = fileManager.temporaryDirectory.appendingPathComponent("WorldTV", isDirectory: true)
+        _ = ensureDirectoryIsWritable(temporaryDirectory, fileManager: fileManager)
+        return temporaryDirectory
+    }
+
+    @discardableResult
+    private static func ensureDirectoryIsWritable(_ directory: URL, fileManager: FileManager) -> Bool {
+        do {
+            try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+            let probe = directory.appendingPathComponent(".write-probe")
+            try Data("probe".utf8).write(to: probe, options: .atomic)
+            try fileManager.removeItem(at: probe)
+            return true
+        } catch {
+            NSLog("WorldTV: directory is not writable (%@): %@", directory.path, error.localizedDescription)
+            return false
+        }
+    }
+
+    private static func migrateLegacyFiles(from legacyDirectories: [URL], to sharedDirectory: URL, fileManager: FileManager) {
+        for filename in ["playlist-sources.json", "catalog-metadata.json"] {
+            let sharedFile = sharedDirectory.appendingPathComponent(filename)
+            guard !fileManager.fileExists(atPath: sharedFile.path) else { continue }
+
+            for legacyDirectory in legacyDirectories {
+                let legacyFile = legacyDirectory.appendingPathComponent(filename)
+                guard fileManager.fileExists(atPath: legacyFile.path) else { continue }
+                if (try? fileManager.copyItem(at: legacyFile, to: sharedFile)) != nil {
+                    break
+                }
+            }
+        }
     }
 }
