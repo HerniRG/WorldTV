@@ -103,19 +103,6 @@ private struct AboutQRCodeCard: View {
     }
 }
 
-private extension View {
-    @ViewBuilder
-    func invisibleTVOSFocus() -> some View {
-        #if os(tvOS)
-        self
-            .focusable()
-            .focusEffectDisabled()
-        #else
-        self
-        #endif
-    }
-}
-
 private extension AboutDestination {
     var title: LocalizedStringKey {
         switch self {
@@ -136,6 +123,19 @@ private extension AboutDestination {
     }
 }
 #endif
+
+private extension View {
+    @ViewBuilder
+    func invisibleTVOSFocus() -> some View {
+        #if os(tvOS)
+        self
+            .focusable()
+            .focusEffectDisabled()
+        #else
+        self
+        #endif
+    }
+}
 
 enum AboutDestination: String, CaseIterable {
     case sourceCode = "https://github.com/HerniRG/WorldTV"
