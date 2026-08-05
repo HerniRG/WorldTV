@@ -266,130 +266,66 @@
         }
       }
     },
-    "about.channelRemoval" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "طلب مراجعة أو إزالة قناة"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eine Überprüfung oder Entfernung eines Senders anfordern"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Request a channel review or removal"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Solicitar la revisión o retirada de un canal"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Demander une révision ou le retrait d'une chaîne"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "चैनल की समीक्षा या हटाने का अनुरोध करें"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Richiedi una revisione o la rimozione di un canale"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "チャンネルの確認または削除をリクエスト"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Solicitar revisão ou remoção de um canal"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请求审核或移除频道"
-          }
-        }
-      }
-    },
     "about.description" : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يكتشف WorldTV+ ويشغّل بثوث تلفزيونية مجانية ومتاحة للعموم."
+            "value" : "WorldTV+ هو مشغل خاص لقوائم التشغيل التي يضيفها المستخدم."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WorldTV+ entdeckt und spielt kostenlose, öffentlich zugängliche Fernsehsender."
+            "value" : "WorldTV+ ist ein privater Player für vom Benutzer hinzugefügte Wiedergabelisten."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WorldTV+ discovers and plays free, publicly accessible television streams."
+            "value" : "WorldTV+ is a private player for user-added playlists."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WorldTV+ descubre y reproduce emisiones de televisión gratuitas y públicamente accesibles."
+            "value" : "WorldTV+ es un reproductor privado de listas añadidas por el usuario."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WorldTV+ découvre et lit des flux de télévision gratuits et accessibles au public."
+            "value" : "WorldTV+ est un lecteur privé de listes ajoutées par l’utilisateur."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WorldTV+ मुफ़्त, सार्वजनिक रूप से सुलभ टेलीविज़न स्ट्रीम खोजता और चलाता है।"
+            "value" : "WorldTV+ उपयोगकर्ता द्वारा जोड़ी गई प्लेलिस्ट का निजी प्लेयर है।"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WorldTV+ scopre e riproduce trasmissioni televisive gratuite e pubblicamente accessibili."
+            "value" : "WorldTV+ è un lettore privato per playlist aggiunte dall’utente."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WorldTV+ は、無料で一般公開されているテレビ放送を発見して再生します。"
+            "value" : "WorldTV+ は、ユーザーが追加したプレイリスト用のプライベートプレーヤーです。"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O WorldTV+ descobre e reproduz fluxos de televisão gratuitos e publicamente acessíveis."
+            "value" : "O WorldTV+ é um leitor privado de playlists adicionadas pelo utilizador."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WorldTV+ 可发现并播放免费、可公开访问的电视流。"
+            "value" : "WorldTV+ 是一款播放用户添加的播放列表的私人播放器。"
           }
         }
       }
@@ -906,6 +842,21 @@
             "value" : "支持"
           }
         }
+      }
+    },
+    "about.qrInstruction" : {
+      "comment" : "Instruction shown below a QR code on tvOS.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "امسح الرمز لفتح هذا الرابط على iPhone" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Scanne den Code, um diesen Link auf deinem iPhone zu öffnen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Scan to open this link on your iPhone" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Escanea para abrir este enlace en tu iPhone" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Scannez pour ouvrir ce lien sur votre iPhone" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "इस लिंक को iPhone पर खोलने के लिए स्कैन करें" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Scansiona per aprire questo link sul tuo iPhone" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スキャンして iPhone でこのリンクを開く" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Digitalize para abrir esta ligação no iPhone" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "扫描以在 iPhone 上打开此链接" } }
       }
     },
     "about.worldtv" : {
