@@ -13,12 +13,16 @@ struct AboutView: View {
             #endif
 
             Section("about.worldtv") {
-                Text("about.description")
-                Text("about.availability")
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("about.description")
+                    Text("about.availability")
+                }
+                .invisibleTVOSFocus()
             }
 
             Section("about.attribution") {
                 Text("sources.aboutDisclaimer")
+                    .invisibleTVOSFocus()
                 #if os(tvOS)
                 AboutQRCodeGrid(destinations: [.sourceCode, .support])
                 #else
@@ -33,6 +37,7 @@ struct AboutView: View {
 
             Section("about.legal") {
                 Text("about.legalNotice")
+                    .invisibleTVOSFocus()
                 #if os(tvOS)
                 AboutQRCodeGrid(destinations: [.privacy, .disclaimer])
                 #else
@@ -61,29 +66,53 @@ private struct AboutQRCodeGrid: View {
     var body: some View {
         LazyVGrid(columns: columns, spacing: 24) {
             ForEach(destinations, id: \.self) { destination in
-                VStack(spacing: 12) {
-                    if let image = destination.qrCodeImage {
-                        Image(decorative: image, scale: 1, orientation: .up)
-                            .interpolation(.none)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 150, height: 150)
-                            .padding(12)
-                            .background(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                    Text(destination.title)
-                        .font(.headline)
-                        .multilineTextAlignment(.center)
-                    Text("about.qrInstruction")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity)
+                AboutQRCodeCard(destination: destination)
             }
         }
         .padding(.vertical, 12)
+    }
+}
+
+private struct AboutQRCodeCard: View {
+    let destination: AboutDestination
+
+    var body: some View {
+        VStack(spacing: 12) {
+            if let image = destination.qrCodeImage {
+                Image(decorative: image, scale: 1, orientation: .up)
+                    .interpolation(.none)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 150, height: 150)
+                    .padding(12)
+                    .background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            Text(destination.title)
+                .font(.headline)
+                .multilineTextAlignment(.center)
+            Text("about.qrInstruction")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(12)
+        .focusable()
+        .focusEffectDisabled()
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func invisibleTVOSFocus() -> some View {
+        #if os(tvOS)
+        self
+            .focusable()
+            .focusEffectDisabled()
+        #else
+        self
+        #endif
     }
 }
 
