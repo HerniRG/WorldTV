@@ -13,7 +13,7 @@ This document is the copy-ready source for the first App Store Connect record. R
 | Secondary category | Lifestyle |
 | Price | Free |
 | Copyright | © 2026 Hernan Rodriguez |
-| Support URL | `https://github.com/HerniRG/WorldTV/blob/main/SUPPORT.md` |
+| Support URL | `https://hernirg.github.io/WorldTV/` |
 | Marketing URL | `https://github.com/HerniRG/WorldTV` |
 | Privacy URL | `https://github.com/HerniRG/WorldTV/blob/main/PRIVACY.md` |
 
