@@ -91,6 +91,11 @@ struct PlaylistSourcesView: View {
             }
             if isWorking { ProgressView() }
         }
+        #if os(macOS)
+        // macOS lays out Form labels in a separate leading column. Keep that
+        // column inside the window so longer localized labels are not clipped.
+        .padding(.horizontal, 24)
+        #endif
         .platformNavigationTitle("sources.title")
         #if os(tvOS)
         .tvShelfBehavior()
