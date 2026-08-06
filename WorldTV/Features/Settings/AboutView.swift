@@ -140,8 +140,8 @@ private extension View {
 enum AboutDestination: String, CaseIterable {
     case sourceCode = "https://github.com/HerniRG/WorldTV"
     case support = "https://hernirg.github.io/WorldTV/"
-    case privacy = "https://github.com/HerniRG/WorldTV/blob/main/PRIVACY.md"
-    case disclaimer = "https://github.com/HerniRG/WorldTV/blob/main/DISCLAIMER.md"
+    case privacy = "https://hernirg.github.io/WorldTV/#privacy"
+    case disclaimer = "https://hernirg.github.io/WorldTV/#disclaimer"
 
     var url: URL? {
         URL(string: rawValue)

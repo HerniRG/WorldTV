@@ -15,7 +15,7 @@ This document is the copy-ready source for the first App Store Connect record. R
 | Copyright | © 2026 Hernan Rodriguez |
 | Support URL | `https://hernirg.github.io/WorldTV/` |
 | Marketing URL | `https://github.com/HerniRG/WorldTV` |
-| Privacy URL | `https://github.com/HerniRG/WorldTV/blob/main/PRIVACY.md` |
+| Privacy URL | `https://hernirg.github.io/WorldTV/#privacy` |
 
 ## English (U.S.)
 
@@ -83,7 +83,7 @@ This document is the copy-ready source for the first App Store Connect record. R
 
 ## Apple TV privacy policy text
 
-> WorldTV+ does not collect personal data, use analytics or advertising SDKs, or track users. Favorites, recently watched channels, preferences, playlist URLs, and catalog metadata are stored only in the app sandbox on the device. WorldTV+ connects directly to playlist hosts and stream hosts selected by the user. These third-party services receive technical request data such as an IP address under their own practices. Full policy: https://github.com/HerniRG/WorldTV/blob/main/PRIVACY.md
+> WorldTV+ does not collect personal data, use analytics or advertising SDKs, or track users. Favorites, recently watched channels, preferences, playlist URLs, and catalog metadata are stored only in the app sandbox on the device. WorldTV+ connects directly to playlist hosts and stream hosts selected by the user. These third-party services receive technical request data such as an IP address under their own practices. Full policy: https://hernirg.github.io/WorldTV/#privacy
 
 ## App privacy answers
 

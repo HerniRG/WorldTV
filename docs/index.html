@@ -52,6 +52,8 @@
     .card.wide { grid-column: 1 / -1; }
     a { color: var(--accent-dark); font-weight: 650; }
     .button { display: inline-block; margin-top: 4px; padding: 11px 16px; border-radius: 10px; background: var(--accent); color: #17100a; text-decoration: none; font-weight: 750; }
+    nav { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 24px; }
+    nav a { padding: 8px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); text-decoration: none; }
     ul, ol { margin: 10px 0 0; padding-left: 22px; }
     li + li { margin-top: 7px; }
     code { padding: 2px 6px; border-radius: 6px; background: var(--background); overflow-wrap: anywhere; }
@@ -70,8 +72,14 @@
   </header>
 
   <main class="wrap">
+    <nav aria-label="Support sections">
+      <a href="#support">Support</a>
+      <a href="#privacy">Privacy policy</a>
+      <a href="#disclaimer">Disclaimer</a>
+    </nav>
+
     <div class="grid">
-      <section class="card wide">
+      <section id="support" class="card wide">
         <h2>Get started</h2>
         <ol>
           <li>Open <strong>Settings → Manage Sources</strong>.</li>
@@ -111,6 +119,36 @@
       <section class="card">
         <h2>Channel concerns</h2>
         <p>For a channel review or removal request, use the <a href="https://github.com/HerniRG/WorldTV/issues/new?template=channel-removal.yml">channel-removal form</a>.</p>
+      </section>
+
+      <section id="privacy" class="card wide">
+        <h2>Privacy policy</h2>
+        <p><strong>Last updated: August 5, 2026</strong></p>
+        <p>WorldTV+ is designed to work without accounts, analytics, advertising, or tracking. The app does not collect personal data and does not transmit favorites, viewing history, preferences, or catalog cache contents to WorldTV or its developer.</p>
+        <h3>Information stored on your device</h3>
+        <p>The app stores favorite channel identifiers, recently watched channel identifiers and dates, playback and catalog preferences, playlist source URLs added by the user, and a temporary cache of playlist data and channel artwork. This information remains inside the app sandbox on your device.</p>
+        <h3>Network connections</h3>
+        <p>WorldTV+ connects directly to playlist hosts selected by the user, the public iptv-org API only when that source is added, third-party channel and stream servers for artwork and playback, and GitHub when a user opens an About or legal link. Those services receive normal technical request data such as an IP address and user agent under their own policies.</p>
+        <h3>Data sharing, tracking, and children</h3>
+        <p>WorldTV+ does not sell or share personal data, build advertising profiles, track activity across other companies' apps or websites, or include analytics and advertising SDKs. It does not knowingly collect personal information from children. Live content is supplied by independent third parties and can change without notice.</p>
+        <h3>Changes and contact</h3>
+        <p>This policy will be updated if WorldTV+'s data practices change. Privacy questions can be sent to <a href="mailto:hernanrg85@gmail.com?subject=WorldTV%2B%20Privacy">hernanrg85@gmail.com</a> or submitted through the <a href="https://github.com/HerniRG/WorldTV/issues">public issue tracker</a>.</p>
+        <p><a href="#support">Back to support</a></p>
+      </section>
+
+      <section id="disclaimer" class="card wide">
+        <h2>Content disclaimer</h2>
+        <p>WorldTV+ is an open-source client that plays remote URLs from playlists added by the user through Apple's media frameworks. It does not host, mirror, cache, proxy, restream, sell, or provide access credentials for audiovisual content.</p>
+        <h3>Third-party content</h3>
+        <p>WorldTV+ starts empty. Channel metadata and stream URLs come from M3U/M3U8 playlists added by the user. Users are responsible for using sources they are authorized to access. WorldTV+ is not affiliated with or endorsed by playlist providers, channel operators, broadcasters, trademark owners, stream providers, or iptv-org.</p>
+        <p>Channel names, logos, trademarks, broadcasts, metadata, and remote streams remain the property and responsibility of their respective owners. Their presence in a playlist does not establish that a stream will remain available, work in every country, be authorized in every jurisdiction, or be endorsed by WorldTV+.</p>
+        <h3>Technical limitations</h3>
+        <p>Remote streams may fail without notice because of downtime, format changes, geographic restrictions, network policies, expiring URLs, or provider-side restrictions. WorldTV+ does not guarantee catalog accuracy, continuity, quality, legality, or fitness for a particular purpose.</p>
+        <p>WorldTV+ does not implement DRM bypasses, token extraction, location masking, private proxies, credential sharing, or access to deliberately protected content.</p>
+        <h3>Channel-removal requests</h3>
+        <p>Rights holders or authorized representatives can submit a <a href="https://github.com/HerniRG/WorldTV/issues/new?template=channel-removal.yml">channel-removal request</a>. Include the channel name, source playlist URL, affected stream URL where safe, and an explanation of the rights or authority supporting the request. Do not publish credentials, private tokens, personal documents, or other sensitive evidence.</p>
+        <p>The software is provided under the warranty disclaimer in the <a href="https://github.com/HerniRG/WorldTV/blob/main/LICENSE">MIT License</a>. This document is informational and is not legal advice.</p>
+        <p><a href="#support">Back to support</a></p>
       </section>
     </div>
   </main>
