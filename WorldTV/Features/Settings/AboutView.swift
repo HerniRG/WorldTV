@@ -139,7 +139,7 @@ private extension View {
 
 enum AboutDestination: String, CaseIterable {
     case sourceCode = "https://github.com/HerniRG/WorldTV"
-    case support = "https://hernirg.github.io/WorldTV/"
+    case support = "https://hernirg.github.io/WorldTV/#support"
     case privacy = "https://hernirg.github.io/WorldTV/#privacy"
     case disclaimer = "https://hernirg.github.io/WorldTV/#disclaimer"
 
