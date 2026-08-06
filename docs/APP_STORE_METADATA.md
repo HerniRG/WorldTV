@@ -93,7 +93,7 @@ This document is the copy-ready source for the first App Store Connect record. R
 - Third-party analytics or advertising SDKs: **None.**
 - Data retained only on device: favorites, recent channel identifiers and dates, preferences, playlist source URLs, and cache.
 
-These answers are based on the source at version 1.0 build 4. Re-audit them whenever networking, analytics, accounts, diagnostics, or third-party dependencies change.
+These answers are based on the source at version 1.0 build 5. Re-audit them whenever networking, analytics, accounts, diagnostics, or third-party dependencies change.
 
 ## App Review notes
 
