@@ -66,6 +66,16 @@ struct PlaylistSourcesView: View {
                                 .frame(minHeight: 54)
                                 .buttonStyle(SourcesFocusButtonStyle(isDestructive: true))
                             }
+                            #elseif os(macOS)
+                            HStack(spacing: 12) {
+                                sourceDetails(source)
+                                Spacer(minLength: 12)
+                                Button("sources.delete", systemImage: "trash", role: .destructive) {
+                                    Task { await remove(source) }
+                                }
+                                .labelStyle(.iconOnly)
+                                .help("sources.delete")
+                            }
                             #else
                             sourceDetails(source)
                                 .swipeActions {
