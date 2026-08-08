@@ -85,6 +85,7 @@ Estado: `[-]`
 
 Estado: `[ ]`
 
+- [x] Publicar el artwork del canal en los metadatos externos del `AVPlayerItem`, con el icono de la aplicación como fallback.
 - [ ] Completar Picture-in-Picture.
 - [ ] Configurar correctamente audio, AirPlay y background modes.
 - [ ] Implementar restauración de la interfaz al salir de PiP.
@@ -155,6 +156,7 @@ Estado: `[ ]`
 ### 2026-08-08
 
 - Corregido un crash de AppKit al actualizar el reproductor de macOS: `PlayerMouseTrackingView` eliminaba un `TrackingRectTag` no inicializado cuando la vista se actualizaba al cambiar de fuente; ahora usa únicamente `NSTrackingArea`.
+- Añadido artwork al `AVPlayerItem` para la tarjeta de reproducción bloqueada de iPhone: se publica primero el icono de la aplicación y se sustituye por el logo del canal cuando termina de descargarse.
 - Separado `PlaybackSessionDriver` de `PlayerViewModel` y ubicado en la capa de reproducción para aislar KVO, time observers, finalización y timeouts de la coordinación de UI; se mantiene un único flujo de eventos hacia `PlaybackSession`.
 - Intentada una compilación local sin firma; el entorno no pudo crear el área de DerivedData y tampoco dispone de CoreSimulator operativo, por lo que la validación queda pendiente de un entorno Xcode funcional.
 

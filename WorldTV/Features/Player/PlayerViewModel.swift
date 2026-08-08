@@ -3,6 +3,9 @@ import AVKit
 import Foundation
 import Observation
 import OSLog
+#if os(iOS) || os(tvOS)
+import UIKit
+#endif
 
 @Observable
 @MainActor
@@ -32,6 +35,7 @@ final class PlayerViewModel {
     private var currentSourceIndex = 0
     private var loadTask: Task<Void, Never>?
     private var sessionDriver: PlaybackSessionDriver?
+    private var artworkTask: Task<Void, Never>?
     private var didRecordPlayback = false
     private var autoplay = true
     private var preferredQuality: Int?
@@ -106,6 +110,8 @@ final class PlayerViewModel {
         loadTask?.cancel()
         sessionDriver?.cancel()
         sessionDriver = nil
+        artworkTask?.cancel()
+        artworkTask = nil
         player.pause()
         player.replaceCurrentItem(with: nil)
         selectedFeedID = feedID
@@ -188,6 +194,8 @@ final class PlayerViewModel {
         }
 
         sessionDriver?.cancel()
+        artworkTask?.cancel()
+        artworkTask = nil
         if var playbackSession {
             if playbackSession.state == .idle {
                 _ = playbackSession.start()
@@ -208,6 +216,12 @@ final class PlayerViewModel {
             sourceTitle: sources[currentSourceIndex].title
         )
         player.replaceCurrentItem(with: item)
+        loadChannelArtwork(
+            for: item,
+            logoURL: channelInfo?.logoURL,
+            channelName: channelName,
+            sourceTitle: sources[currentSourceIndex].title
+        )
 
         let nextDriver = PlaybackSessionDriver(
             item: item,
@@ -316,6 +330,8 @@ final class PlayerViewModel {
     private func fail(_ error: PlaybackError) {
         sessionDriver?.cancel()
         sessionDriver = nil
+        artworkTask?.cancel()
+        artworkTask = nil
         _ = playbackSession?.handle(.failed(error))
         player.pause()
         player.replaceCurrentItem(with: nil)
@@ -403,16 +419,60 @@ final class PlayerViewModel {
         #if os(iOS) || os(tvOS)
         item.externalMetadata = Self.makeMetadata(
             channelName: channelName,
-            sourceTitle: sourceTitle
+            sourceTitle: sourceTitle,
+            artworkData: Self.applicationArtworkData()
         )
         #endif
         return item
     }
 
     #if os(iOS) || os(tvOS)
-    private static func makeMetadata(
+    private func loadChannelArtwork(
+        for item: AVPlayerItem,
+        logoURL: URL?,
         channelName: String,
         sourceTitle: String?
+    ) {
+        artworkTask?.cancel()
+        artworkTask = nil
+
+        guard let logoURL else {
+            return
+        }
+
+        artworkTask = Task { [weak self, weak item] in
+            do {
+                let (data, response) = try await URLSession.shared.data(from: logoURL)
+                guard
+                    !Task.isCancelled,
+                    let httpResponse = response as? HTTPURLResponse,
+                    200..<300 ~= httpResponse.statusCode,
+                    !data.isEmpty,
+                    UIImage(data: data) != nil,
+                    let artworkData = Self.paddedArtworkData(data),
+                    let self,
+                    let item,
+                    self.player.currentItem === item
+                else {
+                    return
+                }
+                item.externalMetadata = Self.makeMetadata(
+                    channelName: channelName,
+                    sourceTitle: sourceTitle,
+                    artworkData: artworkData
+                )
+            } catch is CancellationError {
+                return
+            } catch {
+                // The application artwork already provides a visible fallback.
+            }
+        }
+    }
+
+    private static func makeMetadata(
+        channelName: String,
+        sourceTitle: String?,
+        artworkData: Data?
     ) -> [AVMetadataItem] {
         let posixLocale = Locale(identifier: "en_US_POSIX")
 
@@ -424,6 +484,15 @@ final class PlayerViewModel {
 
         var items: [AVMetadataItem] = [title]
 
+        if let artworkData, !artworkData.isEmpty {
+            let artwork = AVMutableMetadataItem()
+            artwork.identifier = .commonIdentifierArtwork
+            artwork.keySpace = .common
+            artwork.locale = posixLocale
+            artwork.value = artworkData as NSData
+            items.append(artwork)
+        }
+
         if let sourceTitle, !sourceTitle.isEmpty {
             let subtitle = AVMutableMetadataItem()
             subtitle.identifier = .iTunesMetadataTrackSubTitle
@@ -433,6 +502,38 @@ final class PlayerViewModel {
             items.append(subtitle)
         }
         return items
+    }
+
+    private static func applicationArtworkData() -> Data? {
+        UIImage(named: "AppIcon")?.pngData()
+    }
+
+    private static func paddedArtworkData(_ data: Data) -> Data? {
+        guard let image = UIImage(data: data), image.size.width > 0, image.size.height > 0 else {
+            return nil
+        }
+
+        let canvasSize = CGSize(width: 512, height: 512)
+        let maximumImageSize = CGSize(width: 370, height: 370)
+        let scale = min(
+            maximumImageSize.width / image.size.width,
+            maximumImageSize.height / image.size.height
+        )
+        let imageSize = CGSize(
+            width: image.size.width * scale,
+            height: image.size.height * scale
+        )
+        let imageRect = CGRect(
+            x: (canvasSize.width - imageSize.width) / 2,
+            y: (canvasSize.height - imageSize.height) / 2,
+            width: imageSize.width,
+            height: imageSize.height
+        )
+
+        let renderer = UIGraphicsImageRenderer(size: canvasSize)
+        return renderer.image { _ in
+            image.draw(in: imageRect)
+        }.pngData()
     }
     #endif
 }
