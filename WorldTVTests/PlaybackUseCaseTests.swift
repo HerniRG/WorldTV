@@ -205,6 +205,16 @@ struct PlaybackSessionTests {
     }
 
     @Test
+    func preservesSpecificPlaybackErrors() {
+        var session = PlaybackSession(sources: makeSources(count: 1))
+
+        _ = session.start()
+
+        #expect(session.handle(.failed(.unavailable)) == .failed(.unavailable))
+        #expect(session.state == .failed(.unavailable))
+    }
+
+    @Test
     func tracksBufferingAndRecoveryWithoutChangingSource() {
         var session = PlaybackSession(sources: makeSources(count: 1))
 

@@ -179,7 +179,16 @@ final class PlayerViewModel {
         }
 
         attempt?.cancel()
-        state = .preparing
+        if var playbackSession {
+            if playbackSession.state == .idle {
+                _ = playbackSession.start()
+            }
+            self.playbackSession = playbackSession
+            currentSourceIndex = playbackSession.currentSourceIndex
+            syncStateFromPlaybackSession()
+        } else {
+            state = .preparing
+        }
         currentSourceNumber = currentSourceIndex + 1
         currentSourceTitle = sources[currentSourceIndex].title
         lastPlaybackError = nil
@@ -203,7 +212,7 @@ final class PlayerViewModel {
                 self?.handleTimeControlStatus(status)
             },
             onEnded: { [weak self] in
-                self?.state = .ended
+                self?.handlePlaybackEnded()
             },
             onPreparationTimedOut: { [weak self] in
                 self?.tryAnotherSource()
@@ -219,12 +228,13 @@ final class PlayerViewModel {
     private func handleItemStatus(_ status: AVPlayerItem.Status) {
         switch status {
         case .unknown:
-            state = .preparing
+            syncStateFromPlaybackSession()
         case .readyToPlay:
             if autoplay {
                 player.play()
             } else {
-                state = .paused
+                _ = playbackSession?.handle(.paused)
+                syncStateFromPlaybackSession()
             }
         case .failed:
             lastPlaybackError = itemError
@@ -258,18 +268,19 @@ final class PlayerViewModel {
         switch status {
         case .paused:
             if attempt?.hasStartedPlaying == true {
-                state = .paused
+                _ = playbackSession?.handle(.paused)
+                syncStateFromPlaybackSession()
             }
         case .waitingToPlayAtSpecifiedRate:
             if attempt?.hasStartedPlaying == true {
                 attempt?.armStallTimeout()
-                state = .buffering
-            } else {
-                state = .buffering
             }
+            _ = playbackSession?.handle(.waiting)
+            syncStateFromPlaybackSession()
         case .playing:
             attempt?.markStartedPlaying()
-            state = .playing
+            _ = playbackSession?.handle(.started)
+            syncStateFromPlaybackSession()
             recordPlaybackIfNeeded()
         @unknown default:
             fail(.unavailable)
@@ -290,9 +301,43 @@ final class PlayerViewModel {
     private func fail(_ error: PlaybackError) {
         attempt?.cancel()
         attempt = nil
+        _ = playbackSession?.handle(.failed(error))
         player.pause()
         player.replaceCurrentItem(with: nil)
-        state = .failed(error)
+        syncStateFromPlaybackSession(fallback: .failed(error))
+    }
+
+    private func handlePlaybackEnded() {
+        _ = playbackSession?.handle(.ended)
+        syncStateFromPlaybackSession(fallback: .ended)
+    }
+
+    private func syncStateFromPlaybackSession(
+        fallback: PlaybackState? = nil
+    ) {
+        guard let session = playbackSession else {
+            if let fallback {
+                state = fallback
+            }
+            return
+        }
+
+        switch session.state {
+        case .idle:
+            state = .idle
+        case .preparing:
+            state = .preparing
+        case .playing:
+            state = .playing
+        case .buffering:
+            state = .buffering
+        case .paused:
+            state = .paused
+        case .ended:
+            state = .ended
+        case .failed(let error):
+            state = .failed(error)
+        }
     }
 
     private func makePlayerItem(

@@ -71,6 +71,7 @@ enum PlaybackSessionEvent: Sendable {
     case waiting
     case paused
     case sourceFailed
+    case failed(PlaybackError)
     case ended
 }
 
@@ -126,7 +127,7 @@ struct PlaybackSession: Sendable {
             state = .buffering
             return .none
         case .paused:
-            guard state == .playing || state == .buffering else {
+            guard state == .preparing || state == .playing || state == .buffering else {
                 return .none
             }
             state = .paused
@@ -139,6 +140,9 @@ struct PlaybackSession: Sendable {
             currentSourceIndex += 1
             state = .preparing
             return .prepareSource(currentSourceIndex)
+        case .failed(let error):
+            state = .failed(error)
+            return .failed(error)
         case .ended:
             state = .ended
             return .ended
