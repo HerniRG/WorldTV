@@ -5,9 +5,9 @@ Plan vivo para mejorar la reproducción nativa en iPhone, iPad, tvOS y macOS.
 ## Estado
 
 - Última actualización: 2026-08-08
-- Fase activa: Fase 1 — timeline y ciclo de vida de tvOS
+- Fase activa: Fase 3 — sesión de reproducción compartida
 - Estado general: planificado
-- Nota: La navegación y los controles nativos de tvOS están cerrados; continúa la investigación del timeline live tras background.
+- Nota: Las validaciones de tvOS están cerradas; la caída real de una fuente requiere una prueba determinista antes de continuar con la sesión compartida.
 
 ### Convención de estados
 
@@ -49,7 +49,7 @@ Después de que Apple TV permanezca en background o se reactive, el stream live 
 - [x] El timeline vuelve a actualizarse después de varios minutos.
 - [x] El comportamiento funciona tras despertar Apple TV.
 - [x] El vídeo no se reinicia si el stream sigue vivo.
-- [ ] Si el stream ha muerto, se muestra buffering, fallback o error de forma coherente.
+- [!] Si el stream ha muerto, se muestra buffering, fallback o error de forma coherente; requiere una fuente simulada o fixture determinista.
 
 ## Fase 2 — Navegación y controles nativos de tvOS
 
@@ -155,7 +155,8 @@ Estado: `[ ]`
 
 - Validado manualmente por el usuario en un Apple TV real que, tras volver de background después de usar otras aplicaciones, el directo continúa y el timeline vuelve a actualizarse sin reiniciar el vídeo.
 - Validado manualmente por el usuario en un Apple TV real que, tras poner el dispositivo en reposo y despertarlo varios minutos después, recupera el directo y actualiza el timeline correctamente.
-- Cerrada la Fase 1 de timeline y ciclo de vida de tvOS; queda pendiente únicamente probar el comportamiento ante una fuente que muera durante la reproducción.
+- Cerrada la Fase 1 de timeline y ciclo de vida de tvOS; la caída real de una fuente queda condicionada a una prueba determinista.
+- La siguiente fase prioriza extraer la sesión compartida y preparar fixtures para buffering, caída de fuente, fallback y reactivación.
 - Cerrada la fase de navegación y controles nativos de tvOS: Back, panel, selector de feeds y salida ordenada quedan validados.
 - Sincronizado el plan de audio con la configuración de vídeo, la recuperación de interrupciones y la pausa por desconexión de ruta ya implementadas.
 - Reorientada la fase activa al diagnóstico del timeline live después de background.
