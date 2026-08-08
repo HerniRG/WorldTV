@@ -29,7 +29,7 @@ final class PlayerViewModel {
     private var playbackSession: PlaybackSession?
     private var currentSourceIndex = 0
     private var loadTask: Task<Void, Never>?
-    private var attempt: PlaybackAttempt?
+    private var sessionDriver: PlaybackSessionDriver?
     private var didRecordPlayback = false
     private var autoplay = true
     private var preferredQuality: Int?
@@ -102,8 +102,8 @@ final class PlayerViewModel {
             return
         }
         loadTask?.cancel()
-        attempt?.cancel()
-        attempt = nil
+        sessionDriver?.cancel()
+        sessionDriver = nil
         player.pause()
         player.replaceCurrentItem(with: nil)
         selectedFeedID = feedID
@@ -154,8 +154,8 @@ final class PlayerViewModel {
 
     func stop() {
         loadTask?.cancel()
-        attempt?.cancel()
-        attempt = nil
+        sessionDriver?.cancel()
+        sessionDriver = nil
         playbackSession = nil
         player.pause()
         player.replaceCurrentItem(with: nil)
@@ -178,7 +178,7 @@ final class PlayerViewModel {
             return
         }
 
-        attempt?.cancel()
+        sessionDriver?.cancel()
         if var playbackSession {
             if playbackSession.state == .idle {
                 _ = playbackSession.start()
@@ -200,29 +200,32 @@ final class PlayerViewModel {
         )
         player.replaceCurrentItem(with: item)
 
-        let nextAttempt = PlaybackAttempt(
+        let nextDriver = PlaybackSessionDriver(
             item: item,
             player: player,
             preparationTimeout: .seconds(15),
             stallTimeout: .seconds(20),
-            onStatus: { [weak self] status in
-                self?.handleItemStatus(status)
-            },
-            onTimeControl: { [weak self] status in
-                self?.handleTimeControlStatus(status)
-            },
-            onEnded: { [weak self] in
-                self?.handlePlaybackEnded()
-            },
-            onPreparationTimedOut: { [weak self] in
-                self?.tryAnotherSource()
-            },
-            onStalled: { [weak self] in
-                self?.tryAnotherSource()
+            onEvent: { [weak self] event in
+                self?.handleSessionDriverEvent(event)
             }
         )
-        attempt = nextAttempt
-        nextAttempt.start()
+        sessionDriver = nextDriver
+        nextDriver.start()
+    }
+
+    private func handleSessionDriverEvent(
+        _ event: PlaybackSessionDriverEvent
+    ) {
+        switch event {
+        case .status(let status):
+            handleItemStatus(status)
+        case .timeControl(let status):
+            handleTimeControlStatus(status)
+        case .ended:
+            handlePlaybackEnded()
+        case .preparationTimedOut, .stalled:
+            tryAnotherSource()
+        }
     }
 
     private func handleItemStatus(_ status: AVPlayerItem.Status) {
@@ -239,8 +242,8 @@ final class PlayerViewModel {
         case .failed:
             lastPlaybackError = itemError
             Self.logPlaybackFailure(source: sources[currentSourceIndex], error: itemError)
-            attempt?.cancel()
-            attempt = nil
+            sessionDriver?.cancel()
+            sessionDriver = nil
             tryAnotherSource()
         @unknown default:
             fail(.unavailable)
@@ -267,18 +270,18 @@ final class PlayerViewModel {
         }
         switch status {
         case .paused:
-            if attempt?.hasStartedPlaying == true {
+            if sessionDriver?.hasStartedPlaying == true {
                 _ = playbackSession?.handle(.paused)
                 syncStateFromPlaybackSession()
             }
         case .waitingToPlayAtSpecifiedRate:
-            if attempt?.hasStartedPlaying == true {
-                attempt?.armStallTimeout()
+            if sessionDriver?.hasStartedPlaying == true {
+                sessionDriver?.armStallTimeout()
             }
             _ = playbackSession?.handle(.waiting)
             syncStateFromPlaybackSession()
         case .playing:
-            attempt?.markStartedPlaying()
+            sessionDriver?.markStartedPlaying()
             _ = playbackSession?.handle(.started)
             syncStateFromPlaybackSession()
             recordPlaybackIfNeeded()
@@ -299,8 +302,8 @@ final class PlayerViewModel {
     }
 
     private func fail(_ error: PlaybackError) {
-        attempt?.cancel()
-        attempt = nil
+        sessionDriver?.cancel()
+        sessionDriver = nil
         _ = playbackSession?.handle(.failed(error))
         player.pause()
         player.replaceCurrentItem(with: nil)
@@ -399,18 +402,22 @@ final class PlayerViewModel {
     #endif
 }
 
+private enum PlaybackSessionDriverEvent: Sendable {
+    case status(AVPlayerItem.Status)
+    case timeControl(AVPlayer.TimeControlStatus)
+    case ended
+    case preparationTimedOut
+    case stalled
+}
+
 @MainActor
-private final class PlaybackAttempt {
+private final class PlaybackSessionDriver {
     private(set) var hasStartedPlaying = false
 
     private let item: AVPlayerItem
     private let preparationTimeout: Duration
     private let stallTimeout: Duration
-    private let onStatus: @MainActor (AVPlayerItem.Status) -> Void
-    private let onTimeControl: @MainActor (AVPlayer.TimeControlStatus) -> Void
-    private let onEnded: @MainActor () -> Void
-    private let onPreparationTimedOut: @MainActor () -> Void
-    private let onStalled: @MainActor () -> Void
+    private let onEvent: @MainActor (PlaybackSessionDriverEvent) -> Void
 
     private var statusObservation: NSKeyValueObservation?
     private var timeControlObservation: NSKeyValueObservation?
@@ -423,31 +430,23 @@ private final class PlaybackAttempt {
         player: AVPlayer,
         preparationTimeout: Duration,
         stallTimeout: Duration,
-        onStatus: @escaping @MainActor (AVPlayerItem.Status) -> Void,
-        onTimeControl: @escaping @MainActor (AVPlayer.TimeControlStatus) -> Void,
-        onEnded: @escaping @MainActor () -> Void,
-        onPreparationTimedOut: @escaping @MainActor () -> Void,
-        onStalled: @escaping @MainActor () -> Void
+        onEvent: @escaping @MainActor (PlaybackSessionDriverEvent) -> Void
     ) {
         self.item = item
         self.preparationTimeout = preparationTimeout
         self.stallTimeout = stallTimeout
-        self.onStatus = onStatus
-        self.onTimeControl = onTimeControl
-        self.onEnded = onEnded
-        self.onPreparationTimedOut = onPreparationTimedOut
-        self.onStalled = onStalled
+        self.onEvent = onEvent
 
         statusObservation = item.observe(\.status, options: [.initial, .new]) {
             [weak self] item, _ in
             Task { @MainActor [weak self] in
-                self?.onStatus(item.status)
+                self?.onEvent(.status(item.status))
             }
         }
         timeControlObservation = player.observe(\.timeControlStatus, options: [.new]) {
             [weak self] player, _ in
             Task { @MainActor [weak self] in
-                self?.onTimeControl(player.timeControlStatus)
+                self?.onEvent(.timeControl(player.timeControlStatus))
             }
         }
     }
@@ -464,7 +463,7 @@ private final class PlaybackAttempt {
                 guard !Task.isCancelled, let self else {
                     return
                 }
-                self.onEnded()
+                self.onEvent(.ended)
             }
         }
         preparationTask = Task { [weak self, preparationTimeout] in
@@ -472,7 +471,7 @@ private final class PlaybackAttempt {
             guard !Task.isCancelled, let self else {
                 return
             }
-            self.onPreparationTimedOut()
+            self.onEvent(.preparationTimedOut)
         }
     }
 
@@ -493,7 +492,7 @@ private final class PlaybackAttempt {
             guard !Task.isCancelled, let self else {
                 return
             }
-            self.onStalled()
+            self.onEvent(.stalled)
         }
     }
 

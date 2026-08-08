@@ -77,7 +77,7 @@ Estado: `[-]`
 - [ ] Centralizar reproducción, pausa, buffering, fuentes, errores y ciclo de vida.
 - [ ] Añadir estado temporal común: posición, fecha, live edge y rangos seekable.
 - [ ] Separar estado de emisión real de estado visual del reproductor.
-- [ ] Gestionar observers y tareas con cancelación explícita.
+- [x] Gestionar observers y tareas con cancelación explícita mediante `PlaybackSessionDriver`.
 - [ ] Añadir tests para background, reactivación, cambio de fuente y streams live.
 
 ## Fase 4 — iPhone
@@ -159,6 +159,7 @@ Estado: `[ ]`
 - La siguiente fase prioriza extraer la sesión compartida y preparar fixtures para buffering, caída de fuente, fallback y reactivación.
 - Añadida una `PlaybackSession` determinista con tests de fallback, buffering, recuperación, retry y agotamiento de fuentes; integrada inicialmente en el fallback de `PlayerViewModel`.
 - Integrados en `PlaybackSession` los estados de preparación, reproducción, buffering, pausa, finalización y error; `PlayerViewModel` traduce los eventos de `AVPlayer` y conserva la coordinación de UI.
+- Renombrado el adaptador de AVPlayer a `PlaybackSessionDriver`, con un único flujo de eventos y cancelación explícita de KVO, finalización y timeouts.
 - Cerrada la fase de navegación y controles nativos de tvOS: Back, panel, selector de feeds y salida ordenada quedan validados.
 - Sincronizado el plan de audio con la configuración de vídeo, la recuperación de interrupciones y la pausa por desconexión de ruta ya implementadas.
 - Reorientada la fase activa al diagnóstico del timeline live después de background.
