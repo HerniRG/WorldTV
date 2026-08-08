@@ -16,6 +16,7 @@ final class PlayerViewModel {
     private(set) var feeds: [ChannelFeed] = []
     private(set) var selectedFeedID: String?
     private(set) var channelInfo: PlayerChannelInfo?
+    private(set) var playerViewRefreshID = 0
 
     @ObservationIgnored let player = AVPlayer()
 
@@ -133,6 +134,17 @@ final class PlayerViewModel {
         attempt = nil
         player.pause()
         player.replaceCurrentItem(with: nil)
+    }
+
+    func applicationDidBecomeActive() {
+        guard
+            let item = player.currentItem,
+            state == .playing || state == .paused || state == .buffering
+        else {
+            return
+        }
+
+        playerViewRefreshID += 1
     }
 
     private func playCurrentSource() {

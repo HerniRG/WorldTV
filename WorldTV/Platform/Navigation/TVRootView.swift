@@ -96,6 +96,9 @@ struct TVRootView: View {
                 initialFeedID: channel.feedID,
                 closePresentation: {
                     presentedChannel = nil
+                },
+                restorePresentation: {
+                    presentedChannel = channel
                 }
             )
         }

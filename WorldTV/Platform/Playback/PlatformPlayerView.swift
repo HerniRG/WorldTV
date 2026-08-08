@@ -4,10 +4,16 @@ import SwiftUI
 #if os(macOS)
 struct PlatformPlayerView: NSViewRepresentable {
     let player: AVPlayer
+    let refreshID: Int
     let feeds: [ChannelFeed]
     let selectedFeedID: String?
     let onSelectFeed: @MainActor (String?) -> Void
+    let onPictureInPictureChanged: @MainActor (Bool) -> Void
     let infoView: AnyView?
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
 
     func makeNSView(context: Context) -> AVPlayerView {
         let view = AVPlayerView()
@@ -20,46 +26,104 @@ struct PlatformPlayerView: NSViewRepresentable {
 
     func updateNSView(_ view: AVPlayerView, context: Context) {
         view.player = player
+        if context.coordinator.lastRefreshID != refreshID {
+            context.coordinator.lastRefreshID = refreshID
+            view.player = nil
+            view.player = player
+        }
+    }
+
+    final class Coordinator {
+        var lastRefreshID = 0
     }
 }
 #elseif os(iOS)
 struct PlatformPlayerView: UIViewControllerRepresentable {
     let player: AVPlayer
+    let refreshID: Int
     let feeds: [ChannelFeed]
     let selectedFeedID: String?
     let onSelectFeed: @MainActor (String?) -> Void
+    let onPictureInPictureChanged: @MainActor (Bool) -> Void
     let infoView: AnyView?
 
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(onPictureInPictureChanged: onPictureInPictureChanged)
     }
 
     func makeUIViewController(context: Context) -> AVPlayerViewController {
         let controller = AVPlayerViewController()
         controller.player = player
+        controller.delegate = context.coordinator
         controller.showsPlaybackControls = true
         controller.videoGravity = .resizeAspect
         controller.view.backgroundColor = .black
         controller.allowsPictureInPicturePlayback = true
+        controller.canStartPictureInPictureAutomaticallyFromInline = true
         return controller
     }
 
     func updateUIViewController(_ controller: AVPlayerViewController, context: Context) {
+        context.coordinator.onPictureInPictureChanged = onPictureInPictureChanged
         controller.player = player
+        if context.coordinator.lastRefreshID != refreshID {
+            context.coordinator.lastRefreshID = refreshID
+            controller.player = nil
+            controller.player = player
+        }
     }
 
-    final class Coordinator {}
+    final class Coordinator: NSObject, AVPlayerViewControllerDelegate {
+        var lastRefreshID = 0
+        var onPictureInPictureChanged: @MainActor (Bool) -> Void
+
+        init(onPictureInPictureChanged: @escaping @MainActor (Bool) -> Void) {
+            self.onPictureInPictureChanged = onPictureInPictureChanged
+        }
+
+        func playerViewControllerDidStartPictureInPicture(
+            _ playerViewController: AVPlayerViewController
+        ) {
+            let callback = onPictureInPictureChanged
+            MainActor.assumeIsolated {
+                callback(true)
+            }
+        }
+
+        func playerViewControllerDidStopPictureInPicture(
+            _ playerViewController: AVPlayerViewController
+        ) {
+            let callback = onPictureInPictureChanged
+            MainActor.assumeIsolated {
+                callback(false)
+            }
+        }
+
+        func playerViewController(
+            _ playerViewController: AVPlayerViewController,
+            restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
+        ) {
+            let callback = onPictureInPictureChanged
+            MainActor.assumeIsolated {
+                callback(false)
+            }
+            completionHandler(true)
+        }
+    }
 }
+
 #elseif os(tvOS)
 struct PlatformPlayerView: UIViewControllerRepresentable {
     let player: AVPlayer
+    let refreshID: Int
     let feeds: [ChannelFeed]
     let selectedFeedID: String?
     let onSelectFeed: @MainActor (String?) -> Void
+    let onPictureInPictureChanged: @MainActor (Bool) -> Void
     let infoView: AnyView?
 
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(onPictureInPictureChanged: onPictureInPictureChanged)
     }
 
     func makeUIViewController(context: Context) -> AVPlayerViewController {
@@ -69,13 +133,21 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
         controller.videoGravity = .resizeAspect
         controller.view.backgroundColor = .black
         controller.appliesPreferredDisplayCriteriaAutomatically = true
+        controller.allowsPictureInPicturePlayback = true
+        controller.delegate = context.coordinator
         controller.playbackControlsIncludeTransportBar = true
         controller.transportBarIncludesTitleView = true
         return controller
     }
 
     func updateUIViewController(_ controller: AVPlayerViewController, context: Context) {
+        context.coordinator.onPictureInPictureChanged = onPictureInPictureChanged
         controller.player = player
+        if context.coordinator.lastRefreshID != refreshID {
+            context.coordinator.lastRefreshID = refreshID
+            controller.player = nil
+            controller.player = player
+        }
         controller.transportBarCustomMenuItems = Self.makeFeedMenuItems(
             feeds: feeds,
             selectedFeedID: selectedFeedID,
@@ -164,9 +236,44 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
         return [menu]
     }
 
-    final class Coordinator {
+    final class Coordinator: NSObject, AVPlayerViewControllerDelegate {
+        var lastRefreshID = 0
+        var onPictureInPictureChanged: @MainActor (Bool) -> Void
         var infoHostingController: UIHostingController<AnyView>?
         var isInfoPanelInstalled = false
+
+        init(onPictureInPictureChanged: @escaping @MainActor (Bool) -> Void) {
+            self.onPictureInPictureChanged = onPictureInPictureChanged
+        }
+
+        func playerViewControllerDidStartPictureInPicture(
+            _ playerViewController: AVPlayerViewController
+        ) {
+            let callback = onPictureInPictureChanged
+            MainActor.assumeIsolated {
+                callback(true)
+            }
+        }
+
+        func playerViewControllerDidStopPictureInPicture(
+            _ playerViewController: AVPlayerViewController
+        ) {
+            let callback = onPictureInPictureChanged
+            MainActor.assumeIsolated {
+                callback(false)
+            }
+        }
+
+        func playerViewController(
+            _ playerViewController: AVPlayerViewController,
+            restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
+        ) {
+            let callback = onPictureInPictureChanged
+            MainActor.assumeIsolated {
+                callback(false)
+            }
+            completionHandler(true)
+        }
     }
 }
 #endif

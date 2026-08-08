@@ -2,22 +2,27 @@ import SwiftUI
 
 struct PlayerView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @State private var viewModel: PlayerViewModel
+    @State private var isPictureInPictureActive = false
     #if os(macOS)
     @State private var overlayVisibility = PlayerOverlayVisibility()
     #endif
     @AppStorage("autoplayChannels") private var autoplayChannels = true
     @AppStorage("preferredQuality") private var preferredQuality = "automatic"
     private let closePresentation: (@MainActor () -> Void)?
+    private let restorePresentation: (@MainActor () -> Void)?
 
     init(
         channelID: String,
         resolveSources: ResolvePlayableStreamUseCase,
         recordRecentlyWatched: RecordRecentlyWatchedUseCase,
         initialFeedID: String? = nil,
-        closePresentation: (@MainActor () -> Void)? = nil
+        closePresentation: (@MainActor () -> Void)? = nil,
+        restorePresentation: (@MainActor () -> Void)? = nil
     ) {
         self.closePresentation = closePresentation
+        self.restorePresentation = restorePresentation
         _viewModel = State(
             initialValue: PlayerViewModel(
                 channelID: channelID,
@@ -35,9 +40,11 @@ struct PlayerView: View {
                 .accessibilityIdentifier("player.fullscreen")
             PlatformPlayerView(
                 player: viewModel.player,
+                refreshID: viewModel.playerViewRefreshID,
                 feeds: viewModel.feeds,
                 selectedFeedID: viewModel.selectedFeedID,
                 onSelectFeed: { viewModel.selectFeed($0) },
+                onPictureInPictureChanged: pictureInPictureChanged,
                 infoView: infoPanel
             )
 
@@ -88,6 +95,12 @@ struct PlayerView: View {
                 preferredQuality: Int(preferredQuality)
             )
         }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active else {
+                return
+            }
+            viewModel.applicationDidBecomeActive()
+        }
         #if os(macOS)
         .onChange(of: viewModel.state) { _, newState in
             overlayVisibility.playbackStateDidChange(newState)
@@ -103,13 +116,10 @@ struct PlayerView: View {
         }
         #endif
         .onDisappear {
-            viewModel.stop()
+            if !isPictureInPictureActive {
+                viewModel.stop()
+            }
         }
-        #if os(tvOS)
-        .onExitCommand {
-            close()
-        }
-        #endif
     }
 
     #if os(macOS)
@@ -213,11 +223,25 @@ struct PlayerView: View {
     }
 
     private func close() {
+        isPictureInPictureActive = false
         viewModel.stop()
         if let closePresentation {
             closePresentation()
         } else {
             dismiss()
+        }
+    }
+
+    private func pictureInPictureChanged(_ isActive: Bool) {
+        guard isPictureInPictureActive != isActive else {
+            return
+        }
+
+        isPictureInPictureActive = isActive
+        if isActive {
+            closePresentation?()
+        } else {
+            restorePresentation?()
         }
     }
 

@@ -127,7 +127,8 @@ private extension View {
                 resolveSources: container.resolvePlaybackSources,
                 recordRecentlyWatched: container.recordRecentlyWatched,
                 initialFeedID: presentation.feedID,
-                closePresentation: { presentedPlayer.wrappedValue = nil }
+                closePresentation: { presentedPlayer.wrappedValue = nil },
+                restorePresentation: { presentedPlayer.wrappedValue = presentation }
             )
             .frame(minWidth: 900, minHeight: 600)
         }
@@ -138,7 +139,8 @@ private extension View {
                 resolveSources: container.resolvePlaybackSources,
                 recordRecentlyWatched: container.recordRecentlyWatched,
                 initialFeedID: presentation.feedID,
-                closePresentation: { presentedPlayer.wrappedValue = nil }
+                closePresentation: { presentedPlayer.wrappedValue = nil },
+                restorePresentation: { presentedPlayer.wrappedValue = presentation }
             )
         }
         #endif

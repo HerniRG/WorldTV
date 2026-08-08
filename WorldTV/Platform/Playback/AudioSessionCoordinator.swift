@@ -3,21 +3,24 @@ import Foundation
 
 @MainActor
 final class AudioSessionCoordinator {
-    #if os(iOS)
+    #if os(iOS) || os(tvOS)
     private let session = AVAudioSession.sharedInstance()
-    private var interruptionObserver: NSObjectProtocol?
     private var didConfigure = false
 
     func activate(player: AVPlayer) {
         guard !didConfigure else { return }
         didConfigure = true
 
-        try? session.setCategory(.playback, mode: .default)
+        try? session.setCategory(.playback, mode: .moviePlayback)
         try? session.setActive(true)
+
+        #if os(iOS)
         observeInterruptions(player: player)
+        #endif
     }
-    #else
-    func activate(player: AVPlayer) {}
+
+    #if os(iOS)
+    private var interruptionObserver: NSObjectProtocol?
     #endif
 
     #if os(iOS)
@@ -59,5 +62,8 @@ final class AudioSessionCoordinator {
             }
         }
     }
+    #endif
+    #else
+    func activate(player: AVPlayer) {}
     #endif
 }

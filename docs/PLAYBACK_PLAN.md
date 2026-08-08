@@ -1,0 +1,174 @@
+# Playback platform plan
+
+Plan vivo para mejorar la reproducción nativa en iPhone, iPad, tvOS y macOS.
+
+## Estado
+
+- Última actualización: 2026-08-08
+- Fase activa: Fase 2 — navegación y controles nativos de tvOS
+- Estado general: planificado
+- Nota: Back y PiP nativos validados; queda pendiente continuar con el resto de controles de tvOS.
+
+### Convención de estados
+
+- `[ ]` Pendiente
+- `[-]` En curso
+- `[x]` Completado
+- `[!]` Bloqueado o pendiente de una decisión externa
+
+## Objetivos
+
+- Aprovechar los controles y comportamientos nativos de cada plataforma.
+- Mantener una única sesión de reproducción coherente entre UI, `AVPlayer` y ciclo de vida.
+- Evitar que una acción del sistema cierre inesperadamente el reproductor.
+- Recuperar correctamente reproducción, timeline, audio y metadatos tras background, suspensión o reconexión.
+- Priorizar funciones útiles para el usuario antes que controles personalizados innecesarios.
+
+## Fase 1 — Timeline y ciclo de vida de tvOS
+
+Estado: `[-]`
+
+### Problema
+
+Después de que Apple TV permanezca en background o se reactive, el stream live continúa correctamente al pulsar Play, pero la hora mostrada en el timeline deja de actualizarse.
+
+### Trabajo
+
+- [x] Observar la transición de la aplicación a `active` en el reproductor.
+- [x] Registrar temporalmente `currentTime`, `currentDate`, `duration`, `seekableTimeRanges`, `timeControlStatus`, `rate` y `timebase` al volver a active.
+- [ ] Diferenciar si se congela solo la interfaz nativa o también el tiempo del `AVPlayerItem`.
+- [ ] Añadir observación periódica del tiempo para diagnóstico y estado compartido.
+- [ ] Revalidar el `AVPlayerItem` al volver de background sin reiniciar innecesariamente la emisión.
+- [ ] Actualizar o reasignar el controlador nativo si el vídeo avanza pero el timeline no.
+- [ ] Detectar streams live que no proporcionen una referencia temporal válida.
+- [ ] Mantener el fallback de fuentes cuando el item realmente haya dejado de reproducir.
+
+### Criterios de aceptación
+
+- [ ] El timeline vuelve a actualizarse después de 30 segundos en background.
+- [ ] El timeline vuelve a actualizarse después de varios minutos.
+- [ ] El comportamiento funciona tras despertar Apple TV.
+- [ ] El vídeo no se reinicia si el stream sigue vivo.
+- [ ] Si el stream ha muerto, se muestra buffering, fallback o error de forma coherente.
+
+## Fase 2 — Navegación y controles nativos de tvOS
+
+Estado: `[-]`
+
+- [ ] Hacer que Back cierre primero el panel de información.
+- [ ] Hacer que Back oculte después los controles del reproductor.
+- [ ] Salir del reproductor solo cuando la interfaz nativa esté limpia.
+- [x] Evitar que el `.onExitCommand` del reproductor cierre prematuramente toda la presentación.
+- [ ] Migrar el panel a `customInfoViewControllers`.
+- [ ] Mantener el selector de feeds como menú nativo.
+- [ ] Añadir cambio rápido de canal cuando la interacción sea clara.
+- [ ] Verificar Siri Remote, scrubbing, pausa, avance y retroceso.
+- [ ] Verificar subtítulos, pistas de audio y Picture-in-Picture cuando el stream los soporte.
+- [x] Activar explícitamente PiP nativo, la sesión de audio de vídeo y la restauración del controlador en tvOS.
+- [x] Al iniciar PiP, cerrar la presentación del reproductor sin detener el `AVPlayer`.
+- [x] Al finalizar PiP, restaurar la presentación del reproductor.
+
+## Fase 3 — Sesión de reproducción compartida
+
+Estado: `[ ]`
+
+- [ ] Extraer una `PlaybackSession` compartida desde `PlayerViewModel`.
+- [ ] Centralizar reproducción, pausa, buffering, fuentes, errores y ciclo de vida.
+- [ ] Añadir estado temporal común: posición, fecha, live edge y rangos seekable.
+- [ ] Separar estado de emisión real de estado visual del reproductor.
+- [ ] Gestionar observers y tareas con cancelación explícita.
+- [ ] Añadir tests para background, reactivación, cambio de fuente y streams live.
+
+## Fase 4 — iPhone
+
+Estado: `[ ]`
+
+- [ ] Completar Picture-in-Picture.
+- [ ] Configurar correctamente audio, AirPlay y background modes.
+- [ ] Implementar restauración de la interfaz al salir de PiP.
+- [ ] Añadir AirPlay y cambios de salida.
+- [ ] Mantener reproducción durante rotación y fullscreen.
+- [ ] Gestionar interrupciones de audio y recuperación.
+- [ ] Gestionar desconexión de auriculares y cambios Bluetooth.
+- [ ] Añadir Now Playing, Lock Screen y Control Center.
+- [ ] Añadir comandos play, pause, avance y retroceso cuando sean válidos.
+
+## Fase 5 — iPad
+
+Estado: `[ ]`
+
+- [ ] Soportar PiP automático al salir de la aplicación.
+- [ ] Validar Split View, Slide Over y cambios de tamaño.
+- [ ] Permitir reproducción inline cuando aporte valor.
+- [ ] Mantener AirPlay y Now Playing.
+- [ ] Restaurar correctamente la interfaz después de PiP o multitarea.
+- [ ] Añadir un mini reproductor persistente si no interfiere con la navegación.
+
+## Fase 6 — Audio, AirPlay y controles del sistema
+
+Estado: `[ ]`
+
+- [ ] Ampliar `AudioSessionCoordinator` para observar interrupciones y cambios de ruta.
+- [ ] Configurar la categoría y el modo apropiados para vídeo.
+- [ ] Pausar al desconectar auriculares cuando el sistema lo indique.
+- [ ] Recuperar reproducción tras llamadas, Siri y alertas del sistema.
+- [ ] Publicar metadatos del canal mediante Now Playing.
+- [ ] Conectar `MPRemoteCommandCenter` con la sesión compartida.
+- [ ] Probar AirPlay con Apple TV y dispositivos compatibles.
+
+## Fase 7 — macOS
+
+Estado: `[ ]`
+
+- [ ] Completar fullscreen nativo con `AVPlayerView`.
+- [ ] Añadir Picture-in-Picture si está disponible para la configuración objetivo.
+- [ ] Añadir atajos de teclado y controles multimedia.
+- [ ] Mantener selección de feed y metadatos.
+- [ ] Recuperar reproducción tras suspensión o cambio de ventana.
+- [ ] Evaluar una ventana de reproducción independiente.
+
+## Fase 8 — Chromecast
+
+Estado: `[ ]`
+
+- [ ] Evaluar Google Cast SDK como integración separada de las capacidades Apple.
+- [ ] Añadir permiso y explicación de red local.
+- [ ] Añadir selector de dispositivos y botón Cast.
+- [ ] Añadir mini controlador y control ampliado.
+- [ ] Sincronizar reproducción, pausa, volumen y desconexión.
+- [ ] Verificar streams que requieren `Referer` o `User-Agent`.
+- [ ] Confirmar receptor compatible antes de iniciar la implementación.
+
+## Validación por plataforma
+
+- [ ] iPhone físico: PiP, AirPlay, bloqueo, auriculares, llamadas y rotación.
+- [ ] iPad físico: PiP, Split View, Slide Over y cambio de tamaño.
+- [ ] Apple TV físico: Back, panel de información, Siri Remote, background y timeline live.
+- [ ] Mac: fullscreen, suspensión, atajos y cambio de ventana.
+- [ ] Streams HLS live con y sin `EXT-X-PROGRAM-DATE-TIME`.
+- [ ] Streams con buffering, caída de fuente y recuperación.
+
+## Registro de cambios del plan
+
+### 2026-08-08
+
+- Creado el plan vivo de reproducción multiplataforma.
+- Identificado como prioridad el timeline de tvOS después de background.
+- Documentadas las fases de tvOS, iPhone, iPad, macOS, AirPlay, audio, Now Playing, PiP y Chromecast.
+- Añadida instrumentación al volver a `active` para comparar el estado temporal antes y después de la reactivación.
+- Las compilaciones locales del entorno no pudieron completarse por la ausencia de runtimes del simulador y fallos del sandbox de Xcode; la validación se realizó en dispositivos físicos.
+- Corregido el Back de tvOS para que el reproductor nativo pueda cerrar primero el panel de información.
+- Activada y validada la configuración nativa de PiP en tvOS.
+- Preparado el flujo multiplataforma para devolver la app al contenido anterior durante PiP y restaurar el reproductor al finalizarlo.
+- Validado por el usuario el Back nativo de tvOS y el flujo de PiP en iPhone/iPad y tvOS.
+- Eliminada la instrumentación temporal del timeline antes del primer commit.
+
+## Cómo mantener este documento
+
+Al comenzar un bloque de trabajo:
+
+1. Cambiar la fase correspondiente a `[-]`.
+2. Añadir aquí cualquier decisión técnica relevante.
+3. Marcar tareas y criterios de aceptación conforme se verifiquen.
+4. Cambiar la fase a `[x]` solo después de probarla en la plataforma correspondiente.
+5. Añadir una entrada al registro de cambios.
