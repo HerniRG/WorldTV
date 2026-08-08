@@ -78,7 +78,7 @@ Estado: `[-]`
 - [x] Añadir estado temporal común: posición, fecha, live edge y rangos seekable.
 - [x] Separar estado de emisión real (`streamState`) de estado visual del reproductor (`state`).
 - [x] Gestionar observers y tareas con cancelación explícita mediante `PlaybackSessionDriver`.
-- [ ] Añadir tests para background, reactivación, cambio de fuente y streams live.
+- [-] Añadir tests para background, reactivación, cambio de fuente y streams live; ya están cubiertos reactivación, timeline live, buffering, fallback y agotamiento de fuentes.
 
 ## Fase 4 — iPhone
 
@@ -162,6 +162,7 @@ Estado: `[ ]`
 - Renombrado el adaptador de AVPlayer a `PlaybackSessionDriver`, con un único flujo de eventos y cancelación explícita de KVO, finalización y timeouts.
 - Añadida una muestra temporal periódica con posición, duración, fecha actual, rangos seekable y detección de directo; se cancela al sustituir o detener el item.
 - Separados el estado real de la emisión y el estado visual del reproductor; el ciclo de vida usa `streamState` y la UI continúa consumiendo `state`.
+- Añadido el evento de reactivación y un test determinista que conserva el estado, timeline live y fuente al volver a `active`.
 - Cerrada la fase de navegación y controles nativos de tvOS: Back, panel, selector de feeds y salida ordenada quedan validados.
 - Sincronizado el plan de audio con la configuración de vídeo, la recuperación de interrupciones y la pausa por desconexión de ruta ya implementadas.
 - Reorientada la fase activa al diagnóstico del timeline live después de background.

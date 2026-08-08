@@ -83,6 +83,7 @@ enum PlaybackSessionEvent: Sendable {
     case failed(PlaybackError)
     case ended
     case timeline(PlaybackTimelineSnapshot)
+    case becameActive
 }
 
 enum PlaybackSessionAction: Equatable, Sendable {
@@ -160,6 +161,8 @@ struct PlaybackSession: Sendable {
             return .ended
         case .timeline(let snapshot):
             timeline = snapshot
+            return .none
+        case .becameActive:
             return .none
         }
     }

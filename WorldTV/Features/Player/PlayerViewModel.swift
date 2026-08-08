@@ -176,6 +176,8 @@ final class PlayerViewModel {
             return
         }
 
+        _ = playbackSession?.handle(.becameActive)
+        syncStateFromPlaybackSession()
         playerViewRefreshID += 1
     }
 

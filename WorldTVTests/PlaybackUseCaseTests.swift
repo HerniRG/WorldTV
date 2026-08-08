@@ -233,6 +233,28 @@ struct PlaybackSessionTests {
     }
 
     @Test
+    func preservesLiveTimelineWhenTheApplicationBecomesActive() {
+        var session = PlaybackSession(sources: makeSources(count: 2))
+        let snapshot = PlaybackTimelineSnapshot(
+            position: 120,
+            duration: nil,
+            currentDate: Date(timeIntervalSince1970: 2_000),
+            seekableStart: 90,
+            seekableEnd: 120,
+            isLive: true
+        )
+
+        _ = session.start()
+        _ = session.handle(.started)
+        _ = session.handle(.timeline(snapshot))
+
+        #expect(session.handle(.becameActive) == .none)
+        #expect(session.state == .playing)
+        #expect(session.timeline == snapshot)
+        #expect(session.currentSourceIndex == 0)
+    }
+
+    @Test
     func tracksBufferingAndRecoveryWithoutChangingSource() {
         var session = PlaybackSession(sources: makeSources(count: 1))
 
