@@ -158,6 +158,7 @@ Estado: `[ ]`
 ### 2026-08-08
 
 - Validado por el usuario en un iPhone físico el bloque completo de reproducción: PiP, restauración de interfaz, audio en segundo plano, AirPlay, rotación, interrupciones, auriculares y cambios de ruta.
+- Evitado que un cambio de salida AirPlay se interprete como una caída de fuente: la sesión cancela temporalmente el timeout de buffering y recupera la reproducción local sin esperar los 20 segundos del detector de stall.
 - Dejadas las validaciones de iPad pendientes por no disponer de un iPad físico; el siguiente bloque práctico pasa a ser macOS.
 - Corregido un crash de AppKit al actualizar el reproductor de macOS: `PlayerMouseTrackingView` eliminaba un `TrackingRectTag` no inicializado cuando la vista se actualizaba al cambiar de fuente; ahora usa únicamente `NSTrackingArea`.
 - Añadido artwork al `AVPlayerItem` para la tarjeta de reproducción bloqueada de iPhone: se publica primero el icono de la aplicación y se sustituye por el logo del canal cuando termina de descargarse.

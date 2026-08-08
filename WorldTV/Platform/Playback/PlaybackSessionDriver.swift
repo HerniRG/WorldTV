@@ -27,6 +27,7 @@ final class PlaybackSessionDriver {
     private var endTask: Task<Void, Never>?
     private var preparationTask: Task<Void, Never>?
     private var stallTask: Task<Void, Never>?
+    private var isRecoveringFromRouteChange = false
 
     init(
         item: AVPlayerItem,
@@ -92,6 +93,7 @@ final class PlaybackSessionDriver {
 
     func markStartedPlaying() {
         hasStartedPlaying = true
+        isRecoveringFromRouteChange = false
         preparationTask?.cancel()
         preparationTask = nil
         stallTask?.cancel()
@@ -99,7 +101,7 @@ final class PlaybackSessionDriver {
     }
 
     func armStallTimeout() {
-        guard stallTask == nil else {
+        guard !isRecoveringFromRouteChange, stallTask == nil else {
             return
         }
         stallTask = Task { [weak self, stallTimeout] in
@@ -109,6 +111,12 @@ final class PlaybackSessionDriver {
             }
             self.onEvent(.stalled)
         }
+    }
+
+    func audioRouteDidChange() {
+        isRecoveringFromRouteChange = true
+        stallTask?.cancel()
+        stallTask = nil
     }
 
     func cancel() {

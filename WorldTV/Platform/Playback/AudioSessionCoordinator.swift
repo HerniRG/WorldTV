@@ -6,8 +6,13 @@ final class AudioSessionCoordinator {
     #if os(iOS) || os(tvOS)
     private let session = AVAudioSession.sharedInstance()
     private var didConfigure = false
+    private var onRouteChange: (@MainActor () -> Void)?
 
-    func activate(player: AVPlayer) {
+    func activate(
+        player: AVPlayer,
+        onRouteChange: (@MainActor () -> Void)? = nil
+    ) {
+        self.onRouteChange = onRouteChange
         guard !didConfigure else { return }
         didConfigure = true
 
@@ -67,7 +72,7 @@ final class AudioSessionCoordinator {
             forName: AVAudioSession.routeChangeNotification,
             object: session,
             queue: .main
-        ) { [weak player] notification in
+        ) { [weak self, weak player] notification in
             guard
                 let reasonValue = notification.userInfo?[
                     AVAudioSessionRouteChangeReasonKey
@@ -80,11 +85,17 @@ final class AudioSessionCoordinator {
             if reason == .oldDeviceUnavailable {
                 player?.pause()
             }
+            Task { @MainActor [weak self] in
+                self?.onRouteChange?()
+            }
         }
     }
     #endif
     #else
-    func activate(player: AVPlayer) {}
+    func activate(
+        player: AVPlayer,
+        onRouteChange: (@MainActor () -> Void)? = nil
+    ) {}
     #endif
 
 }

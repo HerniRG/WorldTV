@@ -58,7 +58,12 @@ final class PlayerViewModel {
             return
         }
 
-        audioSession.activate(player: player)
+        audioSession.activate(
+            player: player,
+            onRouteChange: { [weak self] in
+                self?.audioRouteDidChange()
+            }
+        )
 
         self.autoplay = autoplay
         self.preferredQuality = preferredQuality
@@ -327,6 +332,18 @@ final class PlayerViewModel {
             await recordRecentlyWatched.execute(channelID: channelID)
             NotificationCenter.default.post(name: .topShelfDataDidChange, object: nil)
         }
+    }
+
+    private func audioRouteDidChange() {
+        sessionDriver?.audioRouteDidChange()
+
+        guard
+            streamState == .playing,
+            player.timeControlStatus == .waitingToPlayAtSpecifiedRate
+        else {
+            return
+        }
+        player.play()
     }
 
     private func fail(_ error: PlaybackError) {
