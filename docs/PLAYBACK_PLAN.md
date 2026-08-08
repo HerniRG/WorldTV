@@ -76,7 +76,7 @@ Estado: `[-]`
 - [x] Extraer una `PlaybackSession` compartida desde `PlayerViewModel`; la máquina de estados ya gobierna fuentes, estados y errores.
 - [ ] Centralizar reproducción, pausa, buffering, fuentes, errores y ciclo de vida.
 - [x] Añadir estado temporal común: posición, fecha, live edge y rangos seekable.
-- [ ] Separar estado de emisión real de estado visual del reproductor.
+- [x] Separar estado de emisión real (`streamState`) de estado visual del reproductor (`state`).
 - [x] Gestionar observers y tareas con cancelación explícita mediante `PlaybackSessionDriver`.
 - [ ] Añadir tests para background, reactivación, cambio de fuente y streams live.
 
@@ -161,6 +161,7 @@ Estado: `[ ]`
 - Integrados en `PlaybackSession` los estados de preparación, reproducción, buffering, pausa, finalización y error; `PlayerViewModel` traduce los eventos de `AVPlayer` y conserva la coordinación de UI.
 - Renombrado el adaptador de AVPlayer a `PlaybackSessionDriver`, con un único flujo de eventos y cancelación explícita de KVO, finalización y timeouts.
 - Añadida una muestra temporal periódica con posición, duración, fecha actual, rangos seekable y detección de directo; se cancela al sustituir o detener el item.
+- Separados el estado real de la emisión y el estado visual del reproductor; el ciclo de vida usa `streamState` y la UI continúa consumiendo `state`.
 - Cerrada la fase de navegación y controles nativos de tvOS: Back, panel, selector de feeds y salida ordenada quedan validados.
 - Sincronizado el plan de audio con la configuración de vídeo, la recuperación de interrupciones y la pausa por desconexión de ruta ya implementadas.
 - Reorientada la fase activa al diagnóstico del timeline live después de background.

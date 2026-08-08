@@ -9,6 +9,7 @@ import OSLog
 final class PlayerViewModel {
     private static let logger = Logger(subsystem: "com.hernirg.worldtv", category: "Playback")
     private(set) var state: PlaybackState = .idle
+    private(set) var streamState: PlaybackSessionState = .idle
     private(set) var channelName = ""
     private(set) var currentSourceNumber = 0
     private(set) var sourceCount = 0
@@ -110,6 +111,7 @@ final class PlayerViewModel {
         selectedFeedID = feedID
         playbackSession = nil
         timeline = nil
+        streamState = .idle
         state = .idle
         loadIfNeeded(autoplay: autoplay, preferredQuality: preferredQuality)
     }
@@ -161,6 +163,7 @@ final class PlayerViewModel {
         sessionDriver = nil
         playbackSession = nil
         timeline = nil
+        streamState = .idle
         player.pause()
         player.replaceCurrentItem(with: nil)
     }
@@ -168,7 +171,7 @@ final class PlayerViewModel {
     func applicationDidBecomeActive() {
         guard
             let item = player.currentItem,
-            state == .playing || state == .paused || state == .buffering
+            streamState == .playing || streamState == .paused || streamState == .buffering
         else {
             return
         }
@@ -327,11 +330,13 @@ final class PlayerViewModel {
     ) {
         guard let session = playbackSession else {
             if let fallback {
+                streamState = sessionState(for: fallback)
                 state = fallback
             }
             return
         }
 
+        streamState = session.state
         timeline = session.timeline
 
         switch session.state {
@@ -349,6 +354,25 @@ final class PlayerViewModel {
             state = .ended
         case .failed(let error):
             state = .failed(error)
+        }
+    }
+
+    private func sessionState(for presentationState: PlaybackState) -> PlaybackSessionState {
+        switch presentationState {
+        case .idle, .resolving:
+            return .idle
+        case .preparing:
+            return .preparing
+        case .playing:
+            return .playing
+        case .buffering:
+            return .buffering
+        case .paused:
+            return .paused
+        case .failed(let error):
+            return .failed(error)
+        case .ended:
+            return .ended
         }
     }
 
