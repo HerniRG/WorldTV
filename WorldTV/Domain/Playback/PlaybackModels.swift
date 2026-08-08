@@ -55,6 +55,102 @@ enum PlaybackState: Equatable, Sendable {
     case ended
 }
 
+enum PlaybackSessionState: Equatable, Sendable {
+    case idle
+    case preparing
+    case playing
+    case buffering
+    case paused
+    case ended
+    case failed(PlaybackError)
+}
+
+enum PlaybackSessionEvent: Sendable {
+    case readyToPlay
+    case started
+    case waiting
+    case paused
+    case sourceFailed
+    case ended
+}
+
+enum PlaybackSessionAction: Equatable, Sendable {
+    case none
+    case prepareSource(Int)
+    case failed(PlaybackError)
+    case ended
+}
+
+struct PlaybackSession: Sendable {
+    let sources: [PlaybackSource]
+    private(set) var currentSourceIndex = 0
+    private(set) var state: PlaybackSessionState = .idle
+
+    init(sources: [PlaybackSource]) {
+        self.sources = sources
+    }
+
+    var currentSource: PlaybackSource? {
+        guard sources.indices.contains(currentSourceIndex) else {
+            return nil
+        }
+        return sources[currentSourceIndex]
+    }
+
+    mutating func start() -> PlaybackSessionAction {
+        guard !sources.isEmpty else {
+            state = .failed(.noSources)
+            return .failed(.noSources)
+        }
+        state = .preparing
+        return .prepareSource(currentSourceIndex)
+    }
+
+    mutating func handle(_ event: PlaybackSessionEvent) -> PlaybackSessionAction {
+        switch event {
+        case .readyToPlay:
+            guard state == .preparing else {
+                return .none
+            }
+            return .none
+        case .started:
+            guard state == .preparing || state == .buffering || state == .paused else {
+                return .none
+            }
+            state = .playing
+            return .none
+        case .waiting:
+            guard state == .playing || state == .preparing else {
+                return .none
+            }
+            state = .buffering
+            return .none
+        case .paused:
+            guard state == .playing || state == .buffering else {
+                return .none
+            }
+            state = .paused
+            return .none
+        case .sourceFailed:
+            guard currentSourceIndex + 1 < sources.count else {
+                state = .failed(.allSourcesFailed)
+                return .failed(.allSourcesFailed)
+            }
+            currentSourceIndex += 1
+            state = .preparing
+            return .prepareSource(currentSourceIndex)
+        case .ended:
+            state = .ended
+            return .ended
+        }
+    }
+
+    mutating func retry() -> PlaybackSessionAction {
+        currentSourceIndex = 0
+        return start()
+    }
+}
+
 struct RecentlyWatchedChannel: Identifiable, Codable, Equatable, Sendable {
     var id: String { channelID }
 

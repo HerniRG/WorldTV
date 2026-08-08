@@ -181,6 +181,70 @@ struct PlaybackUseCaseTests {
     }
 }
 
+struct PlaybackSessionTests {
+    @Test
+    func advancesToTheNextSourceAfterFailure() {
+        var session = PlaybackSession(sources: makeSources(count: 2))
+
+        #expect(session.start() == .prepareSource(0))
+        #expect(session.handle(.started) == .none)
+        #expect(session.handle(.sourceFailed) == .prepareSource(1))
+        #expect(session.state == .preparing)
+        #expect(session.currentSourceIndex == 1)
+    }
+
+    @Test
+    func reportsAllSourcesFailedAfterLastAttempt() {
+        var session = PlaybackSession(sources: makeSources(count: 2))
+
+        _ = session.start()
+        _ = session.handle(.sourceFailed)
+
+        #expect(session.handle(.sourceFailed) == .failed(.allSourcesFailed))
+        #expect(session.state == .failed(.allSourcesFailed))
+    }
+
+    @Test
+    func tracksBufferingAndRecoveryWithoutChangingSource() {
+        var session = PlaybackSession(sources: makeSources(count: 1))
+
+        _ = session.start()
+        #expect(session.handle(.started) == .none)
+        #expect(session.state == .playing)
+        #expect(session.handle(.waiting) == .none)
+        #expect(session.state == .buffering)
+        #expect(session.handle(.started) == .none)
+        #expect(session.state == .playing)
+        #expect(session.currentSourceIndex == 0)
+    }
+
+    @Test
+    func retryStartsWithTheFirstSource() {
+        var session = PlaybackSession(sources: makeSources(count: 2))
+
+        _ = session.start()
+        _ = session.handle(.sourceFailed)
+
+        #expect(session.retry() == .prepareSource(0))
+        #expect(session.currentSourceIndex == 0)
+        #expect(session.state == .preparing)
+    }
+
+    private static func makeSources(count: Int) -> [PlaybackSource] {
+        (0..<count).map { index in
+            PlaybackSource(
+                url: URL(string: "https://example.com/source-\(index).m3u8")!,
+                quality: "720p",
+                title: "Source \(index)",
+                label: nil,
+                referrer: nil,
+                userAgent: nil,
+                isHLS: true
+            )
+        }
+    }
+}
+
 private struct PlaybackStubChannelRepository: ChannelRepository {
     let catalog: Catalog
 

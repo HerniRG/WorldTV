@@ -71,9 +71,9 @@ Estado: `[x]`
 
 ## Fase 3 — Sesión de reproducción compartida
 
-Estado: `[ ]`
+Estado: `[-]`
 
-- [ ] Extraer una `PlaybackSession` compartida desde `PlayerViewModel`.
+- [-] Extraer una `PlaybackSession` compartida desde `PlayerViewModel`; la máquina de estados ya gobierna el índice de fuente y el fallback.
 - [ ] Centralizar reproducción, pausa, buffering, fuentes, errores y ciclo de vida.
 - [ ] Añadir estado temporal común: posición, fecha, live edge y rangos seekable.
 - [ ] Separar estado de emisión real de estado visual del reproductor.
@@ -157,6 +157,7 @@ Estado: `[ ]`
 - Validado manualmente por el usuario en un Apple TV real que, tras poner el dispositivo en reposo y despertarlo varios minutos después, recupera el directo y actualiza el timeline correctamente.
 - Cerrada la Fase 1 de timeline y ciclo de vida de tvOS; la caída real de una fuente queda condicionada a una prueba determinista.
 - La siguiente fase prioriza extraer la sesión compartida y preparar fixtures para buffering, caída de fuente, fallback y reactivación.
+- Añadida una `PlaybackSession` determinista con tests de fallback, buffering, recuperación, retry y agotamiento de fuentes; integrada inicialmente en el fallback de `PlayerViewModel`.
 - Cerrada la fase de navegación y controles nativos de tvOS: Back, panel, selector de feeds y salida ordenada quedan validados.
 - Sincronizado el plan de audio con la configuración de vídeo, la recuperación de interrupciones y la pausa por desconexión de ruta ya implementadas.
 - Reorientada la fase activa al diagnóstico del timeline live después de background.

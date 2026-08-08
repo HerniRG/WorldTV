@@ -26,6 +26,7 @@ final class PlayerViewModel {
     private let audioSession = AudioSessionCoordinator()
 
     private var sources: [PlaybackSource] = []
+    private var playbackSession: PlaybackSession?
     private var currentSourceIndex = 0
     private var loadTask: Task<Void, Never>?
     private var attempt: PlaybackAttempt?
@@ -84,6 +85,7 @@ final class PlayerViewModel {
                 )
                 feeds = context.feeds
                 sources = context.sources
+                playbackSession = PlaybackSession(sources: sources)
                 sourceCount = sources.count
                 currentSourceIndex = 0
                 playCurrentSource()
@@ -105,6 +107,7 @@ final class PlayerViewModel {
         player.pause()
         player.replaceCurrentItem(with: nil)
         selectedFeedID = feedID
+        playbackSession = nil
         state = .idle
         loadIfNeeded(autoplay: autoplay, preferredQuality: preferredQuality)
     }
@@ -115,11 +118,32 @@ final class PlayerViewModel {
             loadIfNeeded(autoplay: autoplay, preferredQuality: preferredQuality)
             return
         }
-        currentSourceIndex = 0
+        if var playbackSession {
+            _ = playbackSession.retry()
+            self.playbackSession = playbackSession
+            currentSourceIndex = playbackSession.currentSourceIndex
+        } else {
+            currentSourceIndex = 0
+        }
         playCurrentSource()
     }
 
     func tryAnotherSource() {
+        if var playbackSession {
+            let action = playbackSession.handle(.sourceFailed)
+            self.playbackSession = playbackSession
+            switch action {
+            case .prepareSource(let index):
+                currentSourceIndex = index
+                playCurrentSource()
+            case .failed(let error):
+                fail(error)
+            case .none, .ended:
+                fail(.unavailable)
+            }
+            return
+        }
+
         guard currentSourceIndex + 1 < sources.count else {
             fail(.allSourcesFailed)
             return
@@ -132,6 +156,7 @@ final class PlayerViewModel {
         loadTask?.cancel()
         attempt?.cancel()
         attempt = nil
+        playbackSession = nil
         player.pause()
         player.replaceCurrentItem(with: nil)
     }
