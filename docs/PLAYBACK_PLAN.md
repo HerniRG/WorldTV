@@ -63,8 +63,8 @@ Estado: `[-]`
 - [x] Aplicar material visual nativo de tvOS al fondo del panel.
 - [ ] Mantener el selector de feeds como menú nativo.
 - [ ] Añadir cambio rápido de canal cuando la interacción sea clara.
-- [ ] Verificar Siri Remote, scrubbing, pausa, avance y retroceso.
-- [ ] Verificar subtítulos, pistas de audio y Picture-in-Picture cuando el stream los soporte.
+- [x] Verificar Siri Remote, scrubbing, pausa, avance y retroceso.
+- [x] Verificar subtítulos, pistas de audio y Picture-in-Picture cuando el stream los soporte.
 - [x] Activar explícitamente PiP nativo, la sesión de audio de vídeo y la restauración del controlador en tvOS.
 - [x] Al iniciar PiP, cerrar la presentación del reproductor sin detener el `AVPlayer`.
 - [x] Al finalizar PiP, restaurar la presentación del reproductor.
@@ -164,6 +164,7 @@ Estado: `[ ]`
 - Validado por el usuario el Back nativo de tvOS y el flujo de PiP en iPhone/iPad y tvOS.
 - Eliminada la instrumentación temporal del timeline antes del primer commit.
 - Migrado el panel de información a `customInfoViewControllers` y aplicado `regularMaterial` nativo de tvOS.
+- Validados los controles nativos restantes de tvOS; no se necesitan controles personalizados adicionales.
 
 ## Cómo mantener este documento
 
