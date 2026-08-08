@@ -12,6 +12,15 @@ struct PlaybackSource: Identifiable, Equatable, Sendable {
     let isHLS: Bool
 }
 
+struct PlaybackTimelineSnapshot: Equatable, Sendable {
+    let position: TimeInterval?
+    let duration: TimeInterval?
+    let currentDate: Date?
+    let seekableStart: TimeInterval?
+    let seekableEnd: TimeInterval?
+    let isLive: Bool
+}
+
 struct PlaybackContext: Sendable {
     let channel: Channel
     let feeds: [ChannelFeed]
@@ -73,6 +82,7 @@ enum PlaybackSessionEvent: Sendable {
     case sourceFailed
     case failed(PlaybackError)
     case ended
+    case timeline(PlaybackTimelineSnapshot)
 }
 
 enum PlaybackSessionAction: Equatable, Sendable {
@@ -86,9 +96,11 @@ struct PlaybackSession: Sendable {
     let sources: [PlaybackSource]
     private(set) var currentSourceIndex = 0
     private(set) var state: PlaybackSessionState = .idle
+    private(set) var timeline: PlaybackTimelineSnapshot?
 
     init(sources: [PlaybackSource]) {
         self.sources = sources
+        timeline = nil
     }
 
     var currentSource: PlaybackSource? {
@@ -146,6 +158,9 @@ struct PlaybackSession: Sendable {
         case .ended:
             state = .ended
             return .ended
+        case .timeline(let snapshot):
+            timeline = snapshot
+            return .none
         }
     }
 

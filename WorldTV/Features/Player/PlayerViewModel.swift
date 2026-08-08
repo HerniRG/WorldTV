@@ -17,6 +17,7 @@ final class PlayerViewModel {
     private(set) var selectedFeedID: String?
     private(set) var channelInfo: PlayerChannelInfo?
     private(set) var playerViewRefreshID = 0
+    private(set) var timeline: PlaybackTimelineSnapshot?
 
     @ObservationIgnored let player = AVPlayer()
 
@@ -108,6 +109,7 @@ final class PlayerViewModel {
         player.replaceCurrentItem(with: nil)
         selectedFeedID = feedID
         playbackSession = nil
+        timeline = nil
         state = .idle
         loadIfNeeded(autoplay: autoplay, preferredQuality: preferredQuality)
     }
@@ -122,6 +124,7 @@ final class PlayerViewModel {
             _ = playbackSession.retry()
             self.playbackSession = playbackSession
             currentSourceIndex = playbackSession.currentSourceIndex
+            timeline = nil
         } else {
             currentSourceIndex = 0
         }
@@ -157,6 +160,7 @@ final class PlayerViewModel {
         sessionDriver?.cancel()
         sessionDriver = nil
         playbackSession = nil
+        timeline = nil
         player.pause()
         player.replaceCurrentItem(with: nil)
     }
@@ -221,6 +225,9 @@ final class PlayerViewModel {
             handleItemStatus(status)
         case .timeControl(let status):
             handleTimeControlStatus(status)
+        case .timeline(let snapshot):
+            _ = playbackSession?.handle(.timeline(snapshot))
+            timeline = snapshot
         case .ended:
             handlePlaybackEnded()
         case .preparationTimedOut, .stalled:
@@ -325,6 +332,8 @@ final class PlayerViewModel {
             return
         }
 
+        timeline = session.timeline
+
         switch session.state {
         case .idle:
             state = .idle
@@ -405,6 +414,7 @@ final class PlayerViewModel {
 private enum PlaybackSessionDriverEvent: Sendable {
     case status(AVPlayerItem.Status)
     case timeControl(AVPlayer.TimeControlStatus)
+    case timeline(PlaybackTimelineSnapshot)
     case ended
     case preparationTimedOut
     case stalled
@@ -415,12 +425,14 @@ private final class PlaybackSessionDriver {
     private(set) var hasStartedPlaying = false
 
     private let item: AVPlayerItem
+    private let player: AVPlayer
     private let preparationTimeout: Duration
     private let stallTimeout: Duration
     private let onEvent: @MainActor (PlaybackSessionDriverEvent) -> Void
 
     private var statusObservation: NSKeyValueObservation?
     private var timeControlObservation: NSKeyValueObservation?
+    private var timeObserverToken: Any?
     private var endTask: Task<Void, Never>?
     private var preparationTask: Task<Void, Never>?
     private var stallTask: Task<Void, Never>?
@@ -433,6 +445,7 @@ private final class PlaybackSessionDriver {
         onEvent: @escaping @MainActor (PlaybackSessionDriverEvent) -> Void
     ) {
         self.item = item
+        self.player = player
         self.preparationTimeout = preparationTimeout
         self.stallTimeout = stallTimeout
         self.onEvent = onEvent
@@ -448,6 +461,15 @@ private final class PlaybackSessionDriver {
             Task { @MainActor [weak self] in
                 self?.onEvent(.timeControl(player.timeControlStatus))
             }
+        }
+        timeObserverToken = player.addPeriodicTimeObserver(
+            forInterval: CMTime(seconds: 1, preferredTimescale: 600),
+            queue: .main
+        ) { [weak self, weak item] _ in
+            guard let self, let item else {
+                return
+            }
+            self.onEvent(.timeline(self.makeTimelineSnapshot(for: item)))
         }
     }
 
@@ -501,8 +523,37 @@ private final class PlaybackSessionDriver {
         statusObservation = nil
         timeControlObservation?.invalidate()
         timeControlObservation = nil
+        if let timeObserverToken {
+            player.removeTimeObserver(timeObserverToken)
+            self.timeObserverToken = nil
+        }
         endTask?.cancel()
         preparationTask?.cancel()
         stallTask?.cancel()
+    }
+
+    private func makeTimelineSnapshot(
+        for item: AVPlayerItem
+    ) -> PlaybackTimelineSnapshot {
+        let ranges = item.seekableTimeRanges.map(\.timeRangeValue)
+        let start = ranges.first.flatMap { seconds($0.start) }
+        let end = ranges.last.flatMap { seconds($0.end) }
+        let duration = seconds(item.duration)
+
+        return PlaybackTimelineSnapshot(
+            position: seconds(player.currentTime()),
+            duration: duration,
+            currentDate: item.currentDate(),
+            seekableStart: start,
+            seekableEnd: end,
+            isLive: item.duration.isIndefinite || (duration == nil && !ranges.isEmpty)
+        )
+    }
+
+    private func seconds(_ time: CMTime) -> TimeInterval? {
+        guard time.isNumeric, time.seconds.isFinite else {
+            return nil
+        }
+        return time.seconds
     }
 }
