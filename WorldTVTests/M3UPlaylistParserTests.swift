@@ -110,11 +110,12 @@ struct M3UPlaylistParserTests {
         """
 
         let catalog = try M3UPlaylistParser().parse(Data(playlist.utf8), source: source)
-
+        let streams = catalog.streamsByChannelID.values.flatMap { $0 }
         #expect(catalog.channels.count == 2)
-        #expect(catalog.streamsByChannelID.values.flatMap { $0 }.first?.url.absoluteString == "https://example.com/playlists/streams/news.m3u8")
-        #expect(catalog.streamsByChannelID.values.flatMap { $0 }.last?.userAgent == "WorldTV/1.0")
-        #expect(catalog.streamsByChannelID.values.flatMap { $0 }.last?.referrer == "https://example.com")
+        #expect(streams.contains { $0.url.absoluteString == "https://example.com/playlists/streams/news.m3u8" })
+        let sports = streams.first { $0.url.lastPathComponent == "sports.m3u8" }
+        #expect(sports?.userAgent == "WorldTV/1.0")
+        #expect(sports?.referrer == "https://example.com")
     }
 
     @Test

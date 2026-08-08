@@ -32,10 +32,23 @@ struct M3UPlaylistParser: Sendable {
                 entries.append(Entry(index: entries.count, name: parsed.attributes["tvg-name"] ?? parsed.displayName, displayName: parsed.displayName, id: parsed.attributes["tvg-id"], country: parsed.attributes["tvg-country"] ?? parsed.attributes["tvg-country-code"] ?? inferCountry(from: parsed.attributes["tvg-id"]), group: parsed.attributes["group-title"] ?? group, logo: parsed.attributes["tvg-logo"], quality: parsed.attributes["tvg-quality"] ?? inferQuality(parsed.displayName), network: parsed.attributes["tvg-network"] ?? parsed.attributes["network"] ?? parsed.attributes["tvg-provider"] ?? parsed.attributes["tvg-broadcaster"], url: nil, referrer: parsed.attributes["http-referrer"] ?? parsed.attributes["referrer"], userAgent: parsed.attributes["http-user-agent"] ?? parsed.attributes["user-agent"]))
                 continue
             }
-            guard !line.hasPrefix("#"), let target = parseStreamTarget(line, relativeTo: source.url) else { continue }
-            if let pending = entries.popLast() {
+            guard !line.hasPrefix("#") else { continue }
+            let normalizedLine: String
+            if line.contains("://") {
+                normalizedLine = line
+            } else {
+                let parts = line.split(separator: "|", maxSplits: 1, omittingEmptySubsequences: false)
+                let relativeValue = String(parts[0]).trimmingCharacters(in: .whitespacesAndNewlines)
+                guard relativeValue.contains("/") else { continue }
+                guard let relativeURL = URL(string: relativeValue, relativeTo: source.url.deletingLastPathComponent())?.absoluteURL else { continue }
+                normalizedLine = relativeURL.absoluteString + (parts.count == 2 ? "|\(parts[1])" : "")
+            }
+            guard let target = parseStreamTarget(normalizedLine, relativeTo: source.url) else { continue }
+            let pending = entries.popLast()
+            if let pending, pending.url == nil {
                 entries.append(pending.with(url: target.url, referrer: referrer ?? target.referrer ?? pending.referrer, userAgent: userAgent ?? target.userAgent ?? pending.userAgent))
             } else {
+                if let pending { entries.append(pending) }
                 entries.append(Entry(index: entries.count, name: target.url.deletingPathExtension().lastPathComponent, displayName: target.url.lastPathComponent, id: nil, country: nil, group: nil, logo: nil, quality: nil, network: nil, url: target.url, referrer: referrer ?? target.referrer, userAgent: userAgent ?? target.userAgent))
             }
             referrer = nil
@@ -157,7 +170,23 @@ struct M3UPlaylistParser: Sendable {
     private func parseStreamTarget(_ rawValue: String, relativeTo sourceURL: URL) -> StreamTarget? {
         let parts = rawValue.split(separator: "|", maxSplits: 1, omittingEmptySubsequences: false)
         let streamValue = String(parts[0]).trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let url = URL(string: streamValue, relativeTo: sourceURL)?.absoluteURL, url.isHTTP else { return nil }
+        if !streamValue.contains("://") {
+            let normalizedValue = streamValue.lowercased()
+            guard normalizedValue.hasSuffix(".m3u") || normalizedValue.hasSuffix(".m3u8") else {
+                return nil
+            }
+        }
+        let url: URL
+        if streamValue.contains("://") {
+            guard let parsedURL = URL(string: streamValue) else { return nil }
+            url = parsedURL.absoluteURL
+        } else {
+            guard let resolvedURL = URL(string: streamValue, relativeTo: sourceURL.deletingLastPathComponent()) else {
+                return nil
+            }
+            url = resolvedURL.absoluteURL
+        }
+        guard url.isHTTP else { return nil }
         guard parts.count == 2 else { return StreamTarget(url: url, referrer: nil, userAgent: nil) }
 
         var referrer: String?

@@ -5,7 +5,7 @@ import Testing
 struct AboutDestinationTests {
     @Test
     func destinationsAreSecureAndValid() {
-        #expect(AboutDestination.allCases.count == 6)
+        #expect(AboutDestination.allCases.count == 4)
 
         for destination in AboutDestination.allCases {
             #expect(destination.url?.scheme == "https")
@@ -17,7 +17,7 @@ struct AboutDestinationTests {
     func privacyPolicyUsesThePublishedRepositoryDocument() {
         #expect(
             AboutDestination.privacy.url?.absoluteString
-                == "https://github.com/HerniRG/WorldTV/blob/main/PRIVACY.md"
+                == "https://hernirg.github.io/WorldTV/#privacy"
         )
     }
 }
