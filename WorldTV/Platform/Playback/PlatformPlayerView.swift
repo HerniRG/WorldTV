@@ -193,11 +193,7 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
         _ controller: AVPlayerViewController,
         hosting: UIViewController?
     ) {
-        // customInfoViewController is deprecated since tvOS 15, but its
-        // replacement (customInfoViewControllers) re-measures the panel on
-        // every reopen and causes the vertical placement bug we work around.
-        // KVC sets the property without a deprecation warning.
-        controller.setValue(hosting, forKey: "customInfoViewController")
+        controller.customInfoViewControllers = hosting.map { [$0] } ?? []
     }
 
     private static func makeFeedMenuItems(

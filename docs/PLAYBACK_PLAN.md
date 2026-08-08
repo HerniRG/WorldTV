@@ -59,7 +59,8 @@ Estado: `[-]`
 - [ ] Hacer que Back oculte después los controles del reproductor.
 - [ ] Salir del reproductor solo cuando la interfaz nativa esté limpia.
 - [x] Evitar que el `.onExitCommand` del reproductor cierre prematuramente toda la presentación.
-- [ ] Migrar el panel a `customInfoViewControllers`.
+- [x] Migrar el panel a `customInfoViewControllers`.
+- [x] Aplicar material visual nativo de tvOS al fondo del panel.
 - [ ] Mantener el selector de feeds como menú nativo.
 - [ ] Añadir cambio rápido de canal cuando la interacción sea clara.
 - [ ] Verificar Siri Remote, scrubbing, pausa, avance y retroceso.
@@ -162,6 +163,7 @@ Estado: `[ ]`
 - Preparado el flujo multiplataforma para devolver la app al contenido anterior durante PiP y restaurar el reproductor al finalizarlo.
 - Validado por el usuario el Back nativo de tvOS y el flujo de PiP en iPhone/iPad y tvOS.
 - Eliminada la instrumentación temporal del timeline antes del primer commit.
+- Migrado el panel de información a `customInfoViewControllers` y aplicado `regularMaterial` nativo de tvOS.
 
 ## Cómo mantener este documento
 

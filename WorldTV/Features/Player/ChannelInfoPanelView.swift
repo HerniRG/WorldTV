@@ -43,10 +43,17 @@ struct ChannelInfoPanelView: View {
         .padding(DesignTokens.pagePadding)
         .foregroundStyle(.white)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        #if os(tvOS)
+        .background(
+            .regularMaterial,
+            in: RoundedRectangle(cornerRadius: 28, style: .continuous)
+        )
+        #else
         .background(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(Color.black)
         )
+        #endif
         .frame(minWidth: 760, minHeight: 480)
     }
 
