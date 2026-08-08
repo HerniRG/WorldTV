@@ -184,7 +184,7 @@ struct PlaybackUseCaseTests {
 struct PlaybackSessionTests {
     @Test
     func advancesToTheNextSourceAfterFailure() {
-        var session = PlaybackSession(sources: makeSources(count: 2))
+        var session = PlaybackSession(sources: Self.makeSources(count: 2))
 
         #expect(session.start() == .prepareSource(0))
         #expect(session.handle(.started) == .none)
@@ -195,7 +195,7 @@ struct PlaybackSessionTests {
 
     @Test
     func reportsAllSourcesFailedAfterLastAttempt() {
-        var session = PlaybackSession(sources: makeSources(count: 2))
+        var session = PlaybackSession(sources: Self.makeSources(count: 2))
 
         _ = session.start()
         _ = session.handle(.sourceFailed)
@@ -206,7 +206,7 @@ struct PlaybackSessionTests {
 
     @Test
     func preservesSpecificPlaybackErrors() {
-        var session = PlaybackSession(sources: makeSources(count: 1))
+        var session = PlaybackSession(sources: Self.makeSources(count: 1))
 
         _ = session.start()
 
@@ -216,7 +216,7 @@ struct PlaybackSessionTests {
 
     @Test
     func storesTimelineWithoutChangingPlaybackState() {
-        var session = PlaybackSession(sources: makeSources(count: 1))
+        var session = PlaybackSession(sources: Self.makeSources(count: 1))
         let snapshot = PlaybackTimelineSnapshot(
             position: 42,
             duration: nil,
@@ -234,7 +234,7 @@ struct PlaybackSessionTests {
 
     @Test
     func preservesLiveTimelineWhenTheApplicationBecomesActive() {
-        var session = PlaybackSession(sources: makeSources(count: 2))
+        var session = PlaybackSession(sources: Self.makeSources(count: 2))
         let snapshot = PlaybackTimelineSnapshot(
             position: 120,
             duration: nil,
@@ -256,7 +256,7 @@ struct PlaybackSessionTests {
 
     @Test
     func tracksBufferingAndRecoveryWithoutChangingSource() {
-        var session = PlaybackSession(sources: makeSources(count: 1))
+        var session = PlaybackSession(sources: Self.makeSources(count: 1))
 
         _ = session.start()
         #expect(session.handle(.started) == .none)
@@ -270,7 +270,7 @@ struct PlaybackSessionTests {
 
     @Test
     func retryStartsWithTheFirstSource() {
-        var session = PlaybackSession(sources: makeSources(count: 2))
+        var session = PlaybackSession(sources: Self.makeSources(count: 2))
 
         _ = session.start()
         _ = session.handle(.sourceFailed)

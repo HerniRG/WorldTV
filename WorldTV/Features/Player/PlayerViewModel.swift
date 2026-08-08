@@ -170,7 +170,7 @@ final class PlayerViewModel {
 
     func applicationDidBecomeActive() {
         guard
-            let item = player.currentItem,
+            player.currentItem != nil,
             streamState == .playing || streamState == .paused || streamState == .buffering
         else {
             return
@@ -492,10 +492,12 @@ private final class PlaybackSessionDriver {
             forInterval: CMTime(seconds: 1, preferredTimescale: 600),
             queue: .main
         ) { [weak self, weak item] _ in
-            guard let self, let item else {
-                return
+            Task { @MainActor [weak self, weak item] in
+                guard let self, let item else {
+                    return
+                }
+                self.onEvent(.timeline(self.makeTimelineSnapshot(for: item)))
             }
-            self.onEvent(.timeline(self.makeTimelineSnapshot(for: item)))
         }
     }
 

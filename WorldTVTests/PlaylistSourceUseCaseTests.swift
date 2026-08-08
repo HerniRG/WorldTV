@@ -43,9 +43,13 @@ struct PlaylistSourceUseCaseTests {
     @Test
     func validatesPlaylistBeforePersistingIt() async throws {
         let store = InMemoryPlaylistSourceStore()
-        let add = AddPlaylistSourceUseCase(store: store) { _ in
-            throw PlaylistSourceError.noPlayableEntries
-        }
+        let add = AddPlaylistSourceUseCase(
+            store: store,
+            invalidate: {},
+            validate: { _ in
+                throw PlaylistSourceError.noPlayableEntries
+            }
+        )
 
         do {
             _ = try await add.execute(name: "Invalid", urlString: "https://example.com/invalid.m3u")
@@ -54,7 +58,7 @@ struct PlaylistSourceUseCaseTests {
             #expect(error == .noPlayableEntries)
         }
 
-        #expect(try await store.load().isEmpty)
+        #expect(await store.load().isEmpty)
     }
 }
 
