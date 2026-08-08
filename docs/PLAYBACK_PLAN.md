@@ -62,7 +62,7 @@ Estado: `[-]`
 - [x] Migrar el panel a `customInfoViewControllers`.
 - [x] Aplicar material visual nativo de tvOS al fondo del panel.
 - [ ] Mantener el selector de feeds como menú nativo.
-- [ ] Añadir cambio rápido de canal cuando la interacción sea clara.
+- [!] No implementar zapping ni cambio rápido de canal; queda fuera del alcance decidido.
 - [x] Verificar Siri Remote, scrubbing, pausa, avance y retroceso.
 - [x] Verificar subtítulos, pistas de audio y Picture-in-Picture cuando el stream los soporte.
 - [x] Activar explícitamente PiP nativo, la sesión de audio de vídeo y la restauración del controlador en tvOS.
@@ -91,8 +91,8 @@ Estado: `[ ]`
 - [ ] Mantener reproducción durante rotación y fullscreen.
 - [ ] Gestionar interrupciones de audio y recuperación.
 - [ ] Gestionar desconexión de auriculares y cambios Bluetooth.
-- [ ] Añadir Now Playing, Lock Screen y Control Center.
-- [ ] Añadir comandos play, pause, avance y retroceso cuando sean válidos.
+- [!] No implementar Now Playing, Lock Screen ni controles multimedia del sistema; la experiencia resultó problemática y queda fuera del alcance decidido.
+- [!] No implementar comandos multimedia asociados a Now Playing.
 
 ## Fase 5 — iPad
 
@@ -101,7 +101,7 @@ Estado: `[ ]`
 - [ ] Soportar PiP automático al salir de la aplicación.
 - [ ] Validar Split View, Slide Over y cambios de tamaño.
 - [ ] Permitir reproducción inline cuando aporte valor.
-- [ ] Mantener AirPlay y Now Playing.
+- [ ] Mantener AirPlay existente; no añadir Now Playing.
 - [ ] Restaurar correctamente la interfaz después de PiP o multitarea.
 - [ ] Añadir un mini reproductor persistente si no interfiere con la navegación.
 
@@ -113,8 +113,8 @@ Estado: `[-]`
 - [ ] Configurar la categoría y el modo apropiados para vídeo.
 - [ ] Pausar al desconectar auriculares cuando el sistema lo indique.
 - [ ] Recuperar reproducción tras llamadas, Siri y alertas del sistema.
-- [ ] Publicar metadatos del canal mediante Now Playing.
-- [ ] Conectar `MPRemoteCommandCenter` con la sesión compartida.
+- [!] No publicar metadatos del canal mediante Now Playing; queda descartado.
+- [!] No conectar `MPRemoteCommandCenter` con la sesión compartida; queda descartado.
 - [ ] Probar AirPlay con Apple TV y dispositivos compatibles.
 
 ## Fase 7 — macOS
@@ -166,6 +166,8 @@ Estado: `[ ]`
 - Migrado el panel de información a `customInfoViewControllers` y aplicado `regularMaterial` nativo de tvOS.
 - Validados los controles nativos restantes de tvOS; no se necesitan controles personalizados adicionales.
 - Validado en dispositivo el cambio de salida de audio: conectar mantiene la reproducción y desconectar pausa el directo.
+- Descartada la fase de Now Playing, Lock Screen y controles multimedia del sistema por problemas de restauración y artwork.
+- Descartado el zapping o cambio rápido de canal por decisión de producto.
 
 ## Cómo mantener este documento
 
