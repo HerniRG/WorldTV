@@ -10,6 +10,7 @@ struct PlaylistSourcesView: View {
     @State private var url = ""
     @State private var errorMessage: String?
     @State private var isWorking = false
+    @State private var pendingRemoval: PlaylistSource?
 
     var body: some View {
         Form {
@@ -61,7 +62,7 @@ struct PlaylistSourcesView: View {
                                 sourceDetails(source)
                                 Spacer()
                                 Button("sources.delete", role: .destructive) {
-                                    Task { await remove(source) }
+                                    pendingRemoval = source
                                 }
                                 .frame(minHeight: 54)
                                 .buttonStyle(SourcesFocusButtonStyle(isDestructive: true))
@@ -71,7 +72,7 @@ struct PlaylistSourcesView: View {
                                 sourceDetails(source)
                                 Spacer(minLength: 12)
                                 Button("sources.delete", systemImage: "trash", role: .destructive) {
-                                    Task { await remove(source) }
+                                    pendingRemoval = source
                                 }
                                 .labelStyle(.iconOnly)
                                 .help("sources.delete")
@@ -80,7 +81,7 @@ struct PlaylistSourcesView: View {
                             sourceDetails(source)
                                 .swipeActions {
                                     Button("sources.delete", role: .destructive) {
-                                        Task { await remove(source) }
+                                        pendingRemoval = source
                                     }
                                 }
                             #endif
@@ -111,6 +112,24 @@ struct PlaylistSourcesView: View {
         .tvShelfBehavior()
         #endif
         .task { await reload() }
+        .confirmationDialog(
+            "sources.delete.confirm.title",
+            isPresented: Binding(
+                get: { pendingRemoval != nil },
+                set: { if !$0 { pendingRemoval = nil } }
+            ),
+            titleVisibility: .visible,
+            presenting: pendingRemoval
+        ) { source in
+            Button("settings.confirm.delete", role: .destructive) {
+                Task { await remove(source) }
+            }
+            Button("action.cancel", role: .cancel) {
+                pendingRemoval = nil
+            }
+        } message: { source in
+            Text("sources.delete.confirm.message \(source.name)")
+        }
     }
 
     private func reload() async {

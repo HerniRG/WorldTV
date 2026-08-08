@@ -7410,6 +7410,36 @@
         }
       }
     },
+    "sources.delete.confirm.message %@" : {
+      "comment" : "Message in the confirmation dialog before a playlist source is removed. The placeholder is the name of the source.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "سيتم إزالة «%@». لا يمكن التراجع عن هذا الإجراء." } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "„%@“ wird entfernt. Diese Aktion kann nicht rückgängig gemacht werden." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This will remove “%@”. This action cannot be undone." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Se eliminará “%@”. Esta acción no se puede deshacer." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "« %@ » sera supprimé. Cette action est irréversible." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "%@ हटा दिया जाएगा। यह कार्रवाई पूर्ववत नहीं की जा सकती।" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Verrà rimossa “%@”. Questa azione non può essere annullata." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "「%@」が削除されます。この操作は元に戻せません。" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "“%@” será apagada. Esta ação não pode ser desfeita." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "将移除“%@”。此操作无法撤销。" } }
+      }
+    },
+    "sources.delete.confirm.title" : {
+      "comment" : "Title of the confirmation dialog before a playlist source is removed.",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "حذف المصدر؟" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Quelle löschen?" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete source?" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "¿Eliminar fuente?" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Supprimer la source ?" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "स्रोत हटाएं?" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Eliminare la fonte?" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ソースを削除しますか？" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Apagar fonte?" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "删除来源？" } }
+      }
+    },
     "sources.disclaimer" : {
       "comment" : "Legal disclaimer displayed below the source form.",
       "localizations" : {
