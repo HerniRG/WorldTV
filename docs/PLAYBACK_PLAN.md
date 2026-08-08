@@ -5,9 +5,9 @@ Plan vivo para mejorar la reproducción nativa en iPhone, iPad, tvOS y macOS.
 ## Estado
 
 - Última actualización: 2026-08-08
-- Fase activa: Fase 3 — sesión de reproducción compartida
+- Fase activa: Fase 7 — macOS
 - Estado general: planificado
-- Nota: Las validaciones de tvOS están cerradas; la caída real de una fuente requiere una prueba determinista antes de continuar con la sesión compartida.
+- Nota: La integración real de `PlaybackSessionDriver` sigue pendiente de un entorno Xcode funcional; iPad queda pendiente por falta de dispositivo físico.
 
 ### Convención de estados
 
@@ -83,22 +83,24 @@ Estado: `[-]`
 
 ## Fase 4 — iPhone
 
-Estado: `[ ]`
+Estado: `[x]`
 
 - [x] Publicar el artwork del canal en los metadatos externos del `AVPlayerItem`, con el icono de la aplicación como fallback.
-- [ ] Completar Picture-in-Picture.
-- [ ] Configurar correctamente audio, AirPlay y background modes.
-- [ ] Implementar restauración de la interfaz al salir de PiP.
-- [ ] Añadir AirPlay y cambios de salida.
-- [ ] Mantener reproducción durante rotación y fullscreen.
-- [ ] Gestionar interrupciones de audio y recuperación.
-- [ ] Gestionar desconexión de auriculares y cambios Bluetooth.
+- [x] Completar Picture-in-Picture.
+- [x] Configurar correctamente audio, AirPlay y background modes.
+- [x] Implementar restauración de la interfaz al salir de PiP.
+- [x] Añadir AirPlay y cambios de salida.
+- [x] Mantener reproducción durante rotación y fullscreen.
+- [x] Gestionar interrupciones de audio y recuperación.
+- [x] Gestionar desconexión de auriculares y cambios Bluetooth.
 - [!] No implementar Now Playing, Lock Screen ni controles multimedia del sistema; la experiencia resultó problemática y queda fuera del alcance decidido.
 - [!] No implementar comandos multimedia asociados a Now Playing.
 
 ## Fase 5 — iPad
 
-Estado: `[ ]`
+Estado: `[!]`
+
+Nota: pendiente de un iPad físico para validar PiP, multitarea y cambios de tamaño.
 
 - [ ] Soportar PiP automático al salir de la aplicación.
 - [ ] Validar Split View, Slide Over y cambios de tamaño.
@@ -117,11 +119,11 @@ Estado: `[x]`
 - [x] Recuperar reproducción tras llamadas, Siri y alertas del sistema.
 - [!] No publicar metadatos del canal mediante Now Playing; queda descartado.
 - [!] No conectar `MPRemoteCommandCenter` con la sesión compartida; queda descartado.
-- [ ] Probar AirPlay con Apple TV y dispositivos compatibles.
+- [x] Probar AirPlay con Apple TV y dispositivos compatibles.
 
 ## Fase 7 — macOS
 
-Estado: `[ ]`
+Estado: `[-]`
 
 - [ ] Completar fullscreen nativo con `AVPlayerView`.
 - [ ] Añadir Picture-in-Picture si está disponible para la configuración objetivo.
@@ -144,8 +146,8 @@ Estado: `[ ]`
 
 ## Validación por plataforma
 
-- [ ] iPhone físico: PiP, AirPlay, bloqueo, auriculares, llamadas y rotación.
-- [ ] iPad físico: PiP, Split View, Slide Over y cambio de tamaño.
+- [x] iPhone físico: PiP, AirPlay, bloqueo, auriculares, llamadas y rotación.
+- [!] iPad físico: PiP, Split View, Slide Over y cambio de tamaño; no hay dispositivo disponible.
 - [ ] Apple TV físico: Back, panel de información, Siri Remote, background y timeline live.
 - [ ] Mac: fullscreen, suspensión, atajos y cambio de ventana.
 - [ ] Streams HLS live con y sin `EXT-X-PROGRAM-DATE-TIME`.
@@ -155,6 +157,8 @@ Estado: `[ ]`
 
 ### 2026-08-08
 
+- Validado por el usuario en un iPhone físico el bloque completo de reproducción: PiP, restauración de interfaz, audio en segundo plano, AirPlay, rotación, interrupciones, auriculares y cambios de ruta.
+- Dejadas las validaciones de iPad pendientes por no disponer de un iPad físico; el siguiente bloque práctico pasa a ser macOS.
 - Corregido un crash de AppKit al actualizar el reproductor de macOS: `PlayerMouseTrackingView` eliminaba un `TrackingRectTag` no inicializado cuando la vista se actualizaba al cambiar de fuente; ahora usa únicamente `NSTrackingArea`.
 - Añadido artwork al `AVPlayerItem` para la tarjeta de reproducción bloqueada de iPhone: se publica primero el icono de la aplicación y se sustituye por el logo del canal cuando termina de descargarse.
 - Separado `PlaybackSessionDriver` de `PlayerViewModel` y ubicado en la capa de reproducción para aislar KVO, time observers, finalización y timeouts de la coordinación de UI; se mantiene un único flujo de eventos hacia `PlaybackSession`.

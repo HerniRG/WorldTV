@@ -216,12 +216,14 @@ final class PlayerViewModel {
             sourceTitle: sources[currentSourceIndex].title
         )
         player.replaceCurrentItem(with: item)
+        #if os(iOS) || os(tvOS)
         loadChannelArtwork(
             for: item,
             logoURL: channelInfo?.logoURL,
             channelName: channelName,
             sourceTitle: sources[currentSourceIndex].title
         )
+        #endif
 
         let nextDriver = PlaybackSessionDriver(
             item: item,
