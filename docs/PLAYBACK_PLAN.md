@@ -5,9 +5,9 @@ Plan vivo para mejorar la reproducción nativa en iPhone, iPad, tvOS y macOS.
 ## Estado
 
 - Última actualización: 2026-08-08
-- Fase activa: Fase 2 — navegación y controles nativos de tvOS
+- Fase activa: Fase 1 — timeline y ciclo de vida de tvOS
 - Estado general: planificado
-- Nota: Back, PiP, controles nativos de tvOS y rutas de audio validados; continúa el plan multiplataforma.
+- Nota: La navegación y los controles nativos de tvOS están cerrados; continúa la investigación del timeline live tras background.
 
 ### Convención de estados
 
@@ -45,23 +45,23 @@ Después de que Apple TV permanezca en background o se reactive, el stream live 
 
 ### Criterios de aceptación
 
-- [ ] El timeline vuelve a actualizarse después de 30 segundos en background.
-- [ ] El timeline vuelve a actualizarse después de varios minutos.
+- [x] El timeline vuelve a actualizarse después de 30 segundos en background.
+- [x] El timeline vuelve a actualizarse después de varios minutos.
 - [ ] El comportamiento funciona tras despertar Apple TV.
-- [ ] El vídeo no se reinicia si el stream sigue vivo.
+- [x] El vídeo no se reinicia si el stream sigue vivo.
 - [ ] Si el stream ha muerto, se muestra buffering, fallback o error de forma coherente.
 
 ## Fase 2 — Navegación y controles nativos de tvOS
 
-Estado: `[-]`
+Estado: `[x]`
 
-- [ ] Hacer que Back cierre primero el panel de información.
-- [ ] Hacer que Back oculte después los controles del reproductor.
-- [ ] Salir del reproductor solo cuando la interfaz nativa esté limpia.
+- [x] Hacer que Back cierre primero el panel de información.
+- [x] Hacer que Back oculte después los controles del reproductor.
+- [x] Salir del reproductor solo cuando la interfaz nativa esté limpia.
 - [x] Evitar que el `.onExitCommand` del reproductor cierre prematuramente toda la presentación.
 - [x] Migrar el panel a `customInfoViewControllers`.
 - [x] Aplicar material visual nativo de tvOS al fondo del panel.
-- [ ] Mantener el selector de feeds como menú nativo.
+- [x] Mantener el selector de feeds como menú nativo.
 - [!] No implementar zapping ni cambio rápido de canal; queda fuera del alcance decidido.
 - [x] Verificar Siri Remote, scrubbing, pausa, avance y retroceso.
 - [x] Verificar subtítulos, pistas de audio y Picture-in-Picture cuando el stream los soporte.
@@ -110,9 +110,9 @@ Estado: `[ ]`
 Estado: `[-]`
 
 - [x] Ampliar `AudioSessionCoordinator` para observar interrupciones y cambios de ruta.
-- [ ] Configurar la categoría y el modo apropiados para vídeo.
-- [ ] Pausar al desconectar auriculares cuando el sistema lo indique.
-- [ ] Recuperar reproducción tras llamadas, Siri y alertas del sistema.
+- [x] Configurar la categoría y el modo apropiados para vídeo.
+- [x] Pausar al desconectar auriculares cuando el sistema lo indique.
+- [x] Recuperar reproducción tras llamadas, Siri y alertas del sistema.
 - [!] No publicar metadatos del canal mediante Now Playing; queda descartado.
 - [!] No conectar `MPRemoteCommandCenter` con la sesión compartida; queda descartado.
 - [ ] Probar AirPlay con Apple TV y dispositivos compatibles.
@@ -152,6 +152,11 @@ Estado: `[ ]`
 ## Registro de cambios del plan
 
 ### 2026-08-08
+
+- Validado manualmente por el usuario en un Apple TV real que, tras volver de background después de usar otras aplicaciones, el directo continúa y el timeline vuelve a actualizarse sin reiniciar el vídeo.
+- Cerrada la fase de navegación y controles nativos de tvOS: Back, panel, selector de feeds y salida ordenada quedan validados.
+- Sincronizado el plan de audio con la configuración de vídeo, la recuperación de interrupciones y la pausa por desconexión de ruta ya implementadas.
+- Reorientada la fase activa al diagnóstico del timeline live después de background.
 
 - Creado el plan vivo de reproducción multiplataforma.
 - Identificado como prioridad el timeline de tvOS después de background.
