@@ -47,7 +47,7 @@ Después de que Apple TV permanezca en background o se reactive, el stream live 
 
 - [x] El timeline vuelve a actualizarse después de 30 segundos en background.
 - [x] El timeline vuelve a actualizarse después de varios minutos.
-- [ ] El comportamiento funciona tras despertar Apple TV.
+- [x] El comportamiento funciona tras despertar Apple TV.
 - [x] El vídeo no se reinicia si el stream sigue vivo.
 - [ ] Si el stream ha muerto, se muestra buffering, fallback o error de forma coherente.
 
@@ -107,7 +107,7 @@ Estado: `[ ]`
 
 ## Fase 6 — Audio, AirPlay y controles del sistema
 
-Estado: `[-]`
+Estado: `[x]`
 
 - [x] Ampliar `AudioSessionCoordinator` para observar interrupciones y cambios de ruta.
 - [x] Configurar la categoría y el modo apropiados para vídeo.
@@ -154,6 +154,8 @@ Estado: `[ ]`
 ### 2026-08-08
 
 - Validado manualmente por el usuario en un Apple TV real que, tras volver de background después de usar otras aplicaciones, el directo continúa y el timeline vuelve a actualizarse sin reiniciar el vídeo.
+- Validado manualmente por el usuario en un Apple TV real que, tras poner el dispositivo en reposo y despertarlo varios minutos después, recupera el directo y actualiza el timeline correctamente.
+- Cerrada la Fase 1 de timeline y ciclo de vida de tvOS; queda pendiente únicamente probar el comportamiento ante una fuente que muera durante la reproducción.
 - Cerrada la fase de navegación y controles nativos de tvOS: Back, panel, selector de feeds y salida ordenada quedan validados.
 - Sincronizado el plan de audio con la configuración de vídeo, la recuperación de interrupciones y la pausa por desconexión de ruta ya implementadas.
 - Reorientada la fase activa al diagnóstico del timeline live después de background.
