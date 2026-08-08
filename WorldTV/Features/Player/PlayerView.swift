@@ -264,9 +264,7 @@ private struct PlayerMouseTrackingView: NSViewRepresentable {
     let onMove: () -> Void
 
     func makeNSView(context: Context) -> NSView {
-        let view = TrackingHostView(onMove: onMove)
-        view.addTrackingRect(view.bounds, owner: view, userData: nil, assumeInside: true)
-        return view
+        TrackingHostView(onMove: onMove)
     }
 
     func updateNSView(_ view: NSView, context: Context) {
@@ -274,18 +272,10 @@ private struct PlayerMouseTrackingView: NSViewRepresentable {
             return
         }
         view.onMove = onMove
-        view.removeTrackingRect(view.trackingTag)
-        view.trackingTag = view.addTrackingRect(
-            view.bounds,
-            owner: view,
-            userData: nil,
-            assumeInside: true
-        )
     }
 
     final class TrackingHostView: NSView {
         var onMove: () -> Void
-        var trackingTag: NSView.TrackingRectTag = 0
 
         init(onMove: @escaping () -> Void) {
             self.onMove = onMove

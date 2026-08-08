@@ -74,7 +74,7 @@ Estado: `[x]`
 Estado: `[-]`
 
 - [x] Extraer una `PlaybackSession` compartida desde `PlayerViewModel`; la máquina de estados ya gobierna fuentes, estados y errores.
-- [ ] Centralizar reproducción, pausa, buffering, fuentes, errores y ciclo de vida.
+- [x] Centralizar reproducción, pausa, buffering, fuentes, errores y ciclo de vida entre `PlaybackSession` y el adaptador `PlaybackSessionDriver`.
 - [x] Añadir estado temporal común: posición, fecha, live edge y rangos seekable.
 - [x] Separar estado de emisión real (`streamState`) de estado visual del reproductor (`state`).
 - [x] Gestionar observers y tareas con cancelación explícita mediante `PlaybackSessionDriver`.
@@ -153,6 +153,10 @@ Estado: `[ ]`
 ## Registro de cambios del plan
 
 ### 2026-08-08
+
+- Corregido un crash de AppKit al actualizar el reproductor de macOS: `PlayerMouseTrackingView` eliminaba un `TrackingRectTag` no inicializado cuando la vista se actualizaba al cambiar de fuente; ahora usa únicamente `NSTrackingArea`.
+- Separado `PlaybackSessionDriver` de `PlayerViewModel` y ubicado en la capa de reproducción para aislar KVO, time observers, finalización y timeouts de la coordinación de UI; se mantiene un único flujo de eventos hacia `PlaybackSession`.
+- Intentada una compilación local sin firma; el entorno no pudo crear el área de DerivedData y tampoco dispone de CoreSimulator operativo, por lo que la validación queda pendiente de un entorno Xcode funcional.
 
 - Validado manualmente por el usuario en un Apple TV real que, tras volver de background después de usar otras aplicaciones, el directo continúa y el timeline vuelve a actualizarse sin reiniciar el vídeo.
 - Validado manualmente por el usuario en un Apple TV real que, tras poner el dispositivo en reposo y despertarlo varios minutos después, recupera el directo y actualiza el timeline correctamente.
