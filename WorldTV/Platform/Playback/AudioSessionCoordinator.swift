@@ -21,6 +21,7 @@ final class AudioSessionCoordinator {
 
     #if os(iOS)
     private var interruptionObserver: NSObjectProtocol?
+    private var routeChangeObserver: NSObjectProtocol?
     #endif
 
     #if os(iOS)
@@ -61,9 +62,29 @@ final class AudioSessionCoordinator {
                 break
             }
         }
+
+        routeChangeObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.routeChangeNotification,
+            object: session,
+            queue: .main
+        ) { [weak player] notification in
+            guard
+                let reasonValue = notification.userInfo?[
+                    AVAudioSessionRouteChangeReasonKey
+                ] as? UInt,
+                let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue)
+            else {
+                return
+            }
+
+            if reason == .oldDeviceUnavailable {
+                player?.pause()
+            }
+        }
     }
     #endif
     #else
     func activate(player: AVPlayer) {}
     #endif
+
 }

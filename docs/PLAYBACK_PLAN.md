@@ -7,7 +7,7 @@ Plan vivo para mejorar la reproducción nativa en iPhone, iPad, tvOS y macOS.
 - Última actualización: 2026-08-08
 - Fase activa: Fase 2 — navegación y controles nativos de tvOS
 - Estado general: planificado
-- Nota: Back y PiP nativos validados; queda pendiente continuar con el resto de controles de tvOS.
+- Nota: Back, PiP, controles nativos de tvOS y rutas de audio validados; continúa el plan multiplataforma.
 
 ### Convención de estados
 
@@ -107,9 +107,9 @@ Estado: `[ ]`
 
 ## Fase 6 — Audio, AirPlay y controles del sistema
 
-Estado: `[ ]`
+Estado: `[-]`
 
-- [ ] Ampliar `AudioSessionCoordinator` para observar interrupciones y cambios de ruta.
+- [x] Ampliar `AudioSessionCoordinator` para observar interrupciones y cambios de ruta.
 - [ ] Configurar la categoría y el modo apropiados para vídeo.
 - [ ] Pausar al desconectar auriculares cuando el sistema lo indique.
 - [ ] Recuperar reproducción tras llamadas, Siri y alertas del sistema.
@@ -165,6 +165,7 @@ Estado: `[ ]`
 - Eliminada la instrumentación temporal del timeline antes del primer commit.
 - Migrado el panel de información a `customInfoViewControllers` y aplicado `regularMaterial` nativo de tvOS.
 - Validados los controles nativos restantes de tvOS; no se necesitan controles personalizados adicionales.
+- Validado en dispositivo el cambio de salida de audio: conectar mantiene la reproducción y desconectar pausa el directo.
 
 ## Cómo mantener este documento
 
