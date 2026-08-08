@@ -126,7 +126,7 @@ Estado: `[x]`
 Estado: `[-]`
 
 - [ ] Completar fullscreen nativo con `AVPlayerView`.
-- [ ] Añadir Picture-in-Picture si está disponible para la configuración objetivo.
+- [!] No añadir Picture-in-Picture en macOS: la presentación modal de `AVPlayerView` entra en conflicto con la navegación; se mantiene fullscreen nativo.
 - [ ] Añadir atajos de teclado y controles multimedia.
 - [ ] Mantener selección de feed y metadatos.
 - [ ] Recuperar reproducción tras suspensión o cambio de ventana.
@@ -160,6 +160,7 @@ Estado: `[ ]`
 - Validado por el usuario en un iPhone físico el bloque completo de reproducción: PiP, restauración de interfaz, audio en segundo plano, AirPlay, rotación, interrupciones, auriculares y cambios de ruta.
 - Evitado que un cambio de salida AirPlay se interprete como una caída de fuente: la sesión cancela temporalmente el timeout de buffering y recupera la reproducción local sin esperar los 20 segundos del detector de stall.
 - Dejadas las validaciones de iPad pendientes por no disponer de un iPad físico; el siguiente bloque práctico pasa a ser macOS.
+- Evaluado PiP nativo de macOS y descartado por ahora: la ventana PiP deja la presentación modal abierta y bloquea el menú; se mantiene fullscreen y AirPlay.
 - Corregido un crash de AppKit al actualizar el reproductor de macOS: `PlayerMouseTrackingView` eliminaba un `TrackingRectTag` no inicializado cuando la vista se actualizaba al cambiar de fuente; ahora usa únicamente `NSTrackingArea`.
 - Añadido artwork al `AVPlayerItem` para la tarjeta de reproducción bloqueada de iPhone: se publica primero el icono de la aplicación y se sustituye por el logo del canal cuando termina de descargarse.
 - Separado `PlaybackSessionDriver` de `PlayerViewModel` y ubicado en la capa de reproducción para aislar KVO, time observers, finalización y timeouts de la coordinación de UI; se mantiene un único flujo de eventos hacia `PlaybackSession`.
