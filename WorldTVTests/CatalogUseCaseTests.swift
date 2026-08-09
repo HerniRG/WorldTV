@@ -39,6 +39,41 @@ struct CatalogUseCaseTests {
         #expect(result.channels.map(\.id) == ["News.es"])
         #expect(result.channels.first?.isAvailable == true)
     }
+
+    @Test
+    func ordersAvailableChannelsBeforeUnavailableChannelsForCountry() async throws {
+        let unavailable = Channel(
+            id: "Offline.es",
+            name: "A Offline Channel",
+            alternativeNames: [],
+            countryCode: "ES",
+            categoryIDs: [],
+            isNSFW: false,
+            network: nil,
+            owners: [],
+            launched: nil,
+            closed: nil,
+            replacedBy: nil,
+            website: nil
+        )
+        let catalogWithUnavailable = Catalog(
+            channels: catalog.channels + [unavailable],
+            countries: catalog.countries,
+            categories: catalog.categories,
+            streamsByChannelID: catalog.streamsByChannelID,
+            logosByChannelID: catalog.logosByChannelID,
+            feeds: catalog.feeds,
+            languages: catalog.languages,
+            blocklist: catalog.blocklist
+        )
+        let useCase = LoadChannelsByCountryUseCase(
+            repository: StubChannelRepository(catalog: catalogWithUnavailable)
+        )
+
+        let result = try #require(try await useCase.execute(countryCode: "ES"))
+
+        #expect(result.channels.map(\.id) == ["News.es", "Offline.es"])
+    }
 }
 
 private struct StubFavoritesRepository: FavoritesRepository {

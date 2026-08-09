@@ -129,9 +129,7 @@ struct LoadChannelsByCountryUseCase: Sendable {
 
         let channels = catalog.index.channels(countryCode: countryCode)
             .map { makeChannelItem($0, catalog: catalog) }
-            .sorted {
-                $0.channel.name.localizedStandardCompare($1.channel.name) == .orderedAscending
-            }
+            .sorted(by: channelCatalogItemOrdering)
         return CountryChannels(country: country, channels: channels)
     }
 }
@@ -173,9 +171,7 @@ struct LoadChannelsByCategoryUseCase: Sendable {
         let channels = catalog.channels
             .filter { $0.categoryIDs.contains(categoryID) }
             .map { makeChannelItem($0, catalog: catalog) }
-            .sorted {
-                $0.channel.name.localizedStandardCompare($1.channel.name) == .orderedAscending
-            }
+            .sorted(by: channelCatalogItemOrdering)
         return CategoryChannels(category: category, channels: channels)
     }
 }
@@ -197,9 +193,7 @@ struct LoadChannelsByBroadcasterUseCase: Sendable {
         }
         let items = channels
             .map { makeChannelItem($0, catalog: catalog) }
-            .sorted {
-                $0.channel.name.localizedStandardCompare($1.channel.name) == .orderedAscending
-            }
+            .sorted(by: channelCatalogItemOrdering)
         return BroadcasterChannels(
             broadcaster: BroadcasterCatalogItem(
                 id: broadcasterID,
@@ -269,6 +263,17 @@ func makeChannelCatalogItem(
         },
         quality: streams.compactMap(\.quality).sorted().last
     )
+}
+
+func channelCatalogItemOrdering(
+    _ lhs: ChannelCatalogItem,
+    _ rhs: ChannelCatalogItem
+) -> Bool {
+    if lhs.isAvailable != rhs.isAvailable {
+        return lhs.isAvailable
+    }
+    return lhs.channel.name.localizedStandardCompare(rhs.channel.name)
+        == .orderedAscending
 }
 
 private func makeChannelItem(_ channel: Channel, catalog: Catalog) -> ChannelCatalogItem {

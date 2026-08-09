@@ -42,6 +42,34 @@ struct SearchChannelsUseCaseTests {
         #expect(result.options.languages.map(\.code) == ["eng", "spa"])
     }
 
+    @Test
+    func ordersAvailableChannelsBeforeUnavailableChannelsAfterFiltering() async throws {
+        let useCase = makeUseCase()
+
+        let result = try await useCase.execute(
+            criteria: ChannelSearchCriteria(availableOnly: false)
+        )
+
+        #expect(result.channels.map(\.id) == ["sport.us", "news.es", "offline.es"])
+    }
+
+    @Test
+    func appliesMaximumResultsAfterAvailabilityOrdering() async throws {
+        let useCase = SearchChannelsUseCase(
+            channelRepository: SearchStubChannelRepository(catalog: catalog),
+            favoritesRepository: SearchStubFavoritesRepository(
+                identifiers: ["news.es", "sport.us"]
+            ),
+            maximumResults: 1
+        )
+
+        let result = try await useCase.execute(
+            criteria: ChannelSearchCriteria(availableOnly: false)
+        )
+
+        #expect(result.channels.map(\.id) == ["sport.us"])
+    }
+
     private func makeUseCase() -> SearchChannelsUseCase {
         SearchChannelsUseCase(
             channelRepository: SearchStubChannelRepository(catalog: catalog),

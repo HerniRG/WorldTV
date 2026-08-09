@@ -75,15 +75,12 @@ struct SearchChannelsUseCase: Sendable {
                 query: normalizedQuery
             )
         }
-        .prefix(maximumResults)
         .map { makeChannelCatalogItem($0, catalog: loadedCatalog) }
-        .sorted {
-            $0.channel.name.localizedStandardCompare($1.channel.name)
-                == .orderedAscending
-        }
+        .sorted(by: channelCatalogItemOrdering)
+        .prefix(maximumResults)
 
         return ChannelSearchResult(
-            channels: channels,
+            channels: Array(channels),
             options: ChannelSearchOptions(
                 countries: loadedCatalog.countries.sorted {
                     $0.name.localizedStandardCompare($1.name) == .orderedAscending
