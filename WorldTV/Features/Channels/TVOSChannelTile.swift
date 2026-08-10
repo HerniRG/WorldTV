@@ -3,8 +3,6 @@ import SwiftUI
 
 struct TVOSChannelTile: View {
     @Environment(\.playChannel) private var playChannel
-    @FocusState private var isFocused: Bool
-
     let item: ChannelCatalogItem
     let favoritesStore: FavoritesStore
     var width: CGFloat?
@@ -22,12 +20,6 @@ struct TVOSChannelTile: View {
                     }
                 }
         }
-        .focused($isFocused)
-        .defaultFocus(
-            $isFocused,
-            true,
-            priority: .userInitiated
-        )
         .worldTVCardButtonStyle()
         .contextMenu {
             NavigationLink(value: AppRoute.channel(item.id)) {

@@ -7,7 +7,7 @@ struct TVRootView: View {
         AppSection.home.rawValue
     @State private var navigation = TVNavigationCoordinator()
     @State private var tabBarHasFocus = true
-    @State private var presentedChannel: TVPlayerPresentation?
+    @State private var presentedChannel: PlayerPresentation?
 
     let homeViewModel: HomeViewModel
     let container: AppContainer
@@ -50,10 +50,10 @@ struct TVRootView: View {
             )
         )
         .environment(\.playChannel) { channelID in
-            presentedChannel = TVPlayerPresentation(channelID: channelID)
+            presentedChannel = PlayerPresentation(channelID: channelID)
         }
         .environment(\.playChannelWithInitialFeed) { channelID, feedID in
-            presentedChannel = TVPlayerPresentation(
+            presentedChannel = PlayerPresentation(
                 channelID: channelID,
                 feedID: feedID
             )
@@ -98,7 +98,7 @@ struct TVRootView: View {
         }
         .onOpenURL(perform: handleURL)
         .background(
-            TVNativePlayerPresenter(
+            NativePlayerPresenter(
                 presentation: $presentedChannel,
                 container: container
             )
@@ -106,17 +106,9 @@ struct TVRootView: View {
     }
 
     private func handleURL(_ url: URL) {
-        guard url.scheme == "worldtv", url.host == "play" else {
-            return
+        if let presentation = PlayerPresentation(playURL: url) {
+            presentedChannel = presentation
         }
-        let components = url.pathComponents
-        guard components.count >= 2, !components[1].isEmpty else {
-            return
-        }
-        presentedChannel = TVPlayerPresentation(
-            channelID: components[1],
-            feedID: nil
-        )
     }
 
     private var exitCommand: (() -> Void)? {
@@ -144,130 +136,4 @@ struct TVRootView: View {
     }
 }
 
-private struct TVPlayerPresentation: Identifiable {
-    let id = UUID()
-    let channelID: String
-    let feedID: String?
-
-    init(channelID: String, feedID: String? = nil) {
-        self.channelID = channelID
-        self.feedID = feedID
-    }
-}
-
-private struct TVNativePlayerPresenter: UIViewControllerRepresentable {
-    @Binding var presentation: TVPlayerPresentation?
-    let container: AppContainer
-
-    func makeUIViewController(context: Context) -> PresenterViewController {
-        PresenterViewController()
-    }
-
-    func updateUIViewController(
-        _ controller: PresenterViewController,
-        context: Context
-    ) {
-        controller.update(
-            presentation: presentation,
-            container: container,
-            onDismiss: { presentation = nil }
-        )
-    }
-
-    @MainActor
-    final class PresenterViewController: UIViewController {
-        private var presentedPlayer: UIViewController?
-        private var presentedID: UUID?
-        private var pendingPresentation: TVPlayerPresentation?
-        private var pendingContainer: AppContainer?
-        private var onDismiss: (@MainActor () -> Void)?
-
-        override func viewDidAppear(_ animated: Bool) {
-            super.viewDidAppear(animated)
-            view.backgroundColor = .clear
-            presentPendingPlayerIfPossible()
-        }
-
-        func update(
-            presentation: TVPlayerPresentation?,
-            container: AppContainer,
-            onDismiss: @escaping @MainActor () -> Void
-        ) {
-            pendingPresentation = presentation
-            pendingContainer = container
-            self.onDismiss = onDismiss
-
-            if presentation == nil {
-                dismissPresentedPlayer()
-                return
-            }
-
-            presentPendingPlayerIfPossible()
-        }
-
-        private func presentPendingPlayerIfPossible() {
-            guard
-                viewIfLoaded?.window != nil,
-                presentedPlayer == nil,
-                let presentation = pendingPresentation,
-                let container = pendingContainer
-            else {
-                return
-            }
-
-            presentedID = presentation.id
-            let player = PlayerView(
-                channelID: presentation.channelID,
-                resolveSources: container.resolvePlaybackSources,
-                recordRecentlyWatched: container.recordRecentlyWatched,
-                initialFeedID: presentation.feedID,
-                closePresentation: { [weak self] in
-                    self?.dismissPresentedPlayer()
-                },
-                dismissForPictureInPicture: { [weak self] in
-                    self?.dismissPresentedPlayerForPictureInPicture()
-                },
-                restorePresentation: { [weak self] in
-                    self?.restorePresentedPlayer()
-                }
-            )
-            let hosting = UIHostingController(rootView: player)
-            hosting.modalPresentationStyle = .fullScreen
-            presentedPlayer = hosting
-            present(hosting, animated: false)
-        }
-
-        private func dismissPresentedPlayerForPictureInPicture() {
-            guard let player = presentedPlayer else {
-                return
-            }
-
-            player.dismiss(animated: false)
-        }
-
-        private func restorePresentedPlayer() {
-            guard
-                let player = presentedPlayer,
-                player.presentingViewController == nil,
-                viewIfLoaded?.window != nil
-            else {
-                return
-            }
-
-            present(player, animated: false)
-        }
-
-        private func dismissPresentedPlayer() {
-            pendingPresentation = nil
-            let player = presentedPlayer
-            presentedPlayer = nil
-            presentedID = nil
-            if let player {
-                player.dismiss(animated: false) { [weak self] in
-                    self?.onDismiss?()
-                }
-            }
-        }
-    }
-}
 #endif

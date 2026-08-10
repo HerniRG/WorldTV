@@ -10,29 +10,33 @@ struct PlayerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @State private var viewModel: PlayerViewModel
-    @State private var isPictureInPictureActive = false
-    @State private var isPictureInPictureTransitioning = false
     #if os(macOS)
     @State private var overlayVisibility = PlayerOverlayVisibility()
     #endif
     @AppStorage("autoplayChannels") private var autoplayChannels = true
     @AppStorage("preferredQuality") private var preferredQuality = "automatic"
     private let closePresentation: (@MainActor () -> Void)?
-    private let dismissForPictureInPicture: (@MainActor () -> Void)?
-    private let restorePresentation: (@MainActor () -> Void)?
+    private let onPictureInPictureWillStart: @MainActor () -> Void
+    private let onPictureInPictureDidStart: @MainActor () -> Void
+    private let onPictureInPictureStartFailed: @MainActor () -> Void
+    private let onPictureInPictureDidStop: @MainActor () -> Void
+    private let restorePresentation: @MainActor (@escaping (Bool) -> Void) -> Void
+    private let preservesPlaybackOnDisappear: @MainActor () -> Bool
 
     init(
         channelID: String,
         resolveSources: ResolvePlayableStreamUseCase,
         recordRecentlyWatched: RecordRecentlyWatchedUseCase,
         initialFeedID: String? = nil,
-        closePresentation: (@MainActor () -> Void)? = nil,
-        dismissForPictureInPicture: (@MainActor () -> Void)? = nil,
-        restorePresentation: (@MainActor () -> Void)? = nil
+        closePresentation: (@MainActor () -> Void)? = nil
     ) {
         self.closePresentation = closePresentation
-        self.dismissForPictureInPicture = dismissForPictureInPicture
-        self.restorePresentation = restorePresentation
+        onPictureInPictureWillStart = {}
+        onPictureInPictureDidStart = {}
+        onPictureInPictureStartFailed = {}
+        onPictureInPictureDidStop = {}
+        restorePresentation = { completion in completion(false) }
+        preservesPlaybackOnDisappear = { false }
         _viewModel = State(
             initialValue: PlayerViewModel(
                 channelID: channelID,
@@ -41,6 +45,26 @@ struct PlayerView: View {
                 initialFeedID: initialFeedID
             )
         )
+    }
+
+    init(
+        viewModel: PlayerViewModel,
+        closePresentation: @escaping @MainActor () -> Void,
+        onPictureInPictureWillStart: @escaping @MainActor () -> Void,
+        onPictureInPictureDidStart: @escaping @MainActor () -> Void,
+        onPictureInPictureStartFailed: @escaping @MainActor () -> Void,
+        onPictureInPictureDidStop: @escaping @MainActor () -> Void,
+        restorePresentation: @escaping @MainActor (@escaping (Bool) -> Void) -> Void,
+        preservesPlaybackOnDisappear: @escaping @MainActor () -> Bool
+    ) {
+        _viewModel = State(initialValue: viewModel)
+        self.closePresentation = closePresentation
+        self.onPictureInPictureWillStart = onPictureInPictureWillStart
+        self.onPictureInPictureDidStart = onPictureInPictureDidStart
+        self.onPictureInPictureStartFailed = onPictureInPictureStartFailed
+        self.onPictureInPictureDidStop = onPictureInPictureDidStop
+        self.restorePresentation = restorePresentation
+        self.preservesPlaybackOnDisappear = preservesPlaybackOnDisappear
     }
 
     var body: some View {
@@ -54,10 +78,12 @@ struct PlayerView: View {
                 feeds: viewModel.feeds,
                 selectedFeedID: viewModel.selectedFeedID,
                 onSelectFeed: { viewModel.selectFeed($0) },
-                onPictureInPictureWillStart: pictureInPictureWillStart,
-                onPictureInPictureChanged: pictureInPictureChanged,
-                onPictureInPictureRestoreRequested:
-                    pictureInPictureRestoreRequested,
+                onPlayerDismissRequested: close,
+                onPictureInPictureWillStart: onPictureInPictureWillStart,
+                onPictureInPictureDidStart: onPictureInPictureDidStart,
+                onPictureInPictureStartFailed: onPictureInPictureStartFailed,
+                onPictureInPictureDidStop: onPictureInPictureDidStop,
+                onPictureInPictureRestoreRequested: restorePresentation,
                 infoView: infoPanel
             )
 
@@ -129,10 +155,11 @@ struct PlayerView: View {
         }
         #endif
         .onDisappear {
+            let preservesPlayback = preservesPlaybackOnDisappear()
             playerPictureInPictureLogger.info(
-                "player.disappear active=\(self.isPictureInPictureActive, privacy: .public) transitioning=\(self.isPictureInPictureTransitioning, privacy: .public)"
+                "player.disappear preservesPlayback=\(preservesPlayback, privacy: .public)"
             )
-            if !isPictureInPictureActive && !isPictureInPictureTransitioning {
+            if !preservesPlayback {
                 playerPictureInPictureLogger.info("player.disappear stoppingPlayback")
                 viewModel.stop()
             }
@@ -252,36 +279,12 @@ struct PlayerView: View {
     }
 
     private func close() {
-        isPictureInPictureActive = false
         viewModel.stop()
         if let closePresentation {
             closePresentation()
         } else {
             dismiss()
         }
-    }
-
-    private func pictureInPictureChanged(_ isActive: Bool) {
-        guard isPictureInPictureActive != isActive else {
-            return
-        }
-
-        isPictureInPictureTransitioning = isActive
-        isPictureInPictureActive = isActive
-        playerPictureInPictureLogger.info(
-            "player.stateChanged active=\(isActive, privacy: .public)"
-        )
-    }
-
-    private func pictureInPictureWillStart() {
-        isPictureInPictureTransitioning = true
-        dismissForPictureInPicture?()
-    }
-
-    private func pictureInPictureRestoreRequested() {
-        isPictureInPictureTransitioning = false
-        isPictureInPictureActive = false
-        restorePresentation?()
     }
 
     private func message(for error: PlaybackError) -> LocalizedStringKey {

@@ -7,6 +7,21 @@ private let pictureInPictureLogger = Logger(
     category: "PictureInPicture"
 )
 
+#if os(iOS) || os(tvOS)
+private final class PictureInPictureRestoreCompletion: @unchecked Sendable {
+    private let handler: (Bool) -> Void
+
+    init(_ handler: @escaping (Bool) -> Void) {
+        self.handler = handler
+    }
+
+    @MainActor
+    func callAsFunction(_ restored: Bool) {
+        handler(restored)
+    }
+}
+#endif
+
 #if os(macOS)
 struct PlatformPlayerView: NSViewRepresentable {
     let player: AVPlayer
@@ -14,9 +29,12 @@ struct PlatformPlayerView: NSViewRepresentable {
     let feeds: [ChannelFeed]
     let selectedFeedID: String?
     let onSelectFeed: @MainActor (String?) -> Void
+    let onPlayerDismissRequested: @MainActor () -> Void
     let onPictureInPictureWillStart: @MainActor () -> Void
-    let onPictureInPictureChanged: @MainActor (Bool) -> Void
-    let onPictureInPictureRestoreRequested: @MainActor () -> Void
+    let onPictureInPictureDidStart: @MainActor () -> Void
+    let onPictureInPictureStartFailed: @MainActor () -> Void
+    let onPictureInPictureDidStop: @MainActor () -> Void
+    let onPictureInPictureRestoreRequested: @MainActor (@escaping (Bool) -> Void) -> Void
     let infoView: AnyView?
 
     func makeCoordinator() -> Coordinator {
@@ -52,15 +70,20 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
     let feeds: [ChannelFeed]
     let selectedFeedID: String?
     let onSelectFeed: @MainActor (String?) -> Void
+    let onPlayerDismissRequested: @MainActor () -> Void
     let onPictureInPictureWillStart: @MainActor () -> Void
-    let onPictureInPictureChanged: @MainActor (Bool) -> Void
-    let onPictureInPictureRestoreRequested: @MainActor () -> Void
+    let onPictureInPictureDidStart: @MainActor () -> Void
+    let onPictureInPictureStartFailed: @MainActor () -> Void
+    let onPictureInPictureDidStop: @MainActor () -> Void
+    let onPictureInPictureRestoreRequested: @MainActor (@escaping (Bool) -> Void) -> Void
     let infoView: AnyView?
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
             onPictureInPictureWillStart: onPictureInPictureWillStart,
-            onPictureInPictureChanged: onPictureInPictureChanged,
+            onPictureInPictureDidStart: onPictureInPictureDidStart,
+            onPictureInPictureStartFailed: onPictureInPictureStartFailed,
+            onPictureInPictureDidStop: onPictureInPictureDidStop,
             onPictureInPictureRestoreRequested:
                 onPictureInPictureRestoreRequested
         )
@@ -79,7 +102,9 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ controller: AVPlayerViewController, context: Context) {
-        context.coordinator.onPictureInPictureChanged = onPictureInPictureChanged
+        context.coordinator.onPictureInPictureDidStart = onPictureInPictureDidStart
+        context.coordinator.onPictureInPictureStartFailed = onPictureInPictureStartFailed
+        context.coordinator.onPictureInPictureDidStop = onPictureInPictureDidStop
         context.coordinator.onPictureInPictureWillStart = onPictureInPictureWillStart
         context.coordinator.onPictureInPictureRestoreRequested =
             onPictureInPictureRestoreRequested
@@ -94,17 +119,23 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
     final class Coordinator: NSObject, AVPlayerViewControllerDelegate {
         var lastRefreshID = 0
         var onPictureInPictureWillStart: @MainActor () -> Void
-        var onPictureInPictureChanged: @MainActor (Bool) -> Void
-        var onPictureInPictureRestoreRequested: @MainActor () -> Void
+        var onPictureInPictureDidStart: @MainActor () -> Void
+        var onPictureInPictureStartFailed: @MainActor () -> Void
+        var onPictureInPictureDidStop: @MainActor () -> Void
+        var onPictureInPictureRestoreRequested: @MainActor (@escaping (Bool) -> Void) -> Void
 
         init(
             onPictureInPictureWillStart: @escaping @MainActor () -> Void,
-            onPictureInPictureChanged: @escaping @MainActor (Bool) -> Void,
+            onPictureInPictureDidStart: @escaping @MainActor () -> Void,
+            onPictureInPictureStartFailed: @escaping @MainActor () -> Void,
+            onPictureInPictureDidStop: @escaping @MainActor () -> Void,
             onPictureInPictureRestoreRequested:
-                @escaping @MainActor () -> Void
+                @escaping @MainActor (@escaping (Bool) -> Void) -> Void
         ) {
             self.onPictureInPictureWillStart = onPictureInPictureWillStart
-            self.onPictureInPictureChanged = onPictureInPictureChanged
+            self.onPictureInPictureDidStart = onPictureInPictureDidStart
+            self.onPictureInPictureStartFailed = onPictureInPictureStartFailed
+            self.onPictureInPictureDidStop = onPictureInPictureDidStop
             self.onPictureInPictureRestoreRequested =
                 onPictureInPictureRestoreRequested
         }
@@ -123,17 +154,17 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
             _ playerViewController: AVPlayerViewController
         ) {
             pictureInPictureLogger.info("delegate.didStart")
-            let callback = onPictureInPictureChanged
+            let callback = onPictureInPictureDidStart
             MainActor.assumeIsolated {
-                callback(true)
+                callback()
             }
         }
 
         func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(
             _ playerViewController: AVPlayerViewController
         ) -> Bool {
-            pictureInPictureLogger.info("delegate.autoDismiss=true")
-            return true
+            pictureInPictureLogger.info("delegate.autoDismiss=false managedByPresenter")
+            return false
         }
 
         func playerViewController(
@@ -141,9 +172,9 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
             failedToStartPictureInPictureWithError error: Error
         ) {
             pictureInPictureLogger.error("delegate.startFailed")
-            let restore = onPictureInPictureRestoreRequested
+            let callback = onPictureInPictureStartFailed
             MainActor.assumeIsolated {
-                restore()
+                callback()
             }
         }
 
@@ -151,9 +182,9 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
             _ playerViewController: AVPlayerViewController
         ) {
             pictureInPictureLogger.info("delegate.didStop")
-            let callback = onPictureInPictureChanged
+            let callback = onPictureInPictureDidStop
             MainActor.assumeIsolated {
-                callback(false)
+                callback()
             }
         }
 
@@ -162,13 +193,11 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
             restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
         ) {
             pictureInPictureLogger.info("delegate.restoreRequested")
-            let callback = onPictureInPictureChanged
             let restore = onPictureInPictureRestoreRequested
+            let completion = PictureInPictureRestoreCompletion(completionHandler)
             MainActor.assumeIsolated {
-                callback(false)
-                restore()
+                restore(completion.callAsFunction)
             }
-            completionHandler(true)
         }
     }
 }
@@ -180,15 +209,21 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
     let feeds: [ChannelFeed]
     let selectedFeedID: String?
     let onSelectFeed: @MainActor (String?) -> Void
+    let onPlayerDismissRequested: @MainActor () -> Void
     let onPictureInPictureWillStart: @MainActor () -> Void
-    let onPictureInPictureChanged: @MainActor (Bool) -> Void
-    let onPictureInPictureRestoreRequested: @MainActor () -> Void
+    let onPictureInPictureDidStart: @MainActor () -> Void
+    let onPictureInPictureStartFailed: @MainActor () -> Void
+    let onPictureInPictureDidStop: @MainActor () -> Void
+    let onPictureInPictureRestoreRequested: @MainActor (@escaping (Bool) -> Void) -> Void
     let infoView: AnyView?
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
             onPictureInPictureWillStart: onPictureInPictureWillStart,
-            onPictureInPictureChanged: onPictureInPictureChanged,
+            onPlayerDismissRequested: onPlayerDismissRequested,
+            onPictureInPictureDidStart: onPictureInPictureDidStart,
+            onPictureInPictureStartFailed: onPictureInPictureStartFailed,
+            onPictureInPictureDidStop: onPictureInPictureDidStop,
             onPictureInPictureRestoreRequested:
                 onPictureInPictureRestoreRequested
         )
@@ -209,7 +244,10 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ controller: AVPlayerViewController, context: Context) {
-        context.coordinator.onPictureInPictureChanged = onPictureInPictureChanged
+        context.coordinator.onPictureInPictureDidStart = onPictureInPictureDidStart
+        context.coordinator.onPictureInPictureStartFailed = onPictureInPictureStartFailed
+        context.coordinator.onPictureInPictureDidStop = onPictureInPictureDidStop
+        context.coordinator.onPlayerDismissRequested = onPlayerDismissRequested
         context.coordinator.onPictureInPictureWillStart = onPictureInPictureWillStart
         context.coordinator.onPictureInPictureRestoreRequested =
             onPictureInPictureRestoreRequested
@@ -306,19 +344,28 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
     final class Coordinator: NSObject, AVPlayerViewControllerDelegate {
         var lastRefreshID = 0
         var onPictureInPictureWillStart: @MainActor () -> Void
-        var onPictureInPictureChanged: @MainActor (Bool) -> Void
-        var onPictureInPictureRestoreRequested: @MainActor () -> Void
+        var onPlayerDismissRequested: @MainActor () -> Void
+        var onPictureInPictureDidStart: @MainActor () -> Void
+        var onPictureInPictureStartFailed: @MainActor () -> Void
+        var onPictureInPictureDidStop: @MainActor () -> Void
+        var onPictureInPictureRestoreRequested: @MainActor (@escaping (Bool) -> Void) -> Void
         var infoHostingController: UIHostingController<AnyView>?
         var isInfoPanelInstalled = false
 
         init(
             onPictureInPictureWillStart: @escaping @MainActor () -> Void,
-            onPictureInPictureChanged: @escaping @MainActor (Bool) -> Void,
+            onPlayerDismissRequested: @escaping @MainActor () -> Void,
+            onPictureInPictureDidStart: @escaping @MainActor () -> Void,
+            onPictureInPictureStartFailed: @escaping @MainActor () -> Void,
+            onPictureInPictureDidStop: @escaping @MainActor () -> Void,
             onPictureInPictureRestoreRequested:
-                @escaping @MainActor () -> Void
+                @escaping @MainActor (@escaping (Bool) -> Void) -> Void
         ) {
             self.onPictureInPictureWillStart = onPictureInPictureWillStart
-            self.onPictureInPictureChanged = onPictureInPictureChanged
+            self.onPlayerDismissRequested = onPlayerDismissRequested
+            self.onPictureInPictureDidStart = onPictureInPictureDidStart
+            self.onPictureInPictureStartFailed = onPictureInPictureStartFailed
+            self.onPictureInPictureDidStop = onPictureInPictureDidStop
             self.onPictureInPictureRestoreRequested =
                 onPictureInPictureRestoreRequested
         }
@@ -333,21 +380,32 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
             }
         }
 
+        func playerViewControllerShouldDismiss(
+            _ playerViewController: AVPlayerViewController
+        ) -> Bool {
+            pictureInPictureLogger.info("delegate.dismissRequested")
+            let callback = onPlayerDismissRequested
+            MainActor.assumeIsolated {
+                callback()
+            }
+            return false
+        }
+
         func playerViewControllerDidStartPictureInPicture(
             _ playerViewController: AVPlayerViewController
         ) {
             pictureInPictureLogger.info("delegate.didStart")
-            let callback = onPictureInPictureChanged
+            let callback = onPictureInPictureDidStart
             MainActor.assumeIsolated {
-                callback(true)
+                callback()
             }
         }
 
         func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(
             _ playerViewController: AVPlayerViewController
         ) -> Bool {
-            pictureInPictureLogger.info("delegate.autoDismiss=true")
-            return true
+            pictureInPictureLogger.info("delegate.autoDismiss=false managedByPresenter")
+            return false
         }
 
         func playerViewController(
@@ -355,9 +413,9 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
             failedToStartPictureInPictureWithError error: Error
         ) {
             pictureInPictureLogger.error("delegate.startFailed")
-            let restore = onPictureInPictureRestoreRequested
+            let callback = onPictureInPictureStartFailed
             MainActor.assumeIsolated {
-                restore()
+                callback()
             }
         }
 
@@ -365,9 +423,9 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
             _ playerViewController: AVPlayerViewController
         ) {
             pictureInPictureLogger.info("delegate.didStop")
-            let callback = onPictureInPictureChanged
+            let callback = onPictureInPictureDidStop
             MainActor.assumeIsolated {
-                callback(false)
+                callback()
             }
         }
 
@@ -376,13 +434,11 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
             restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
         ) {
             pictureInPictureLogger.info("delegate.restoreRequested")
-            let callback = onPictureInPictureChanged
             let restore = onPictureInPictureRestoreRequested
+            let completion = PictureInPictureRestoreCompletion(completionHandler)
             MainActor.assumeIsolated {
-                callback(false)
-                restore()
+                restore(completion.callAsFunction)
             }
-            completionHandler(true)
         }
     }
 }
