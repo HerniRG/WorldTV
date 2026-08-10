@@ -3,6 +3,9 @@ import SwiftUI
 struct FavoritesView: View {
     @State private var viewModel: FavoritesViewModel
     let favoritesStore: FavoritesStore
+    #if os(tvOS)
+    @FocusState private var focusedChannelID: String?
+    #endif
 
     init(
         loadFavoriteChannels: LoadFavoriteChannelsUseCase,
@@ -48,6 +51,11 @@ struct FavoritesView: View {
         .onAppear {
             viewModel.reload()
         }
+        #if os(tvOS)
+        .onChange(of: favoritesStore.orderedIdentifiers) { _, _ in
+            restoreFocusIfNeeded()
+        }
+        #endif
         .onReceive(NotificationCenter.default.publisher(for: .playlistSourcesDidChange)) { _ in
             viewModel.reload()
         }
@@ -72,6 +80,9 @@ struct FavoritesView: View {
                             item: item,
                             favoritesStore: favoritesStore
                         )
+                        #if os(tvOS)
+                        .focused($focusedChannelID, equals: item.id)
+                        #endif
                     }
                 }
                 #if os(tvOS)
@@ -90,4 +101,24 @@ struct FavoritesView: View {
             }
         }
     }
+
+    #if os(tvOS)
+    private func restoreFocusIfNeeded() {
+        guard
+            let focusedChannelID,
+            !favoritesStore.contains(focusedChannelID)
+        else {
+            return
+        }
+
+        let nextChannelID = favoritesStore.orderedIdentifiers.first {
+            favoritesStore.contains($0)
+        }
+
+        Task { @MainActor in
+            await Task.yield()
+            self.focusedChannelID = nextChannelID
+        }
+    }
+    #endif
 }

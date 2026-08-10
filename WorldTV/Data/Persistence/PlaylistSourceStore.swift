@@ -4,6 +4,7 @@ protocol PlaylistSourceStore: Sendable {
     func load() async throws -> [PlaylistSource]
     func add(_ source: PlaylistSource) async throws
     func remove(id: UUID) async throws
+    func replace(_ sources: [PlaylistSource]) async throws
 }
 
 actor FilePlaylistSourceStore: PlaylistSourceStore {
@@ -23,6 +24,10 @@ actor FilePlaylistSourceStore: PlaylistSourceStore {
 
     func remove(id: UUID) throws {
         try save(try load().filter { $0.id != id })
+    }
+
+    func replace(_ sources: [PlaylistSource]) throws {
+        try save(sources)
     }
 
     private func save(_ sources: [PlaylistSource]) throws {

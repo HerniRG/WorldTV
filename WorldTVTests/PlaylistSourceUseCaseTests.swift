@@ -68,6 +68,7 @@ private actor InMemoryPlaylistSourceStore: PlaylistSourceStore {
     func load() -> [PlaylistSource] { sources }
     func add(_ source: PlaylistSource) { sources.append(source) }
     func remove(id: UUID) { sources.removeAll { $0.id == id } }
+    func replace(_ sources: [PlaylistSource]) { self.sources = sources }
 }
 
 private actor InvalidationSpy {

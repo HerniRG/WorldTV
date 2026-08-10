@@ -40,10 +40,12 @@ struct AppContainer {
         let iptvOrgAPIClient = IPTVOrgAPIClient(httpClient: httpClient)
         let iptvOrgMapper = IPTVOrgMapper()
         let baseDirectory = Self.prepareStorageDirectory()
-        let sourceStore = FilePlaylistSourceStore(
+        let localSourceStore = FilePlaylistSourceStore(
             fileURL: baseDirectory
                 .appendingPathComponent("playlist-sources.json")
         )
+        let cloudStore = CloudKitSyncStore()
+        let sourceStore = SyncedPlaylistSourceStore(local: localSourceStore, cloud: cloudStore)
         let metadataStore = FileCatalogMetadataStore(
             fileURL: baseDirectory
                 .appendingPathComponent("catalog-metadata.json")
@@ -63,7 +65,11 @@ struct AppContainer {
             }
         )
         let recentlyWatchedRepository = UserDefaultsRecentlyWatchedRepository()
-        let favoritesRepository = UserDefaultsFavoritesRepository()
+        let localFavoritesRepository = UserDefaultsFavoritesRepository()
+        let favoritesRepository = SyncedFavoritesRepository(
+            local: localFavoritesRepository,
+            cloud: cloudStore
+        )
         let favoritesStore = FavoritesStore(
             loadFavorites: LoadFavoriteChannelIDsUseCase(repository: favoritesRepository),
             toggleFavorite: ToggleFavoriteUseCase(repository: favoritesRepository),
@@ -149,17 +155,16 @@ struct AppContainer {
         ).first?
             .appendingPathComponent("WorldTV", isDirectory: true)
 
-        let legacyDirectories = [
-            applicationSupportDirectory,
-            fileManager.containerURL(
-                forSecurityApplicationGroupIdentifier: "group.hrgapps.WorldTV"
-            )?.appendingPathComponent("WorldTV", isDirectory: true)
-        ].compactMap { $0 }
+        let applicationGroupDirectory = fileManager.containerURL(
+            forSecurityApplicationGroupIdentifier: "group.hrgapps.WorldTV"
+        )?.appendingPathComponent("WorldTV", isDirectory: true)
+
+        let legacyDirectories = [applicationSupportDirectory, applicationGroupDirectory].compactMap { $0 }
 
         // Playlist sources belong to this app only. Keeping them in the app's
         // own container also works when a physical-device provisioning profile
         // does not include the optional App Group entitlement.
-        for directory in [documentsDirectory, applicationSupportDirectory].compactMap({ $0 }) {
+        for directory in [applicationGroupDirectory, documentsDirectory, applicationSupportDirectory].compactMap({ $0 }) {
             if ensureDirectoryIsWritable(directory, fileManager: fileManager) {
                 migrateLegacyFiles(from: legacyDirectories, to: directory, fileManager: fileManager)
                 return directory

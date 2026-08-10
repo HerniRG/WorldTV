@@ -3,6 +3,9 @@ import SwiftUI
 struct HomeView: View {
     @Bindable var viewModel: HomeViewModel
     let favoritesStore: FavoritesStore
+    #if os(tvOS)
+    @FocusState private var focusedChannelID: String?
+    #endif
 
     var body: some View {
         Group {
@@ -51,8 +54,29 @@ struct HomeView: View {
         .onReceive(NotificationCenter.default.publisher(for: .playlistSourcesDidChange)) { _ in
             viewModel.reloadVisibleContent()
         }
+        #if os(tvOS)
+        .onChange(of: favoritesStore.orderedIdentifiers) { _, _ in
+            restoreFocusIfNeeded()
+        }
+        #endif
         .modifier(CatalogRefreshToolbar(action: viewModel.refresh))
     }
+
+    #if os(tvOS)
+    private func restoreFocusIfNeeded() {
+        guard
+            let focusedChannelID,
+            !favoritesStore.contains(focusedChannelID)
+        else {
+            return
+        }
+
+        Task { @MainActor in
+            await Task.yield()
+            self.focusedChannelID = favoritesStore.orderedIdentifiers.first
+        }
+    }
+    #endif
 
     private func loadedView(_ content: HomeContent) -> some View {
         ScrollView {
@@ -161,6 +185,9 @@ struct HomeView: View {
                 favoritesStore: favoritesStore,
                 width: DesignTokens.cardWidth
             )
+            #if os(tvOS)
+            .focused($focusedChannelID, equals: item.id)
+            #endif
         }
     }
 

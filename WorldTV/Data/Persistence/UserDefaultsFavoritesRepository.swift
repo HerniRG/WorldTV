@@ -30,6 +30,10 @@ actor UserDefaultsFavoritesRepository: FavoritesRepository {
         defaults.removeObject(forKey: key)
     }
 
+    func set(_ identifiers: [String]) {
+        defaults.set(identifiers, forKey: key)
+    }
+
     private var defaults: UserDefaults {
         if let suiteName, let defaults = UserDefaults(suiteName: suiteName) {
             return defaults
