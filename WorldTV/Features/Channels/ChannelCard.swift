@@ -58,10 +58,22 @@ struct ChannelCard: View {
         .modifier(CardInteractionEffect())
         .accessibilityElement(children: .combine)
         .accessibilityLabel(item.channel.name)
-        .accessibilityValue(
-            item.isAvailable
-                ? Text("channel.available")
-                : Text("channel.unavailable")
-        )
+        .accessibilityValue(Text(accessibilityMetadata))
+    }
+
+    private var accessibilityMetadata: String {
+        var values = [
+            Locale.current.localizedString(
+                forRegionCode: item.channel.countryCode
+            ) ?? item.countryName
+        ]
+        if let quality = item.quality {
+            values.append(quality)
+        }
+        let availability = item.isAvailable
+            ? String(localized: "channel.available")
+            : String(localized: "channel.unavailable")
+        values.append(availability)
+        return values.joined(separator: " · ")
     }
 }

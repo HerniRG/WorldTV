@@ -2,8 +2,7 @@
 import SwiftUI
 
 struct TVOSChannelTile: View {
-    @Environment(\.playerServices) private var playerServices
-    @State private var presentsPlayer = false
+    @Environment(\.playChannel) private var playChannel
     @FocusState private var isFocused: Bool
 
     let item: ChannelCatalogItem
@@ -13,7 +12,7 @@ struct TVOSChannelTile: View {
     var body: some View {
         Button {
             if item.isAvailable {
-                presentsPlayer = true
+                playChannel(item.id)
             }
         } label: {
             card
@@ -59,30 +58,6 @@ struct TVOSChannelTile: View {
                 ? Text("channel.play.hint")
                 : Text("channel.unavailable")
         )
-        .fullScreenCover(
-            isPresented: $presentsPlayer,
-            onDismiss: restoreFocus
-        ) {
-            if let playerServices {
-                PlayerView(
-                    channelID: item.id,
-                    resolveSources: playerServices.resolveSources,
-                    recordRecentlyWatched:
-                        playerServices.recordRecentlyWatched,
-                    closePresentation: {
-                        presentsPlayer = false
-                    }
-                )
-            }
-        }
-    }
-
-    private func restoreFocus() {
-        Task { @MainActor in
-            isFocused = false
-            try? await Task.sleep(for: .milliseconds(300))
-            isFocused = true
-        }
     }
 
     private var favoriteStatus: some View {

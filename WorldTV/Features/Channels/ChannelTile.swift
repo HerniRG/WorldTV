@@ -35,6 +35,36 @@ struct ChannelTile: View {
         }
         .frame(width: width)
         .accessibilityElement(children: .contain)
+        #if os(macOS)
+        .contextMenu {
+            if item.isAvailable {
+                Button {
+                    playChannel(item.id)
+                } label: {
+                    Label("channel.play", systemImage: "play.fill")
+                }
+            }
+
+            NavigationLink(value: AppRoute.channel(item.id)) {
+                Label("channel.details", systemImage: "info.circle")
+            }
+
+            Button {
+                Task {
+                    await favoritesStore.toggle(item.id)
+                }
+            } label: {
+                Label(
+                    favoritesStore.contains(item.id)
+                        ? "favorites.remove"
+                        : "favorites.add",
+                    systemImage: favoritesStore.contains(item.id)
+                        ? "star.slash"
+                        : "star"
+                )
+            }
+        }
+        #endif
     }
 
     private var infoButton: some View {

@@ -1,16 +1,24 @@
 import SwiftUI
+import OSLog
+
+private let playerPictureInPictureLogger = Logger(
+    subsystem: "com.hernirg.worldtv",
+    category: "PictureInPicture"
+)
 
 struct PlayerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @State private var viewModel: PlayerViewModel
     @State private var isPictureInPictureActive = false
+    @State private var isPictureInPictureTransitioning = false
     #if os(macOS)
     @State private var overlayVisibility = PlayerOverlayVisibility()
     #endif
     @AppStorage("autoplayChannels") private var autoplayChannels = true
     @AppStorage("preferredQuality") private var preferredQuality = "automatic"
     private let closePresentation: (@MainActor () -> Void)?
+    private let dismissForPictureInPicture: (@MainActor () -> Void)?
     private let restorePresentation: (@MainActor () -> Void)?
 
     init(
@@ -19,9 +27,11 @@ struct PlayerView: View {
         recordRecentlyWatched: RecordRecentlyWatchedUseCase,
         initialFeedID: String? = nil,
         closePresentation: (@MainActor () -> Void)? = nil,
+        dismissForPictureInPicture: (@MainActor () -> Void)? = nil,
         restorePresentation: (@MainActor () -> Void)? = nil
     ) {
         self.closePresentation = closePresentation
+        self.dismissForPictureInPicture = dismissForPictureInPicture
         self.restorePresentation = restorePresentation
         _viewModel = State(
             initialValue: PlayerViewModel(
@@ -44,7 +54,10 @@ struct PlayerView: View {
                 feeds: viewModel.feeds,
                 selectedFeedID: viewModel.selectedFeedID,
                 onSelectFeed: { viewModel.selectFeed($0) },
+                onPictureInPictureWillStart: pictureInPictureWillStart,
                 onPictureInPictureChanged: pictureInPictureChanged,
+                onPictureInPictureRestoreRequested:
+                    pictureInPictureRestoreRequested,
                 infoView: infoPanel
             )
 
@@ -116,7 +129,11 @@ struct PlayerView: View {
         }
         #endif
         .onDisappear {
-            if !isPictureInPictureActive {
+            playerPictureInPictureLogger.info(
+                "player.disappear active=\(self.isPictureInPictureActive, privacy: .public) transitioning=\(self.isPictureInPictureTransitioning, privacy: .public)"
+            )
+            if !isPictureInPictureActive && !isPictureInPictureTransitioning {
+                playerPictureInPictureLogger.info("player.disappear stoppingPlayback")
                 viewModel.stop()
             }
         }
@@ -215,6 +232,18 @@ struct PlayerView: View {
         } description: {
             Text(message(for: error))
         } actions: {
+            Button("action.retry") {
+                viewModel.retry()
+            }
+            .buttonStyle(.borderedProminent)
+
+            if viewModel.sourceCount > 1 {
+                Button("player.tryAnotherSource") {
+                    viewModel.tryAnotherSource()
+                }
+                .buttonStyle(.bordered)
+            }
+
             Button("player.close") {
                 close()
             }
@@ -237,12 +266,22 @@ struct PlayerView: View {
             return
         }
 
+        isPictureInPictureTransitioning = isActive
         isPictureInPictureActive = isActive
-        if isActive {
-            closePresentation?()
-        } else {
-            restorePresentation?()
-        }
+        playerPictureInPictureLogger.info(
+            "player.stateChanged active=\(isActive, privacy: .public)"
+        )
+    }
+
+    private func pictureInPictureWillStart() {
+        isPictureInPictureTransitioning = true
+        dismissForPictureInPicture?()
+    }
+
+    private func pictureInPictureRestoreRequested() {
+        isPictureInPictureTransitioning = false
+        isPictureInPictureActive = false
+        restorePresentation?()
     }
 
     private func message(for error: PlaybackError) -> LocalizedStringKey {

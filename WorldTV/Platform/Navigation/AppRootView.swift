@@ -127,23 +127,132 @@ private extension View {
                 resolveSources: container.resolvePlaybackSources,
                 recordRecentlyWatched: container.recordRecentlyWatched,
                 initialFeedID: presentation.feedID,
-                closePresentation: { presentedPlayer.wrappedValue = nil },
-                restorePresentation: { presentedPlayer.wrappedValue = presentation }
+                closePresentation: { presentedPlayer.wrappedValue = nil }
             )
             .frame(minWidth: 900, minHeight: 600)
         }
         #else
-        fullScreenCover(item: presentedPlayer) { presentation in
-            PlayerView(
+        background(
+            IOSNativePlayerPresenter(
+                presentation: presentedPlayer,
+                container: container
+            )
+        )
+        #endif
+    }
+}
+
+#if os(iOS)
+private struct IOSNativePlayerPresenter: UIViewControllerRepresentable {
+    @Binding var presentation: PresentedPlayer?
+    let container: AppContainer
+
+    func makeUIViewController(context: Context) -> PresenterViewController {
+        PresenterViewController()
+    }
+
+    func updateUIViewController(
+        _ controller: PresenterViewController,
+        context: Context
+    ) {
+        controller.update(
+            presentation: presentation,
+            container: container,
+            onDismiss: { presentation = nil }
+        )
+    }
+
+    @MainActor
+    final class PresenterViewController: UIViewController {
+        private var presentedPlayer: UIViewController?
+        private var pendingPresentation: PresentedPlayer?
+        private var pendingContainer: AppContainer?
+        private var onDismiss: (@MainActor () -> Void)?
+
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            view.backgroundColor = .clear
+            presentPendingPlayerIfPossible()
+        }
+
+        func update(
+            presentation: PresentedPlayer?,
+            container: AppContainer,
+            onDismiss: @escaping @MainActor () -> Void
+        ) {
+            pendingPresentation = presentation
+            pendingContainer = container
+            self.onDismiss = onDismiss
+
+            if presentation == nil {
+                dismissPresentedPlayer()
+                return
+            }
+
+            presentPendingPlayerIfPossible()
+        }
+
+        private func presentPendingPlayerIfPossible() {
+            guard
+                viewIfLoaded?.window != nil,
+                presentedPlayer == nil,
+                let presentation = pendingPresentation,
+                let container = pendingContainer
+            else {
+                return
+            }
+
+            let player = PlayerView(
                 channelID: presentation.channelID,
                 resolveSources: container.resolvePlaybackSources,
                 recordRecentlyWatched: container.recordRecentlyWatched,
                 initialFeedID: presentation.feedID,
-                closePresentation: { presentedPlayer.wrappedValue = nil },
-                restorePresentation: { presentedPlayer.wrappedValue = presentation }
+                closePresentation: { [weak self] in
+                    self?.dismissPresentedPlayer()
+                },
+                dismissForPictureInPicture: { [weak self] in
+                    self?.dismissPresentedPlayerForPictureInPicture()
+                },
+                restorePresentation: { [weak self] in
+                    self?.restorePresentedPlayer()
+                }
             )
+            let hosting = UIHostingController(rootView: player)
+            hosting.modalPresentationStyle = .fullScreen
+            presentedPlayer = hosting
+            present(hosting, animated: false)
         }
-        #endif
+
+        private func dismissPresentedPlayerForPictureInPicture() {
+            guard let player = presentedPlayer else {
+                return
+            }
+            player.dismiss(animated: false)
+        }
+
+        private func restorePresentedPlayer() {
+            guard
+                let player = presentedPlayer,
+                player.presentingViewController == nil,
+                viewIfLoaded?.window != nil
+            else {
+                return
+            }
+
+            present(player, animated: false)
+        }
+
+        private func dismissPresentedPlayer() {
+            pendingPresentation = nil
+            let player = presentedPlayer
+            presentedPlayer = nil
+            if let player {
+                player.dismiss(animated: false) { [weak self] in
+                    self?.onDismiss?()
+                }
+            }
+        }
     }
 }
+#endif
 #endif

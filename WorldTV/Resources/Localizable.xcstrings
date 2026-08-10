@@ -8179,6 +8179,20 @@
           }
         }
       }
+    },
+    "player.tryAnotherSource" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "جرّب إشارة أخرى" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Anderes Signal versuchen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Try another signal" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Probar otra señal" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Essayer un autre signal" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "कोई दूसरा सिग्नल आज़माएँ" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Prova un altro segnale" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "別の信号を試す" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Tentar outro sinal" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "尝试其他信号" } }
+      }
     }
   },
   "version" : "1.1"

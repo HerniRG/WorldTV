@@ -81,7 +81,7 @@ struct CountriesView: View {
             }
             Task { @MainActor in
                 focusedCountryCode = nil
-                try? await Task.sleep(for: .milliseconds(300))
+                await Task.yield()
                 focusedCountryCode = code
             }
         }

@@ -1,5 +1,11 @@
 import AVKit
+import OSLog
 import SwiftUI
+
+private let pictureInPictureLogger = Logger(
+    subsystem: "com.hernirg.worldtv",
+    category: "PictureInPicture"
+)
 
 #if os(macOS)
 struct PlatformPlayerView: NSViewRepresentable {
@@ -8,7 +14,9 @@ struct PlatformPlayerView: NSViewRepresentable {
     let feeds: [ChannelFeed]
     let selectedFeedID: String?
     let onSelectFeed: @MainActor (String?) -> Void
+    let onPictureInPictureWillStart: @MainActor () -> Void
     let onPictureInPictureChanged: @MainActor (Bool) -> Void
+    let onPictureInPictureRestoreRequested: @MainActor () -> Void
     let infoView: AnyView?
 
     func makeCoordinator() -> Coordinator {
@@ -44,11 +52,18 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
     let feeds: [ChannelFeed]
     let selectedFeedID: String?
     let onSelectFeed: @MainActor (String?) -> Void
+    let onPictureInPictureWillStart: @MainActor () -> Void
     let onPictureInPictureChanged: @MainActor (Bool) -> Void
+    let onPictureInPictureRestoreRequested: @MainActor () -> Void
     let infoView: AnyView?
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onPictureInPictureChanged: onPictureInPictureChanged)
+        Coordinator(
+            onPictureInPictureWillStart: onPictureInPictureWillStart,
+            onPictureInPictureChanged: onPictureInPictureChanged,
+            onPictureInPictureRestoreRequested:
+                onPictureInPictureRestoreRequested
+        )
     }
 
     func makeUIViewController(context: Context) -> AVPlayerViewController {
@@ -65,6 +80,9 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ controller: AVPlayerViewController, context: Context) {
         context.coordinator.onPictureInPictureChanged = onPictureInPictureChanged
+        context.coordinator.onPictureInPictureWillStart = onPictureInPictureWillStart
+        context.coordinator.onPictureInPictureRestoreRequested =
+            onPictureInPictureRestoreRequested
         controller.player = player
         if context.coordinator.lastRefreshID != refreshID {
             context.coordinator.lastRefreshID = refreshID
@@ -75,24 +93,64 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
 
     final class Coordinator: NSObject, AVPlayerViewControllerDelegate {
         var lastRefreshID = 0
+        var onPictureInPictureWillStart: @MainActor () -> Void
         var onPictureInPictureChanged: @MainActor (Bool) -> Void
+        var onPictureInPictureRestoreRequested: @MainActor () -> Void
 
-        init(onPictureInPictureChanged: @escaping @MainActor (Bool) -> Void) {
+        init(
+            onPictureInPictureWillStart: @escaping @MainActor () -> Void,
+            onPictureInPictureChanged: @escaping @MainActor (Bool) -> Void,
+            onPictureInPictureRestoreRequested:
+                @escaping @MainActor () -> Void
+        ) {
+            self.onPictureInPictureWillStart = onPictureInPictureWillStart
             self.onPictureInPictureChanged = onPictureInPictureChanged
+            self.onPictureInPictureRestoreRequested =
+                onPictureInPictureRestoreRequested
+        }
+
+        func playerViewControllerWillStartPictureInPicture(
+            _ playerViewController: AVPlayerViewController
+        ) {
+            pictureInPictureLogger.info("delegate.willStart")
+            let callback = onPictureInPictureWillStart
+            MainActor.assumeIsolated {
+                callback()
+            }
         }
 
         func playerViewControllerDidStartPictureInPicture(
             _ playerViewController: AVPlayerViewController
         ) {
+            pictureInPictureLogger.info("delegate.didStart")
             let callback = onPictureInPictureChanged
             MainActor.assumeIsolated {
                 callback(true)
             }
         }
 
+        func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(
+            _ playerViewController: AVPlayerViewController
+        ) -> Bool {
+            pictureInPictureLogger.info("delegate.autoDismiss=true")
+            return true
+        }
+
+        func playerViewController(
+            _ playerViewController: AVPlayerViewController,
+            failedToStartPictureInPictureWithError error: Error
+        ) {
+            pictureInPictureLogger.error("delegate.startFailed")
+            let restore = onPictureInPictureRestoreRequested
+            MainActor.assumeIsolated {
+                restore()
+            }
+        }
+
         func playerViewControllerDidStopPictureInPicture(
             _ playerViewController: AVPlayerViewController
         ) {
+            pictureInPictureLogger.info("delegate.didStop")
             let callback = onPictureInPictureChanged
             MainActor.assumeIsolated {
                 callback(false)
@@ -103,9 +161,12 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
             _ playerViewController: AVPlayerViewController,
             restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
         ) {
+            pictureInPictureLogger.info("delegate.restoreRequested")
             let callback = onPictureInPictureChanged
+            let restore = onPictureInPictureRestoreRequested
             MainActor.assumeIsolated {
                 callback(false)
+                restore()
             }
             completionHandler(true)
         }
@@ -119,11 +180,18 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
     let feeds: [ChannelFeed]
     let selectedFeedID: String?
     let onSelectFeed: @MainActor (String?) -> Void
+    let onPictureInPictureWillStart: @MainActor () -> Void
     let onPictureInPictureChanged: @MainActor (Bool) -> Void
+    let onPictureInPictureRestoreRequested: @MainActor () -> Void
     let infoView: AnyView?
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onPictureInPictureChanged: onPictureInPictureChanged)
+        Coordinator(
+            onPictureInPictureWillStart: onPictureInPictureWillStart,
+            onPictureInPictureChanged: onPictureInPictureChanged,
+            onPictureInPictureRestoreRequested:
+                onPictureInPictureRestoreRequested
+        )
     }
 
     func makeUIViewController(context: Context) -> AVPlayerViewController {
@@ -142,6 +210,9 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ controller: AVPlayerViewController, context: Context) {
         context.coordinator.onPictureInPictureChanged = onPictureInPictureChanged
+        context.coordinator.onPictureInPictureWillStart = onPictureInPictureWillStart
+        context.coordinator.onPictureInPictureRestoreRequested =
+            onPictureInPictureRestoreRequested
         controller.player = player
         if context.coordinator.lastRefreshID != refreshID {
             context.coordinator.lastRefreshID = refreshID
@@ -234,26 +305,66 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
 
     final class Coordinator: NSObject, AVPlayerViewControllerDelegate {
         var lastRefreshID = 0
+        var onPictureInPictureWillStart: @MainActor () -> Void
         var onPictureInPictureChanged: @MainActor (Bool) -> Void
+        var onPictureInPictureRestoreRequested: @MainActor () -> Void
         var infoHostingController: UIHostingController<AnyView>?
         var isInfoPanelInstalled = false
 
-        init(onPictureInPictureChanged: @escaping @MainActor (Bool) -> Void) {
+        init(
+            onPictureInPictureWillStart: @escaping @MainActor () -> Void,
+            onPictureInPictureChanged: @escaping @MainActor (Bool) -> Void,
+            onPictureInPictureRestoreRequested:
+                @escaping @MainActor () -> Void
+        ) {
+            self.onPictureInPictureWillStart = onPictureInPictureWillStart
             self.onPictureInPictureChanged = onPictureInPictureChanged
+            self.onPictureInPictureRestoreRequested =
+                onPictureInPictureRestoreRequested
+        }
+
+        func playerViewControllerWillStartPictureInPicture(
+            _ playerViewController: AVPlayerViewController
+        ) {
+            pictureInPictureLogger.info("delegate.willStart")
+            let callback = onPictureInPictureWillStart
+            MainActor.assumeIsolated {
+                callback()
+            }
         }
 
         func playerViewControllerDidStartPictureInPicture(
             _ playerViewController: AVPlayerViewController
         ) {
+            pictureInPictureLogger.info("delegate.didStart")
             let callback = onPictureInPictureChanged
             MainActor.assumeIsolated {
                 callback(true)
             }
         }
 
+        func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(
+            _ playerViewController: AVPlayerViewController
+        ) -> Bool {
+            pictureInPictureLogger.info("delegate.autoDismiss=true")
+            return true
+        }
+
+        func playerViewController(
+            _ playerViewController: AVPlayerViewController,
+            failedToStartPictureInPictureWithError error: Error
+        ) {
+            pictureInPictureLogger.error("delegate.startFailed")
+            let restore = onPictureInPictureRestoreRequested
+            MainActor.assumeIsolated {
+                restore()
+            }
+        }
+
         func playerViewControllerDidStopPictureInPicture(
             _ playerViewController: AVPlayerViewController
         ) {
+            pictureInPictureLogger.info("delegate.didStop")
             let callback = onPictureInPictureChanged
             MainActor.assumeIsolated {
                 callback(false)
@@ -264,9 +375,12 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
             _ playerViewController: AVPlayerViewController,
             restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void
         ) {
+            pictureInPictureLogger.info("delegate.restoreRequested")
             let callback = onPictureInPictureChanged
+            let restore = onPictureInPictureRestoreRequested
             MainActor.assumeIsolated {
                 callback(false)
+                restore()
             }
             completionHandler(true)
         }

@@ -26,8 +26,8 @@ enum DesignTokens {
     static let pagePadding: CGFloat = 24
     static let countryGridMinimum: CGFloat = 400
     static let channelGridMinimum: CGFloat = 190
-    static let favoriteButtonSize: CGFloat = 36
-    static let favoriteIconSize: CGFloat = 16
+    static let favoriteButtonSize: CGFloat = 44
+    static let favoriteIconSize: CGFloat = 18
     static let favoriteButtonInset: CGFloat = 8
     static let channelCarouselHeight: CGFloat = 260
     static let broadcasterCardWidth: CGFloat = 240

@@ -2,10 +2,6 @@ import SwiftUI
 
 struct ChannelDetailView: View {
     @Environment(\.playChannelWithInitialFeed) private var playChannelWithFeed
-    @Environment(\.playerServices) private var playerServices
-    #if os(tvOS)
-    @State private var presentsPlayer = false
-    #endif
     @State private var viewModel: ChannelDetailViewModel
     @State private var selectedFeedID: String?
 
@@ -48,21 +44,6 @@ struct ChannelDetailView: View {
         .task(id: stateIsIdle) {
             await viewModel.loadIfNeeded()
         }
-        #if os(tvOS)
-        .fullScreenCover(isPresented: $presentsPlayer) {
-            if let playerServices, let content = loadedContent {
-                PlayerView(
-                    channelID: content.channel.id,
-                    resolveSources: playerServices.resolveSources,
-                    recordRecentlyWatched: playerServices.recordRecentlyWatched,
-                    initialFeedID: selectedFeedID,
-                    closePresentation: {
-                        presentsPlayer = false
-                    }
-                )
-            }
-        }
-        #endif
     }
 
     private var stateIsIdle: Bool {
@@ -259,11 +240,7 @@ struct ChannelDetailView: View {
 
     private func play(_ content: ChannelDetailContent) {
         guard content.isAvailable else { return }
-        #if os(tvOS)
-        presentsPlayer = true
-        #else
         playChannelWithFeed(content.channel.id, selectedFeedID)
-        #endif
     }
 
     @ViewBuilder
