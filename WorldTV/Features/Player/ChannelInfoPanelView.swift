@@ -7,6 +7,7 @@ struct ChannelInfoPanelView: View {
     let onSleepTimerSelected: @MainActor (Int?) -> Void
     @State private var isFavorite = false
     @State private var selectedSleepTimer: Int?
+    @State private var isSleepTimerMenuPresented = false
 
     init(
         info: PlayerChannelInfo,
@@ -109,29 +110,29 @@ struct ChannelInfoPanelView: View {
     }
 
     private var sleepTimerMenu: some View {
-        Menu {
-            Button("player.sleepTimer.off") {
-                selectedSleepTimer = nil
-                onSleepTimerSelected(nil)
-            }
-            Button("player.sleepTimer.15") {
-                selectedSleepTimer = 15
-                onSleepTimerSelected(15)
-            }
-            Button("player.sleepTimer.30") {
-                selectedSleepTimer = 30
-                onSleepTimerSelected(30)
-            }
-            Button("player.sleepTimer.60") {
-                selectedSleepTimer = 60
-                onSleepTimerSelected(60)
-            }
+        Button {
+            isSleepTimerMenuPresented = true
         } label: {
             SleepTimerActionLabel(selectedMinutes: selectedSleepTimer)
         }
         .buttonStyle(PlayerActionButtonStyle())
+        .confirmationDialog(
+            "player.sleepTimer",
+            isPresented: $isSleepTimerMenuPresented,
+            titleVisibility: .visible
+        ) {
+            Button("player.sleepTimer.off") { selectSleepTimer(nil) }
+            Button("player.sleepTimer.15") { selectSleepTimer(15) }
+            Button("player.sleepTimer.30") { selectSleepTimer(30) }
+            Button("player.sleepTimer.60") { selectSleepTimer(60) }
+        }
         .accessibilityIdentifier("player.sleepTimer")
         .accessibilityValue(Text(sleepTimerValue))
+    }
+
+    private func selectSleepTimer(_ minutes: Int?) {
+        selectedSleepTimer = minutes
+        onSleepTimerSelected(minutes)
     }
 
     private var sleepTimerValue: String {
@@ -199,7 +200,6 @@ private struct FavoriteActionLabel: View {
 
 private struct SleepTimerActionLabel: View {
     let selectedMinutes: Int?
-    @Environment(\.isFocused) private var isFocused
 
     var body: some View {
         HStack(spacing: 8) {
@@ -211,7 +211,6 @@ private struct SleepTimerActionLabel: View {
                     .font(.subheadline.monospacedDigit())
             }
         }
-        .foregroundStyle(isFocused ? Color.white : Color.primary)
         .frame(minHeight: DesignTokens.favoriteButtonSize)
     }
 

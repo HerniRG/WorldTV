@@ -444,7 +444,7 @@ private struct SleepTimerWarningView: View {
                 .monospacedDigit()
                 .accessibilityLabel(Text("player.sleepTimer.remaining"))
             Button("player.sleepTimer.cancel", action: onCancel)
-                .buttonStyle(PlayerActionButtonStyle())
+                .buttonStyle(.borderedProminent)
                 #if os(tvOS)
                 .focused($cancelIsFocused)
                 .prefersDefaultFocus(true, in: warningFocusNamespace)
