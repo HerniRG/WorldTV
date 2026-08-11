@@ -356,9 +356,9 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
     ) -> [UIMenuElement] {
         let options: [(String, Int?)] = [
             (String(localized: "player.sleepTimer.off"), nil),
-            ("15 min", 15),
-            ("30 min", 30),
-            ("60 min", 60)
+            (String(localized: "player.sleepTimer.15"), 15),
+            (String(localized: "player.sleepTimer.30"), 30),
+            (String(localized: "player.sleepTimer.60"), 60)
         ]
         let actions = options.map { title, minutes in
             UIAction(

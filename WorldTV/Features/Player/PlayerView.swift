@@ -241,16 +241,15 @@ struct PlayerView: View {
     private var sleepTimerMenu: some View {
         Menu {
             sleepTimerOption("player.sleepTimer.off", minutes: nil)
-            sleepTimerOption("15 min", minutes: 15)
-            sleepTimerOption("30 min", minutes: 30)
-            sleepTimerOption("60 min", minutes: 60)
+            sleepTimerOption("player.sleepTimer.15", minutes: 15)
+            sleepTimerOption("player.sleepTimer.30", minutes: 30)
+            sleepTimerOption("player.sleepTimer.60", minutes: 60)
         } label: {
             Label {
                 HStack(spacing: 6) {
                     Text("player.sleepTimer")
                     if let selectedSleepTimer {
-                        Text("· \(selectedSleepTimer) min")
-                            .monospacedDigit()
+                        Text("· \(sleepTimerOptionTitle(selectedSleepTimer))")
                     }
                 }
             } icon: {
@@ -277,6 +276,14 @@ struct PlayerView: View {
                     Image(systemName: "checkmark")
                 }
             }
+        }
+    }
+
+    private func sleepTimerOptionTitle(_ minutes: Int) -> String {
+        switch minutes {
+        case 15: return String(localized: "player.sleepTimer.15")
+        case 30: return String(localized: "player.sleepTimer.30")
+        default: return String(localized: "player.sleepTimer.60")
         }
     }
     #endif

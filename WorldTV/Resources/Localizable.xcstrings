@@ -5415,6 +5415,48 @@
         }
       }
     },
+    "player.sleepTimer.15" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "15 دقيقة" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "15 Min." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "15 min" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "15 min" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "15 min" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "15 मिनट" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "15 min" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "15分" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "15 min" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "15 分钟" } }
+      }
+    },
+    "player.sleepTimer.30" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "30 دقيقة" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "30 Min." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "30 min" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "30 min" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "30 min" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "30 मिनट" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "30 min" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "30分" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "30 min" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "30 分钟" } }
+      }
+    },
+    "player.sleepTimer.60" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "60 دقيقة" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "60 Min." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "60 min" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "60 min" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "60 min" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "60 मिनट" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "60 min" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "60分" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "60 min" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "60 分钟" } }
+      }
+    },
     "player.info" : {
       "localizations" : {
         "ar" : {

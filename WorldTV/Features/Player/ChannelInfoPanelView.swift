@@ -119,15 +119,15 @@ struct ChannelInfoPanelView: View {
                 selectedSleepTimer = nil
                 onSleepTimerSelected(nil)
             }
-            Button("15 min") {
+            Button("player.sleepTimer.15") {
                 selectedSleepTimer = 15
                 onSleepTimerSelected(15)
             }
-            Button("30 min") {
+            Button("player.sleepTimer.30") {
                 selectedSleepTimer = 30
                 onSleepTimerSelected(30)
             }
-            Button("60 min") {
+            Button("player.sleepTimer.60") {
                 selectedSleepTimer = 60
                 onSleepTimerSelected(60)
             }
@@ -136,7 +136,7 @@ struct ChannelInfoPanelView: View {
                 Label("player.sleepTimer", systemImage: "moon.zzz")
                     .font(.headline)
                 if let selectedSleepTimer {
-                    Text("· \(selectedSleepTimer) min")
+                    Text("· \(sleepTimerOptionTitle(selectedSleepTimer))")
                         .font(.subheadline.monospacedDigit())
                 }
             }
@@ -150,7 +150,15 @@ struct ChannelInfoPanelView: View {
         guard let selectedSleepTimer else {
             return String(localized: "player.sleepTimer.off")
         }
-        return "\(selectedSleepTimer) min"
+        return sleepTimerOptionTitle(selectedSleepTimer)
+    }
+
+    private func sleepTimerOptionTitle(_ minutes: Int) -> String {
+        switch minutes {
+        case 15: return String(localized: "player.sleepTimer.15")
+        case 30: return String(localized: "player.sleepTimer.30")
+        default: return String(localized: "player.sleepTimer.60")
+        }
     }
 
     private var logo: some View {
