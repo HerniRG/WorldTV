@@ -102,7 +102,7 @@ struct ChannelInfoPanelView: View {
         } label: {
             FavoriteActionLabel(isFavorite: isFavorite)
         }
-        .buttonStyle(PlayerActionButtonStyle(horizontalPadding: 0))
+        .buttonStyle(PlayerActionButtonStyle(horizontalPadding: 0, isCircular: true))
         .accessibilityLabel(
             isFavorite ? Text("favorites.remove") : Text("favorites.add")
         )
@@ -127,6 +127,7 @@ struct ChannelInfoPanelView: View {
             Button("player.sleepTimer.60") { selectSleepTimer(60) }
         }
         .accessibilityIdentifier("player.sleepTimer")
+        .accessibilityLabel(Text("player.sleepTimer"))
         .accessibilityValue(Text(sleepTimerValue))
     }
 
@@ -191,8 +192,8 @@ private struct FavoriteActionLabel: View {
             .font(.system(size: DesignTokens.favoriteIconSize, weight: .semibold))
             .foregroundStyle(isFocused ? Color.white : (isFavorite ? Color.yellow : Color.primary))
             .frame(
-                width: DesignTokens.favoriteButtonSize,
-                height: DesignTokens.favoriteButtonSize
+                width: DesignTokens.playerActionButtonSize,
+                height: DesignTokens.playerActionButtonSize
             )
             .accessibilityHidden(true)
     }
@@ -204,14 +205,13 @@ private struct SleepTimerActionLabel: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "moon.zzz")
-            Text("player.sleepTimer")
-                .font(.headline)
             if let selectedMinutes {
                 Text("· \(sleepTimerOptionTitle(selectedMinutes))")
                     .font(.subheadline.monospacedDigit())
             }
         }
-        .frame(minHeight: DesignTokens.favoriteButtonSize)
+        .font(.headline)
+        .frame(minHeight: DesignTokens.playerActionButtonSize)
     }
 
     private func sleepTimerOptionTitle(_ minutes: Int) -> String {
@@ -225,35 +225,53 @@ private struct SleepTimerActionLabel: View {
 
 struct PlayerActionButtonStyle: ButtonStyle {
     let horizontalPadding: CGFloat
+    let isCircular: Bool
 
-    init(horizontalPadding: CGFloat = 18) {
+    init(horizontalPadding: CGFloat = 24, isCircular: Bool = false) {
         self.horizontalPadding = horizontalPadding
+        self.isCircular = isCircular
     }
 
     func makeBody(configuration: Configuration) -> some View {
         FocusedBody(
             configuration: configuration,
-            horizontalPadding: horizontalPadding
+            horizontalPadding: horizontalPadding,
+            isCircular: isCircular
         )
     }
 
     private struct FocusedBody: View {
         let configuration: Configuration
         let horizontalPadding: CGFloat
+        let isCircular: Bool
         @Environment(\.isFocused) private var isFocused
         var body: some View {
             configuration.label
                 .foregroundStyle(isFocused ? Color.white : Color.primary)
                 .padding(.horizontal, horizontalPadding)
+                .frame(minHeight: isCircular ? DesignTokens.playerActionButtonSize : nil)
                 .background {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(isFocused ? Color.accentColor : Color.clear)
+                    if isCircular {
+                        Circle()
+                            .fill(isFocused ? Color.accentColor : Color.primary.opacity(0.16))
+                    } else {
+                        RoundedRectangle(cornerRadius: 22, style: .continuous)
+                            .fill(isFocused ? Color.accentColor : Color.primary.opacity(0.16))
+                    }
                 }
                 .overlay {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(isFocused ? Color.white.opacity(0.9) : Color.clear, lineWidth: 3)
+                    if isCircular {
+                        Circle()
+                            .stroke(isFocused ? Color.white : Color.white.opacity(0.22), lineWidth: isFocused ? 4 : 1)
+                    } else {
+                        RoundedRectangle(cornerRadius: 22, style: .continuous)
+                            .stroke(isFocused ? Color.white : Color.white.opacity(0.22), lineWidth: isFocused ? 4 : 1)
+                    }
                 }
+                .scaleEffect(isFocused ? 1.05 : 1)
                 .opacity(configuration.isPressed ? 0.75 : 1)
+                .zIndex(isFocused ? 1 : 0)
+                .animation(.easeOut(duration: 0.14), value: isFocused)
         }
     }
 }
