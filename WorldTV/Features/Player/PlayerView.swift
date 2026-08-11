@@ -312,7 +312,12 @@ struct PlayerView: View {
             sleepTimerTask = nil
             return
         }
-        let endDate = Date.now.addingTimeInterval(TimeInterval(minutes * 60))
+        #if DEBUG
+        let durationInSeconds = minutes == 15 ? 50 : minutes * 60
+        #else
+        let durationInSeconds = minutes * 60
+        #endif
+        let endDate = Date.now.addingTimeInterval(TimeInterval(durationInSeconds))
         sleepTimerTask = Task { @MainActor in
             do {
                 while !Task.isCancelled {

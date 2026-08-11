@@ -30,9 +30,6 @@ struct ChannelInfoPanelView: View {
                         Text(info.name)
                             .font(.title.bold())
                         Spacer()
-                        if favoritesStore != nil {
-                            favoriteButton
-                        }
                     }
                     if !info.broadcasterName.isEmpty {
                         Label(info.broadcasterName, systemImage: "building.2")
@@ -64,7 +61,12 @@ struct ChannelInfoPanelView: View {
                     .foregroundStyle(.secondary)
             }
 
-            sleepTimerMenu
+            HStack(spacing: 16) {
+                if favoritesStore != nil {
+                    favoriteButton
+                }
+                sleepTimerMenu
+            }
         }
         .padding(DesignTokens.pagePadding)
         .foregroundStyle(.white)
@@ -97,16 +99,9 @@ struct ChannelInfoPanelView: View {
                 isFavorite = favoritesStore.contains(info.channelID)
             }
         } label: {
-            Image(systemName: isFavorite ? "star.fill" : "star")
-                .font(.system(size: DesignTokens.favoriteIconSize, weight: .semibold))
-                .foregroundStyle(isFavorite ? Color.yellow : Color.primary)
-                .frame(
-                    width: DesignTokens.favoriteButtonSize,
-                    height: DesignTokens.favoriteButtonSize
-                )
-                .background(.regularMaterial, in: Circle())
+            FavoriteActionLabel(isFavorite: isFavorite)
         }
-        .buttonStyle(InfoPanelFavoriteButtonStyle())
+        .buttonStyle(InfoPanelActionButtonStyle())
         .accessibilityLabel(
             isFavorite ? Text("favorites.remove") : Text("favorites.add")
         )
@@ -132,16 +127,9 @@ struct ChannelInfoPanelView: View {
                 onSleepTimerSelected(60)
             }
         } label: {
-            HStack(spacing: 8) {
-                Label("player.sleepTimer", systemImage: "moon.zzz")
-                    .font(.headline)
-                if let selectedSleepTimer {
-                    Text("· \(sleepTimerOptionTitle(selectedSleepTimer))")
-                        .font(.subheadline.monospacedDigit())
-                }
-            }
+            SleepTimerActionLabel(selectedMinutes: selectedSleepTimer)
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(InfoPanelActionButtonStyle())
         .accessibilityIdentifier("player.sleepTimer")
         .accessibilityValue(Text(sleepTimerValue))
     }
@@ -193,7 +181,51 @@ struct ChannelInfoPanelView: View {
     }
 }
 
-private struct InfoPanelFavoriteButtonStyle: ButtonStyle {
+private struct FavoriteActionLabel: View {
+    let isFavorite: Bool
+    @Environment(\.isFocused) private var isFocused
+
+    var body: some View {
+        Image(systemName: isFavorite ? "star.fill" : "star")
+            .font(.system(size: DesignTokens.favoriteIconSize, weight: .semibold))
+            .foregroundStyle(isFocused ? Color.white : (isFavorite ? Color.yellow : Color.primary))
+            .frame(
+                width: DesignTokens.favoriteButtonSize,
+                height: DesignTokens.favoriteButtonSize
+            )
+            .accessibilityHidden(true)
+    }
+}
+
+private struct SleepTimerActionLabel: View {
+    let selectedMinutes: Int?
+    @Environment(\.isFocused) private var isFocused
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "moon.zzz")
+            Text("player.sleepTimer")
+                .font(.headline)
+            if let selectedMinutes {
+                Text("· \(sleepTimerOptionTitle(selectedMinutes))")
+                    .font(.subheadline.monospacedDigit())
+            }
+        }
+        .foregroundStyle(isFocused ? Color.white : Color.primary)
+        .padding(.horizontal, 18)
+        .frame(minHeight: DesignTokens.favoriteButtonSize)
+    }
+
+    private func sleepTimerOptionTitle(_ minutes: Int) -> String {
+        switch minutes {
+        case 15: return String(localized: "player.sleepTimer.15")
+        case 30: return String(localized: "player.sleepTimer.30")
+        default: return String(localized: "player.sleepTimer.60")
+        }
+    }
+}
+
+private struct InfoPanelActionButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         FocusedBody(configuration: configuration)
     }
@@ -203,15 +235,18 @@ private struct InfoPanelFavoriteButtonStyle: ButtonStyle {
         @Environment(\.isFocused) private var isFocused
         var body: some View {
             configuration.label
-                .overlay {
-                    Circle()
-                        .stroke(
-                            isFocused ? Color.primary : Color.clear,
-                            lineWidth: 4
-                        )
+                .background {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(isFocused ? Color.accentColor : Color.primary.opacity(0.10))
                 }
-                .scaleEffect(isFocused ? 1.16 : 1)
-                .opacity(configuration.isPressed ? 0.72 : 1)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(isFocused ? Color.white.opacity(0.95) : Color.clear, lineWidth: 3)
+                }
+                .scaleEffect(configuration.isPressed ? 0.97 : (isFocused ? 1.04 : 1))
+                .opacity(configuration.isPressed ? 0.78 : 1)
+                .zIndex(isFocused ? 1 : 0)
+                .animation(.easeOut(duration: 0.14), value: isFocused)
         }
     }
 }
