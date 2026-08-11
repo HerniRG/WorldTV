@@ -38,6 +38,10 @@ actor UserDefaultsRecentlyWatchedRepository: RecentlyWatchedRepository {
         defaults.removeObject(forKey: key)
     }
 
+    func replace(_ items: [RecentlyWatchedChannel]) throws {
+        defaults.set(try encoder.encode(Array(items.prefix(maximumCount))), forKey: key)
+    }
+
     private var defaults: UserDefaults {
         if let suiteName, let defaults = UserDefaults(suiteName: suiteName) {
             return defaults

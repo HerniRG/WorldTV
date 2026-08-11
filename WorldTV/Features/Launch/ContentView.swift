@@ -12,10 +12,15 @@ struct ContentView: View {
     }
 
     var body: some View {
-        #if os(tvOS)
-        TVRootView(homeViewModel: homeViewModel, container: container)
-        #else
-        AppRootView(homeViewModel: homeViewModel, container: container)
-        #endif
+        Group {
+            #if os(tvOS)
+            TVRootView(homeViewModel: homeViewModel, container: container)
+            #else
+            AppRootView(homeViewModel: homeViewModel, container: container)
+            #endif
+        }
+        .task {
+            await container.synchronizePreferences()
+        }
     }
 }

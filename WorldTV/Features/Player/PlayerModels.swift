@@ -1,6 +1,7 @@
 import Foundation
 
 struct PlayerChannelInfo: Sendable {
+    let channelID: String
     let name: String
     let broadcasterName: String
     let countryName: String

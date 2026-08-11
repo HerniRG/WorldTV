@@ -2,15 +2,20 @@ import SwiftUI
 
 struct PlaylistSourcesView: View {
     let loadSources: LoadPlaylistSourcesUseCase
+    let restoreSources: RestorePlaylistSourcesUseCase
     let addSource: AddPlaylistSourceUseCase
+    let updateSource: UpdatePlaylistSourceUseCase
     let removeSource: RemovePlaylistSourceUseCase
 
     @State private var sources: [PlaylistSource] = []
     @State private var name = ""
     @State private var url = ""
+    @State private var editingSource: PlaylistSource?
     @State private var errorMessage: String?
     @State private var isWorking = false
     @State private var pendingRemoval: PlaylistSource?
+    @State private var isRestoring = false
+    @State private var restorationMessage: String?
 
     var body: some View {
         Form {
@@ -29,6 +34,8 @@ struct PlaylistSourcesView: View {
                         #if os(tvOS)
                         .modifier(SourcesFieldFocusModifier())
                         #endif
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .multilineTextAlignment(.leading)
                     TextField("sources.urlPlaceholder", text: $url)
                         #if os(iOS) || os(tvOS)
                         .textInputAutocapitalization(.never)
@@ -37,6 +44,8 @@ struct PlaylistSourcesView: View {
                         #if os(tvOS)
                         .modifier(SourcesFieldFocusModifier())
                         #endif
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .multilineTextAlignment(.leading)
                     Button {
                         Task { await add() }
                     } label: {
@@ -45,6 +54,7 @@ struct PlaylistSourcesView: View {
                     .disabled(url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isWorking)
                     .buttonStyle(.borderedProminent)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 #if os(tvOS)
                 .padding(.vertical, 8)
                 #endif
@@ -54,9 +64,21 @@ struct PlaylistSourcesView: View {
                 if sources.isEmpty {
                     Text("sources.empty")
                         .foregroundStyle(.secondary)
+                    Button {
+                        Task { await restoreConfiguration() }
+                    } label: {
+                        Label("sources.restore", systemImage: "arrow.down.circle")
+                    }
+                    .disabled(isRestoring)
                 } else {
                     ForEach(sources) { source in
                         VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                sourceDetails(source)
+                                Spacer()
+                                Button("sources.edit") { beginEditing(source) }
+                                    .buttonStyle(.bordered)
+                            }
                             #if os(tvOS)
                             HStack {
                                 sourceDetails(source)
@@ -91,7 +113,7 @@ struct PlaylistSourcesView: View {
             }
 
             Section {
-                Text("sources.disclaimer")
+            Text("sources.disclaimer")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -101,6 +123,11 @@ struct PlaylistSourcesView: View {
                     .foregroundStyle(.red)
             }
             if isWorking { ProgressView() }
+            if isRestoring { ProgressView("sources.restoring") }
+            if let restorationMessage {
+                Text(restorationMessage)
+                    .foregroundStyle(.secondary)
+            }
         }
         #if os(macOS)
         // macOS lays out Form labels in a separate leading column. Keep that
@@ -141,14 +168,44 @@ struct PlaylistSourcesView: View {
         isWorking = true
         defer { isWorking = false }
         do {
-            _ = try await addSource.execute(name: name, urlString: url)
+            if let editingSource {
+                let updated = PlaylistSource(id: editingSource.id, name: name, url: editingSource.url, createdAt: editingSource.createdAt)
+                try await updateSource.execute(source: updated)
+            } else {
+                _ = try await addSource.execute(name: name, urlString: url)
+            }
             name = ""
             url = ""
+            editingSource = nil
             errorMessage = nil
             await reload()
             NotificationCenter.default.post(name: .playlistSourcesDidChange, object: nil)
         } catch { errorMessage = error.localizedDescription }
     }
+
+    private func beginEditing(_ source: PlaylistSource) {
+        editingSource = source
+        name = source.name
+        url = source.url.absoluteString
+    }
+
+    private func restoreConfiguration() async {
+        isRestoring = true
+        defer { isRestoring = false }
+        do {
+            let count = try await restoreSources.execute()
+            await reload()
+            restorationMessage = count > 0
+                ? String(localized: "sources.restored") + " " + String(count)
+                : String(localized: "sources.restoreUnavailable")
+            if count > 0 {
+                NotificationCenter.default.post(name: .playlistSourcesDidChange, object: nil)
+            }
+        } catch {
+            restorationMessage = String(localized: "sources.restoreFailed")
+        }
+    }
+
 
     private func remove(_ source: PlaylistSource) async {
         do {

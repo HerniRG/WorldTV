@@ -22,15 +22,18 @@ struct PlayerView: View {
     private let onPictureInPictureDidStop: @MainActor () -> Void
     private let restorePresentation: @MainActor (@escaping (Bool) -> Void) -> Void
     private let preservesPlaybackOnDisappear: @MainActor () -> Bool
+    private let favoritesStore: FavoritesStore?
 
     init(
         channelID: String,
         resolveSources: ResolvePlayableStreamUseCase,
         recordRecentlyWatched: RecordRecentlyWatchedUseCase,
         initialFeedID: String? = nil,
+        favoritesStore: FavoritesStore? = nil,
         closePresentation: (@MainActor () -> Void)? = nil
     ) {
         self.closePresentation = closePresentation
+        self.favoritesStore = favoritesStore
         onPictureInPictureWillStart = {}
         onPictureInPictureDidStart = {}
         onPictureInPictureStartFailed = {}
@@ -49,6 +52,7 @@ struct PlayerView: View {
 
     init(
         viewModel: PlayerViewModel,
+        favoritesStore: FavoritesStore? = nil,
         closePresentation: @escaping @MainActor () -> Void,
         onPictureInPictureWillStart: @escaping @MainActor () -> Void,
         onPictureInPictureDidStart: @escaping @MainActor () -> Void,
@@ -58,6 +62,7 @@ struct PlayerView: View {
         preservesPlaybackOnDisappear: @escaping @MainActor () -> Bool
     ) {
         _viewModel = State(initialValue: viewModel)
+        self.favoritesStore = favoritesStore
         self.closePresentation = closePresentation
         self.onPictureInPictureWillStart = onPictureInPictureWillStart
         self.onPictureInPictureDidStart = onPictureInPictureDidStart
@@ -129,6 +134,9 @@ struct PlayerView: View {
         .platformNavigationTitle(verbatim: viewModel.channelName)
         .modifier(PlayerNavigationStyle())
         .task {
+            if let favoritesStore {
+                await favoritesStore.loadIfNeeded()
+            }
             viewModel.loadIfNeeded(
                 autoplay: autoplayChannels,
                 preferredQuality: Int(preferredQuality)
@@ -229,7 +237,7 @@ struct PlayerView: View {
         guard let info = viewModel.channelInfo else {
             return nil
         }
-        return AnyView(ChannelInfoPanelView(info: info))
+        return AnyView(ChannelInfoPanelView(info: info, favoritesStore: favoritesStore))
     }
 
     private func progress(_ title: LocalizedStringKey) -> some View {

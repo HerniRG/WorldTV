@@ -118,6 +118,7 @@ private extension View {
                 resolveSources: container.resolvePlaybackSources,
                 recordRecentlyWatched: container.recordRecentlyWatched,
                 initialFeedID: presentation.feedID,
+                favoritesStore: container.favoritesStore,
                 closePresentation: { presentedPlayer.wrappedValue = nil }
             )
             .frame(minWidth: 900, minHeight: 600)

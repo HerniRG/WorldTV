@@ -6,6 +6,22 @@ struct LoadPlaylistSourcesUseCase: Sendable {
     func execute() async throws -> [PlaylistSource] { try await store.load() }
 }
 
+struct RestorePlaylistSourcesUseCase: Sendable {
+    private let store: any PlaylistSourceStore
+    private let cloud: CloudKitSyncStore
+
+    init(store: any PlaylistSourceStore, cloud: CloudKitSyncStore) {
+        self.store = store
+        self.cloud = cloud
+    }
+
+    func execute() async throws -> Int {
+        guard let remote = try await cloud.loadIfExists() else { return 0 }
+        try await store.replace(remote.sources)
+        return remote.sources.count
+    }
+}
+
 struct AddPlaylistSourceUseCase: Sendable {
     private let store: any PlaylistSourceStore
     private let invalidate: @Sendable () async -> Void
@@ -26,6 +42,20 @@ struct AddPlaylistSourceUseCase: Sendable {
         let source = PlaylistSource(name: cleanName.isEmpty ? (url.host() ?? "Playlist") : cleanName, url: url)
         try await validate(source)
         try await store.add(source); await invalidate(); return source
+    }
+
+}
+
+struct UpdatePlaylistSourceUseCase: Sendable {
+    private let store: any PlaylistSourceStore
+    private let invalidate: @Sendable () async -> Void
+    init(store: any PlaylistSourceStore, invalidate: @escaping @Sendable () async -> Void) { self.store = store; self.invalidate = invalidate }
+    func execute(source: PlaylistSource) async throws {
+        var sources = try await store.load()
+        guard let index = sources.firstIndex(where: { $0.id == source.id }) else { return }
+        sources[index] = source
+        try await store.replace(sources)
+        await invalidate()
     }
 }
 

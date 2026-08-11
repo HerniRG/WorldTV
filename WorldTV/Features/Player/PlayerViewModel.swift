@@ -85,6 +85,7 @@ final class PlayerViewModel {
                 }
                 channelName = context.channel.name
                 channelInfo = PlayerChannelInfo(
+                    channelID: channelID,
                     name: context.channel.name,
                     broadcasterName: context.channel.broadcasterName,
                     countryName: context.countryName,

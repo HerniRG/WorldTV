@@ -83,20 +83,20 @@ struct HomeView: View {
             LazyVStack(alignment: .leading, spacing: DesignTokens.sectionSpacing) {
                 header(content.summary)
 
+                if !content.recentlyWatched.isEmpty {
+                    channelCarousel(
+                        title: "home.recentlyWatched",
+                        systemImage: "clock.arrow.circlepath",
+                        channels: content.recentlyWatched
+                    )
+                }
+
                 let favoriteChannels = visibleFavorites(in: content)
                 if !favoriteChannels.isEmpty {
                     channelCarousel(
                         title: "favorites.title",
                         systemImage: "star.fill",
                         channels: favoriteChannels
-                    )
-                }
-
-                if !content.recentlyWatched.isEmpty {
-                    channelCarousel(
-                        title: "home.recentlyWatched",
-                        systemImage: "clock.arrow.circlepath",
-                        channels: content.recentlyWatched
                     )
                 }
 

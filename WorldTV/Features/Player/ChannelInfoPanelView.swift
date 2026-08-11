@@ -2,14 +2,22 @@ import SwiftUI
 
 struct ChannelInfoPanelView: View {
     let info: PlayerChannelInfo
+    let favoritesStore: FavoritesStore?
+    @State private var isFavorite = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignTokens.contentSpacing) {
             HStack(alignment: .top, spacing: 20) {
                 logo
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(info.name)
-                        .font(.title.bold())
+                    HStack(spacing: 14) {
+                        Text(info.name)
+                            .font(.title.bold())
+                        Spacer()
+                        if favoritesStore != nil {
+                            favoriteButton
+                        }
+                    }
                     if !info.broadcasterName.isEmpty {
                         Label(info.broadcasterName, systemImage: "building.2")
                             .font(.subheadline)
@@ -55,6 +63,36 @@ struct ChannelInfoPanelView: View {
         )
         #endif
         .frame(minWidth: 760, minHeight: 480)
+        .task {
+            if let favoritesStore {
+                await favoritesStore.loadIfNeeded()
+                isFavorite = favoritesStore.contains(info.channelID)
+            }
+        }
+    }
+
+    private var favoriteButton: some View {
+        Button {
+            Task {
+                guard let favoritesStore else { return }
+                await favoritesStore.toggle(info.channelID)
+                isFavorite = favoritesStore.contains(info.channelID)
+            }
+        } label: {
+            Image(systemName: isFavorite ? "star.fill" : "star")
+                .font(.system(size: DesignTokens.favoriteIconSize, weight: .semibold))
+                .foregroundStyle(isFavorite ? Color.yellow : Color.primary)
+                .frame(
+                    width: DesignTokens.favoriteButtonSize,
+                    height: DesignTokens.favoriteButtonSize
+                )
+                .background(.regularMaterial, in: Circle())
+        }
+        .buttonStyle(InfoPanelFavoriteButtonStyle())
+        .accessibilityLabel(
+            isFavorite ? Text("favorites.remove") : Text("favorites.add")
+        )
+        .accessibilityIdentifier("player.favorite")
     }
 
     private var logo: some View {
@@ -86,5 +124,28 @@ struct ChannelInfoPanelView: View {
             .font(.system(size: 52))
             .foregroundStyle(.secondary)
             .frame(width: 200, height: 110)
+    }
+}
+
+private struct InfoPanelFavoriteButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        FocusedBody(configuration: configuration)
+    }
+
+    private struct FocusedBody: View {
+        let configuration: Configuration
+        @Environment(\.isFocused) private var isFocused
+        var body: some View {
+            configuration.label
+                .overlay {
+                    Circle()
+                        .stroke(
+                            isFocused ? Color.primary : Color.clear,
+                            lineWidth: 4
+                        )
+                }
+                .scaleEffect(isFocused ? 1.16 : 1)
+                .opacity(configuration.isPressed ? 0.72 : 1)
+        }
     }
 }
