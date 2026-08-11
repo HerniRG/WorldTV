@@ -39,6 +39,7 @@ struct PlatformPlayerView: NSViewRepresentable {
     let sleepTimerMinutes: Int?
     let onSleepTimerSelected: @MainActor (Int?) -> Void
     let isSleepTimerWarningPresented: Bool
+    let sleepTimerRemainingSeconds: Int?
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -55,15 +56,69 @@ struct PlatformPlayerView: NSViewRepresentable {
 
     func updateNSView(_ view: AVPlayerView, context: Context) {
         view.player = player
+        view.controlsStyle = .floating
         if context.coordinator.lastRefreshID != refreshID {
             context.coordinator.lastRefreshID = refreshID
             view.player = nil
             view.player = player
         }
+        context.coordinator.updateSleepTimerWarning(
+            in: view,
+            remainingSeconds: isSleepTimerWarningPresented
+                ? sleepTimerRemainingSeconds
+                : nil,
+            onCancel: { onSleepTimerSelected(nil) }
+        )
     }
 
+    @MainActor
     final class Coordinator {
         var lastRefreshID = 0
+        private var warningHostingView: NSHostingView<SleepTimerWarningView>?
+
+        func updateSleepTimerWarning(
+            in playerView: AVPlayerView,
+            remainingSeconds: Int?,
+            onCancel: @escaping @MainActor () -> Void
+        ) {
+            guard let remainingSeconds else {
+                warningHostingView?.removeFromSuperview()
+                warningHostingView = nil
+                return
+            }
+
+            let content = SleepTimerWarningView(
+                remainingSeconds: remainingSeconds,
+                onCancel: onCancel
+            )
+            if let warningHostingView {
+                warningHostingView.rootView = content
+                return
+            }
+
+            guard let overlayView = playerView.contentOverlayView else {
+                return
+            }
+            let hostingView = NSHostingView(rootView: content)
+            hostingView.translatesAutoresizingMaskIntoConstraints = false
+            overlayView.addSubview(hostingView)
+            NSLayoutConstraint.activate([
+                hostingView.centerXAnchor.constraint(equalTo: overlayView.centerXAnchor),
+                hostingView.centerYAnchor.constraint(
+                    equalTo: overlayView.centerYAnchor,
+                    constant: -90
+                ),
+                hostingView.leadingAnchor.constraint(
+                    greaterThanOrEqualTo: overlayView.leadingAnchor,
+                    constant: 24
+                ),
+                hostingView.topAnchor.constraint(
+                    greaterThanOrEqualTo: overlayView.topAnchor,
+                    constant: 24
+                )
+            ])
+            warningHostingView = hostingView
+        }
     }
 }
 #elseif os(iOS)
@@ -83,6 +138,7 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
     let sleepTimerMinutes: Int?
     let onSleepTimerSelected: @MainActor (Int?) -> Void
     let isSleepTimerWarningPresented: Bool
+    let sleepTimerRemainingSeconds: Int?
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
@@ -225,6 +281,7 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
     let sleepTimerMinutes: Int?
     let onSleepTimerSelected: @MainActor (Int?) -> Void
     let isSleepTimerWarningPresented: Bool
+    let sleepTimerRemainingSeconds: Int?
 
     func makeCoordinator() -> Coordinator {
         Coordinator(

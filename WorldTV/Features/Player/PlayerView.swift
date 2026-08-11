@@ -96,7 +96,8 @@ struct PlayerView: View {
                 infoView: infoPanel,
                 sleepTimerMinutes: sleepTimerMinutes,
                 onSleepTimerSelected: setSleepTimer,
-                isSleepTimerWarningPresented: isSleepTimerWarningPresented
+                isSleepTimerWarningPresented: isSleepTimerWarningPresented,
+                sleepTimerRemainingSeconds: sleepTimerRemainingSeconds
             )
 
             switch viewModel.state {
@@ -119,6 +120,7 @@ struct PlayerView: View {
                 EmptyView()
             }
 
+            #if !os(macOS)
             if isSleepTimerWarningPresented, let remaining = sleepTimerRemainingSeconds {
                 SleepTimerWarningView(
                     remainingSeconds: remaining,
@@ -127,6 +129,7 @@ struct PlayerView: View {
                 .transition(.opacity.combined(with: .scale(scale: 0.96)))
                 .zIndex(10)
             }
+            #endif
         }
         #if os(macOS)
         .overlay(alignment: .topLeading) {
@@ -424,9 +427,9 @@ struct PlayerView: View {
     }
 }
 
-private struct SleepTimerWarningView: View {
+struct SleepTimerWarningView: View {
     let remainingSeconds: Int
-    let onCancel: () -> Void
+    let onCancel: @MainActor () -> Void
     #if os(tvOS)
     @FocusState private var cancelIsFocused: Bool
     #endif
