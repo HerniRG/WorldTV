@@ -101,7 +101,7 @@ struct ChannelInfoPanelView: View {
         } label: {
             FavoriteActionLabel(isFavorite: isFavorite)
         }
-        .buttonStyle(InfoPanelActionButtonStyle())
+        .buttonStyle(PlayerActionButtonStyle(horizontalPadding: 0))
         .accessibilityLabel(
             isFavorite ? Text("favorites.remove") : Text("favorites.add")
         )
@@ -129,7 +129,7 @@ struct ChannelInfoPanelView: View {
         } label: {
             SleepTimerActionLabel(selectedMinutes: selectedSleepTimer)
         }
-        .buttonStyle(InfoPanelActionButtonStyle())
+        .buttonStyle(PlayerActionButtonStyle())
         .accessibilityIdentifier("player.sleepTimer")
         .accessibilityValue(Text(sleepTimerValue))
     }
@@ -212,7 +212,6 @@ private struct SleepTimerActionLabel: View {
             }
         }
         .foregroundStyle(isFocused ? Color.white : Color.primary)
-        .padding(.horizontal, 18)
         .frame(minHeight: DesignTokens.favoriteButtonSize)
     }
 
@@ -225,28 +224,37 @@ private struct SleepTimerActionLabel: View {
     }
 }
 
-private struct InfoPanelActionButtonStyle: ButtonStyle {
+struct PlayerActionButtonStyle: ButtonStyle {
+    let horizontalPadding: CGFloat
+
+    init(horizontalPadding: CGFloat = 18) {
+        self.horizontalPadding = horizontalPadding
+    }
+
     func makeBody(configuration: Configuration) -> some View {
-        FocusedBody(configuration: configuration)
+        FocusedBody(
+            configuration: configuration,
+            horizontalPadding: horizontalPadding
+        )
     }
 
     private struct FocusedBody: View {
         let configuration: Configuration
+        let horizontalPadding: CGFloat
         @Environment(\.isFocused) private var isFocused
         var body: some View {
             configuration.label
+                .foregroundStyle(isFocused ? Color.white : Color.primary)
+                .padding(.horizontal, horizontalPadding)
                 .background {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(isFocused ? Color.accentColor : Color.primary.opacity(0.10))
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(isFocused ? Color.accentColor : Color.clear)
                 }
                 .overlay {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(isFocused ? Color.white.opacity(0.95) : Color.clear, lineWidth: 3)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(isFocused ? Color.white.opacity(0.9) : Color.clear, lineWidth: 3)
                 }
-                .scaleEffect(configuration.isPressed ? 0.97 : (isFocused ? 1.04 : 1))
-                .opacity(configuration.isPressed ? 0.78 : 1)
-                .zIndex(isFocused ? 1 : 0)
-                .animation(.easeOut(duration: 0.14), value: isFocused)
+                .opacity(configuration.isPressed ? 0.75 : 1)
         }
     }
 }

@@ -444,7 +444,7 @@ private struct SleepTimerWarningView: View {
                 .monospacedDigit()
                 .accessibilityLabel(Text("player.sleepTimer.remaining"))
             Button("player.sleepTimer.cancel", action: onCancel)
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(PlayerActionButtonStyle())
                 #if os(tvOS)
                 .focused($cancelIsFocused)
                 .prefersDefaultFocus(true, in: warningFocusNamespace)
@@ -463,7 +463,17 @@ private struct SleepTimerWarningView: View {
         .accessibilityIdentifier("player.sleepTimer.warning")
         #if os(tvOS)
         .focusScope(warningFocusNamespace)
-        .task {
+        .focusSection()
+        .onAppear {
+            Task { @MainActor in
+                await Task.yield()
+                cancelIsFocused = true
+            }
+        }
+        .onMoveCommand { _ in
+            cancelIsFocused = true
+        }
+        .onExitCommand {
             cancelIsFocused = true
         }
         #endif
