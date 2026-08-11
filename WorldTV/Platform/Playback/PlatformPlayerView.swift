@@ -38,6 +38,7 @@ struct PlatformPlayerView: NSViewRepresentable {
     let infoView: AnyView?
     let sleepTimerMinutes: Int?
     let onSleepTimerSelected: @MainActor (Int?) -> Void
+    let isSleepTimerWarningPresented: Bool
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -81,6 +82,7 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
     let infoView: AnyView?
     let sleepTimerMinutes: Int?
     let onSleepTimerSelected: @MainActor (Int?) -> Void
+    let isSleepTimerWarningPresented: Bool
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
@@ -222,6 +224,7 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
     let infoView: AnyView?
     let sleepTimerMinutes: Int?
     let onSleepTimerSelected: @MainActor (Int?) -> Void
+    let isSleepTimerWarningPresented: Bool
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
@@ -272,6 +275,14 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
             onSelect: onSleepTimerSelected
         )
         configureInfoPanel(controller, context: context)
+        if isSleepTimerWarningPresented {
+            if !context.coordinator.didDismissInfoPanelForSleepTimer {
+                context.coordinator.dismissInfoPanel(controller)
+                context.coordinator.didDismissInfoPanelForSleepTimer = true
+            }
+        } else {
+            context.coordinator.didDismissInfoPanelForSleepTimer = false
+        }
     }
 
     private func configureInfoPanel(
@@ -381,6 +392,7 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
         var onPictureInPictureRestoreRequested: @MainActor (@escaping (Bool) -> Void) -> Void
         var infoHostingController: UIHostingController<AnyView>?
         var isInfoPanelInstalled = false
+        var didDismissInfoPanelForSleepTimer = false
 
         init(
             onPictureInPictureWillStart: @escaping @MainActor () -> Void,
@@ -398,6 +410,20 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
             self.onPictureInPictureDidStop = onPictureInPictureDidStop
             self.onPictureInPictureRestoreRequested =
                 onPictureInPictureRestoreRequested
+        }
+
+        func dismissInfoPanel(_ controller: AVPlayerViewController) {
+            if let presented = controller.presentedViewController {
+                presented.dismiss(animated: true)
+                return
+            }
+            if isInfoPanelInstalled {
+                // The custom Info tab can be hosted inside AVKit instead of
+                // appearing as a presented view controller. Removing the tab
+                // is the reliable fallback that also releases its focus.
+                controller.customInfoViewControllers = []
+                isInfoPanelInstalled = false
+            }
         }
 
         func playerViewControllerWillStartPictureInPicture(

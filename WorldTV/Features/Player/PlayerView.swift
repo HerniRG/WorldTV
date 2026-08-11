@@ -95,7 +95,8 @@ struct PlayerView: View {
                 onPictureInPictureRestoreRequested: restorePresentation,
                 infoView: infoPanel,
                 sleepTimerMinutes: sleepTimerMinutes,
-                onSleepTimerSelected: setSleepTimer
+                onSleepTimerSelected: setSleepTimer,
+                isSleepTimerWarningPresented: isSleepTimerWarningPresented
             )
 
             switch viewModel.state {
@@ -467,6 +468,8 @@ private struct SleepTimerWarningView: View {
         .onAppear {
             Task { @MainActor in
                 await Task.yield()
+                cancelIsFocused = true
+                try? await Task.sleep(for: .milliseconds(250))
                 cancelIsFocused = true
             }
         }
