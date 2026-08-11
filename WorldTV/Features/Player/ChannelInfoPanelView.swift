@@ -102,7 +102,9 @@ struct ChannelInfoPanelView: View {
         } label: {
             FavoriteActionLabel(isFavorite: isFavorite)
         }
-        .buttonStyle(PlayerActionButtonStyle(horizontalPadding: 0, isCircular: true))
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
+        .tint(.accentColor)
         .accessibilityLabel(
             isFavorite ? Text("favorites.remove") : Text("favorites.add")
         )
@@ -115,7 +117,9 @@ struct ChannelInfoPanelView: View {
         } label: {
             SleepTimerActionLabel(selectedMinutes: selectedSleepTimer)
         }
-        .buttonStyle(PlayerActionButtonStyle())
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
+        .tint(.accentColor)
         .confirmationDialog(
             "player.sleepTimer",
             isPresented: $isSleepTimerMenuPresented,
@@ -222,59 +226,6 @@ private struct SleepTimerActionLabel: View {
         case 15: return String(localized: "player.sleepTimer.15")
         case 30: return String(localized: "player.sleepTimer.30")
         default: return String(localized: "player.sleepTimer.60")
-        }
-    }
-}
-
-struct PlayerActionButtonStyle: ButtonStyle {
-    let horizontalPadding: CGFloat
-    let isCircular: Bool
-
-    init(horizontalPadding: CGFloat = 24, isCircular: Bool = false) {
-        self.horizontalPadding = horizontalPadding
-        self.isCircular = isCircular
-    }
-
-    func makeBody(configuration: Configuration) -> some View {
-        FocusedBody(
-            configuration: configuration,
-            horizontalPadding: horizontalPadding,
-            isCircular: isCircular
-        )
-    }
-
-    private struct FocusedBody: View {
-        let configuration: Configuration
-        let horizontalPadding: CGFloat
-        let isCircular: Bool
-        @Environment(\.isFocused) private var isFocused
-        var body: some View {
-            configuration.label
-                .foregroundStyle(isFocused ? Color.white : Color.primary)
-                .padding(.horizontal, horizontalPadding)
-                .frame(minHeight: isCircular ? DesignTokens.playerActionButtonSize : nil)
-                .background {
-                    if isCircular {
-                        Circle()
-                            .fill(isFocused ? Color.accentColor : Color.primary.opacity(0.16))
-                    } else {
-                        RoundedRectangle(cornerRadius: 22, style: .continuous)
-                            .fill(isFocused ? Color.accentColor : Color.primary.opacity(0.16))
-                    }
-                }
-                .overlay {
-                    if isCircular {
-                        Circle()
-                            .stroke(isFocused ? Color.white : Color.white.opacity(0.22), lineWidth: isFocused ? 4 : 1)
-                    } else {
-                        RoundedRectangle(cornerRadius: 22, style: .continuous)
-                            .stroke(isFocused ? Color.white : Color.white.opacity(0.22), lineWidth: isFocused ? 4 : 1)
-                    }
-                }
-                .scaleEffect(isFocused ? 1.05 : 1)
-                .opacity(configuration.isPressed ? 0.75 : 1)
-                .zIndex(isFocused ? 1 : 0)
-                .animation(.easeOut(duration: 0.14), value: isFocused)
         }
     }
 }
