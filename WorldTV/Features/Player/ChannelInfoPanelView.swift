@@ -208,6 +208,9 @@ private struct SleepTimerActionLabel: View {
             if let selectedMinutes {
                 Text("· \(sleepTimerOptionTitle(selectedMinutes))")
                     .font(.subheadline.monospacedDigit())
+            } else {
+                Text("· \(String(localized: "player.sleepTimer.off"))")
+                    .font(.subheadline)
             }
         }
         .font(.headline)
