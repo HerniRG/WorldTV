@@ -472,6 +472,7 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
                 onPictureInPictureRestoreRequested
         }
 
+        @MainActor
         func dismissInfoPanel(_ controller: AVPlayerViewController) {
             if let presented = controller.presentedViewController {
                 presented.dismiss(animated: true)

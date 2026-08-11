@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [1.2] - 2026-08-11
+
 ### Added
 
 - Channel feeds and languages loaded from the iptv-org API, exposing regional feed variants in the player and channel detail
@@ -62,4 +64,5 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Feature ViewModels now inherit the shared load-state machinery from `LoadableViewModel`
 - macOS Home carousels use fixed heights so horizontal shelves render correctly
 
-[Unreleased]: https://github.com/HerniRG/WorldTV/commits/main
+[Unreleased]: https://github.com/HerniRG/WorldTV/compare/1.2...HEAD
+[1.2]: https://github.com/HerniRG/WorldTV/compare/1.0.0(6)...1.2
