@@ -279,7 +279,13 @@ struct PlayerView: View {
         guard let info = viewModel.channelInfo else {
             return nil
         }
-        return AnyView(ChannelInfoPanelView(info: info, favoritesStore: favoritesStore))
+        return AnyView(
+            ChannelInfoPanelView(
+                info: info,
+                favoritesStore: favoritesStore,
+                onSleepTimerSelected: setSleepTimer
+            )
+        )
     }
 
     private func progress(_ title: LocalizedStringKey) -> some View {

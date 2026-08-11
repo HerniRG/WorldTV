@@ -3,7 +3,9 @@ import SwiftUI
 struct ChannelInfoPanelView: View {
     let info: PlayerChannelInfo
     let favoritesStore: FavoritesStore?
+    let onSleepTimerSelected: @MainActor (Int?) -> Void
     @State private var isFavorite = false
+    @State private var selectedSleepTimer: Int?
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignTokens.contentSpacing) {
@@ -47,6 +49,8 @@ struct ChannelInfoPanelView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
+
+            sleepTimerMenu
         }
         .padding(DesignTokens.pagePadding)
         .foregroundStyle(.white)
@@ -93,6 +97,40 @@ struct ChannelInfoPanelView: View {
             isFavorite ? Text("favorites.remove") : Text("favorites.add")
         )
         .accessibilityIdentifier("player.favorite")
+    }
+
+    private var sleepTimerMenu: some View {
+        Menu {
+            Button("player.sleepTimer.off") {
+                selectedSleepTimer = nil
+                onSleepTimerSelected(nil)
+            }
+            Button("15 min") {
+                selectedSleepTimer = 15
+                onSleepTimerSelected(15)
+            }
+            Button("30 min") {
+                selectedSleepTimer = 30
+                onSleepTimerSelected(30)
+            }
+            Button("60 min") {
+                selectedSleepTimer = 60
+                onSleepTimerSelected(60)
+            }
+        } label: {
+            Label("player.sleepTimer", systemImage: "moon.zzz")
+                .font(.headline)
+        }
+        .buttonStyle(.bordered)
+        .accessibilityIdentifier("player.sleepTimer")
+        .accessibilityValue(Text(sleepTimerValue))
+    }
+
+    private var sleepTimerValue: String {
+        guard let selectedSleepTimer else {
+            return String(localized: "player.sleepTimer.off")
+        }
+        return "\(selectedSleepTimer) min"
     }
 
     private var logo: some View {
