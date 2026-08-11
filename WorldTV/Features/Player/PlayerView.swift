@@ -12,6 +12,8 @@ struct PlayerView: View {
     @State private var viewModel: PlayerViewModel
     @State private var sleepTimerTask: Task<Void, Never>?
     @State private var selectedSleepTimer: Int?
+    @State private var sleepTimerRemainingSeconds: Int?
+    @State private var isSleepTimerWarningPresented = false
     #if os(macOS)
     @State private var overlayVisibility = PlayerOverlayVisibility()
     #endif
@@ -114,6 +116,15 @@ struct PlayerView: View {
                     .foregroundStyle(.white)
             case .playing, .paused:
                 EmptyView()
+            }
+
+            if isSleepTimerWarningPresented, let remaining = sleepTimerRemainingSeconds {
+                SleepTimerWarningView(
+                    remainingSeconds: remaining,
+                    onCancel: { setSleepTimer(nil) }
+                )
+                .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                .zIndex(10)
             }
         }
         #if os(macOS)
@@ -295,16 +306,26 @@ struct PlayerView: View {
     private func setSleepTimer(_ minutes: Int?) {
         sleepTimerTask?.cancel()
         selectedSleepTimer = minutes
+        sleepTimerRemainingSeconds = nil
+        isSleepTimerWarningPresented = false
         guard let minutes else {
             sleepTimerTask = nil
             return
         }
+        let endDate = Date.now.addingTimeInterval(TimeInterval(minutes * 60))
         sleepTimerTask = Task { @MainActor in
             do {
-                try await Task.sleep(for: .seconds(minutes * 60))
-                guard !Task.isCancelled else { return }
-                viewModel.stop()
-                close()
+                while !Task.isCancelled {
+                    let remaining = max(0, Int(ceil(endDate.timeIntervalSinceNow)))
+                    sleepTimerRemainingSeconds = remaining
+                    isSleepTimerWarningPresented = remaining > 0 && remaining <= 30
+                    if remaining == 0 {
+                        viewModel.stop()
+                        close()
+                        return
+                    }
+                    try await Task.sleep(for: .seconds(1))
+                }
             } catch {
                 // Timer cancellation is expected when the user changes it.
             }
@@ -395,6 +416,61 @@ struct PlayerView: View {
             "player.error.unavailable"
         }
     }
+}
+
+private struct SleepTimerWarningView: View {
+    let remainingSeconds: Int
+    let onCancel: () -> Void
+    #if os(tvOS)
+    @FocusState private var cancelIsFocused: Bool
+    #endif
+
+    var body: some View {
+        VStack(spacing: 18) {
+            Image(systemName: "moon.zzz.fill")
+                .font(.system(size: 42, weight: .semibold))
+                .accessibilityHidden(true)
+            Text("player.sleepTimer.warningTitle")
+                .font(.title2.bold())
+            Text("player.sleepTimer.warningPrefix")
+                .foregroundStyle(.secondary)
+            Text(format(remainingSeconds))
+                .font(.system(size: 52, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .accessibilityLabel(Text("player.sleepTimer.remaining"))
+            Button("player.sleepTimer.cancel", action: onCancel)
+                .buttonStyle(.borderedProminent)
+                #if os(tvOS)
+                .focused($cancelIsFocused)
+                .prefersDefaultFocus(true, in: warningFocusNamespace)
+                #endif
+        }
+        .padding(.horizontal, 54)
+        .padding(.vertical, 42)
+        .foregroundStyle(.white)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(Color.white.opacity(0.18), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.45), radius: 28, y: 12)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("player.sleepTimer.warning")
+        #if os(tvOS)
+        .focusScope(warningFocusNamespace)
+        .task {
+            cancelIsFocused = true
+        }
+        #endif
+    }
+
+    private func format(_ seconds: Int) -> String {
+        String(format: "%02d:%02d", seconds / 60, seconds % 60)
+    }
+
+    #if os(tvOS)
+    @Namespace private var warningFocusNamespace
+    #endif
 }
 
 #if os(macOS)
