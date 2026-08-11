@@ -11,6 +11,7 @@ struct PlayerView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var viewModel: PlayerViewModel
     @State private var sleepTimerTask: Task<Void, Never>?
+    @State private var selectedSleepTimer: Int?
     #if os(macOS)
     @State private var overlayVisibility = PlayerOverlayVisibility()
     #endif
@@ -239,26 +240,54 @@ struct PlayerView: View {
 
     private var sleepTimerMenu: some View {
         Menu {
-            Button("player.sleepTimer.off") { setSleepTimer(nil) }
-            Button("15 min") { setSleepTimer(15) }
-            Button("30 min") { setSleepTimer(30) }
-            Button("60 min") { setSleepTimer(60) }
+            sleepTimerOption("player.sleepTimer.off", minutes: nil)
+            sleepTimerOption("15 min", minutes: 15)
+            sleepTimerOption("30 min", minutes: 30)
+            sleepTimerOption("60 min", minutes: 60)
         } label: {
-            Label("player.sleepTimer", systemImage: "moon.zzz")
+            Label {
+                HStack(spacing: 6) {
+                    Text("player.sleepTimer")
+                    if let selectedSleepTimer {
+                        Text("· \(selectedSleepTimer) min")
+                            .monospacedDigit()
+                    }
+                }
+            } icon: {
+                Image(systemName: "moon.zzz")
+            }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(.ultraThinMaterial, in: Capsule())
         }
         .buttonStyle(.plain)
     }
+
+    private func sleepTimerOption(
+        _ title: LocalizedStringKey,
+        minutes: Int?
+    ) -> some View {
+        Button {
+            setSleepTimer(minutes)
+        } label: {
+            HStack {
+                Text(title)
+                Spacer()
+                if selectedSleepTimer == minutes {
+                    Image(systemName: "checkmark")
+                }
+            }
+        }
+    }
     #endif
 
     private var sleepTimerMinutes: Int? {
-        nil
+        selectedSleepTimer
     }
 
     private func setSleepTimer(_ minutes: Int?) {
         sleepTimerTask?.cancel()
+        selectedSleepTimer = minutes
         guard let minutes else {
             sleepTimerTask = nil
             return
@@ -283,6 +312,7 @@ struct PlayerView: View {
             ChannelInfoPanelView(
                 info: info,
                 favoritesStore: favoritesStore,
+                sleepTimerMinutes: selectedSleepTimer,
                 onSleepTimerSelected: setSleepTimer
             )
         )
@@ -335,6 +365,9 @@ struct PlayerView: View {
     }
 
     private func close() {
+        sleepTimerTask?.cancel()
+        sleepTimerTask = nil
+        selectedSleepTimer = nil
         viewModel.stop()
         if let closePresentation {
             closePresentation()

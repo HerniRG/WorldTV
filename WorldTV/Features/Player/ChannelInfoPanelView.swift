@@ -3,9 +3,23 @@ import SwiftUI
 struct ChannelInfoPanelView: View {
     let info: PlayerChannelInfo
     let favoritesStore: FavoritesStore?
+    let sleepTimerMinutes: Int?
     let onSleepTimerSelected: @MainActor (Int?) -> Void
     @State private var isFavorite = false
     @State private var selectedSleepTimer: Int?
+
+    init(
+        info: PlayerChannelInfo,
+        favoritesStore: FavoritesStore?,
+        sleepTimerMinutes: Int? = nil,
+        onSleepTimerSelected: @escaping @MainActor (Int?) -> Void
+    ) {
+        self.info = info
+        self.favoritesStore = favoritesStore
+        self.sleepTimerMinutes = sleepTimerMinutes
+        self.onSleepTimerSelected = onSleepTimerSelected
+        _selectedSleepTimer = State(initialValue: sleepTimerMinutes)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignTokens.contentSpacing) {
@@ -118,8 +132,14 @@ struct ChannelInfoPanelView: View {
                 onSleepTimerSelected(60)
             }
         } label: {
-            Label("player.sleepTimer", systemImage: "moon.zzz")
-                .font(.headline)
+            HStack(spacing: 8) {
+                Label("player.sleepTimer", systemImage: "moon.zzz")
+                    .font(.headline)
+                if let selectedSleepTimer {
+                    Text("· \(selectedSleepTimer) min")
+                        .font(.subheadline.monospacedDigit())
+                }
+            }
         }
         .buttonStyle(.bordered)
         .accessibilityIdentifier("player.sleepTimer")
