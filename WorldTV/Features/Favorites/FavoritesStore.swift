@@ -45,6 +45,11 @@ final class FavoritesStore {
         }
     }
 
+    func reload() async {
+        hasLoaded = false
+        await loadIfNeeded()
+    }
+
     func toggle(_ channelID: String) async {
         do {
             let isFavorite = try await toggleFavorite.execute(channelID: channelID)

@@ -80,6 +80,7 @@ struct AppSectionContent: View {
                 clearCatalogCache: container.clearCatalogCache,
                 loadCatalogCacheDate: container.loadCatalogCacheDate,
                 favoritesStore: container.favoritesStore,
+                cloudSyncStore: container.cloudSyncStore,
                 focusTarget: settingsFocusTarget
             )
         }

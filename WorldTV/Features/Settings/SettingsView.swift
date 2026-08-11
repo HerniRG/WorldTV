@@ -12,6 +12,7 @@ struct SettingsView: View {
     #endif
 
     let favoritesStore: FavoritesStore
+    let cloudSyncStore: CloudKitSyncStore
 
     init(
         refreshCatalog: RefreshCatalogUseCase,
@@ -19,6 +20,7 @@ struct SettingsView: View {
         clearCatalogCache: ClearCatalogCacheUseCase,
         loadCatalogCacheDate: LoadCatalogCacheDateUseCase,
         favoritesStore: FavoritesStore,
+        cloudSyncStore: CloudKitSyncStore,
         focusTarget: SettingsFocusTarget? = nil
     ) {
         _viewModel = State(
@@ -26,10 +28,12 @@ struct SettingsView: View {
                 refreshCatalog: refreshCatalog,
                 clearRecentlyWatched: clearRecentlyWatched,
                 clearCatalogCache: clearCatalogCache,
-                loadCatalogCacheDate: loadCatalogCacheDate
+                loadCatalogCacheDate: loadCatalogCacheDate,
+                cloudSyncStore: cloudSyncStore
             )
         )
         self.favoritesStore = favoritesStore
+        self.cloudSyncStore = cloudSyncStore
         self.focusTarget = focusTarget
     }
 
@@ -99,6 +103,21 @@ struct SettingsView: View {
                 }
             }
 
+            Section("settings.section.sync") {
+                LabeledContent("settings.sync.status") {
+                    if viewModel.syncHasError {
+                        Label("settings.status.failed", systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(.orange)
+                    } else {
+                        Text(viewModel.lastSyncDate.map { $0.formatted(date: .abbreviated, time: .shortened) } ?? String(localized: "settings.sync.never"))
+                    }
+                }
+                Button("settings.sync.retry") { Task { await viewModel.retrySync() } }
+                Text("settings.sync.private")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
             Section {
                 NavigationLink(value: AppRoute.about) {
                     Label("settings.about", systemImage: "info.circle")
@@ -122,6 +141,9 @@ struct SettingsView: View {
             await favoritesStore.loadIfNeeded()
             await viewModel.load()
         }
+        .onChange(of: autoplayChannels) { _, _ in persistPreferences() }
+        .onChange(of: preferredQuality) { _, _ in persistPreferences() }
+        .onChange(of: showGeoBlockedChannels) { _, _ in persistPreferences() }
         #if os(tvOS)
         .onAppear {
             if focusTarget == .sources {
@@ -176,6 +198,16 @@ struct SettingsView: View {
             case nil:
                 break
             }
+        }
+    }
+
+    private func persistPreferences() {
+        Task {
+            await viewModel.savePreferences(
+                autoplayChannels: autoplayChannels,
+                preferredQuality: preferredQuality,
+                showGeoBlockedChannels: showGeoBlockedChannels
+            )
         }
     }
 }

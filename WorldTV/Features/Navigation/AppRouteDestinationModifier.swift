@@ -22,7 +22,9 @@ struct AppRouteDestinationModifier: ViewModifier {
         case .sources:
             PlaylistSourcesView(
                 loadSources: container.loadPlaylistSources,
+                restoreSources: container.restorePlaylistSources,
                 addSource: container.addPlaylistSource,
+                updateSource: container.updatePlaylistSource,
                 removeSource: container.removePlaylistSource
             )
         case .settingsQuality:

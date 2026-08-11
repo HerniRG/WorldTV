@@ -36,6 +36,10 @@ struct PlatformPlayerView: NSViewRepresentable {
     let onPictureInPictureDidStop: @MainActor () -> Void
     let onPictureInPictureRestoreRequested: @MainActor (@escaping (Bool) -> Void) -> Void
     let infoView: AnyView?
+    let sleepTimerMinutes: Int?
+    let onSleepTimerSelected: @MainActor (Int?) -> Void
+    let isSleepTimerWarningPresented: Bool
+    let sleepTimerRemainingSeconds: Int?
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -52,15 +56,69 @@ struct PlatformPlayerView: NSViewRepresentable {
 
     func updateNSView(_ view: AVPlayerView, context: Context) {
         view.player = player
+        view.controlsStyle = .floating
         if context.coordinator.lastRefreshID != refreshID {
             context.coordinator.lastRefreshID = refreshID
             view.player = nil
             view.player = player
         }
+        context.coordinator.updateSleepTimerWarning(
+            in: view,
+            remainingSeconds: isSleepTimerWarningPresented
+                ? sleepTimerRemainingSeconds
+                : nil,
+            onCancel: { onSleepTimerSelected(nil) }
+        )
     }
 
+    @MainActor
     final class Coordinator {
         var lastRefreshID = 0
+        private var warningHostingView: NSHostingView<SleepTimerWarningView>?
+
+        func updateSleepTimerWarning(
+            in playerView: AVPlayerView,
+            remainingSeconds: Int?,
+            onCancel: @escaping @MainActor () -> Void
+        ) {
+            guard let remainingSeconds else {
+                warningHostingView?.removeFromSuperview()
+                warningHostingView = nil
+                return
+            }
+
+            let content = SleepTimerWarningView(
+                remainingSeconds: remainingSeconds,
+                onCancel: onCancel
+            )
+            if let warningHostingView {
+                warningHostingView.rootView = content
+                return
+            }
+
+            guard let overlayView = playerView.contentOverlayView else {
+                return
+            }
+            let hostingView = NSHostingView(rootView: content)
+            hostingView.translatesAutoresizingMaskIntoConstraints = false
+            overlayView.addSubview(hostingView)
+            NSLayoutConstraint.activate([
+                hostingView.centerXAnchor.constraint(equalTo: overlayView.centerXAnchor),
+                hostingView.centerYAnchor.constraint(
+                    equalTo: overlayView.centerYAnchor,
+                    constant: -90
+                ),
+                hostingView.leadingAnchor.constraint(
+                    greaterThanOrEqualTo: overlayView.leadingAnchor,
+                    constant: 24
+                ),
+                hostingView.topAnchor.constraint(
+                    greaterThanOrEqualTo: overlayView.topAnchor,
+                    constant: 24
+                )
+            ])
+            warningHostingView = hostingView
+        }
     }
 }
 #elseif os(iOS)
@@ -77,6 +135,10 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
     let onPictureInPictureDidStop: @MainActor () -> Void
     let onPictureInPictureRestoreRequested: @MainActor (@escaping (Bool) -> Void) -> Void
     let infoView: AnyView?
+    let sleepTimerMinutes: Int?
+    let onSleepTimerSelected: @MainActor (Int?) -> Void
+    let isSleepTimerWarningPresented: Bool
+    let sleepTimerRemainingSeconds: Int?
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
@@ -216,6 +278,10 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
     let onPictureInPictureDidStop: @MainActor () -> Void
     let onPictureInPictureRestoreRequested: @MainActor (@escaping (Bool) -> Void) -> Void
     let infoView: AnyView?
+    let sleepTimerMinutes: Int?
+    let onSleepTimerSelected: @MainActor (Int?) -> Void
+    let isSleepTimerWarningPresented: Bool
+    let sleepTimerRemainingSeconds: Int?
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
@@ -261,8 +327,19 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
             feeds: feeds,
             selectedFeedID: selectedFeedID,
             onSelectFeed: onSelectFeed
+        ) + Self.makeSleepTimerMenuItems(
+            selectedMinutes: sleepTimerMinutes,
+            onSelect: onSleepTimerSelected
         )
         configureInfoPanel(controller, context: context)
+        if isSleepTimerWarningPresented {
+            if !context.coordinator.didDismissInfoPanelForSleepTimer {
+                context.coordinator.dismissInfoPanel(controller)
+                context.coordinator.didDismissInfoPanelForSleepTimer = true
+            }
+        } else {
+            context.coordinator.didDismissInfoPanelForSleepTimer = false
+        }
     }
 
     private func configureInfoPanel(
@@ -279,6 +356,7 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
                 context.coordinator.infoHostingController = newHosting
                 return newHosting
             }()
+            hosting.rootView = infoView
             // AVKit can be in the middle of presenting the Info panel when
             // SwiftUI updates this representable (for example, as playback
             // changes state). Reassigning this property on every update makes
@@ -341,6 +419,27 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
         return [menu]
     }
 
+    private static func makeSleepTimerMenuItems(
+        selectedMinutes: Int?,
+        onSelect: @escaping @MainActor (Int?) -> Void
+    ) -> [UIMenuElement] {
+        let options: [(String, Int?)] = [
+            (String(localized: "player.sleepTimer.off"), nil),
+            (String(localized: "player.sleepTimer.15"), 15),
+            (String(localized: "player.sleepTimer.30"), 30),
+            (String(localized: "player.sleepTimer.60"), 60)
+        ]
+        let actions = options.map { title, minutes in
+            UIAction(
+                title: title,
+                state: selectedMinutes == minutes ? .on : .off
+            ) { _ in
+                Task { @MainActor in onSelect(minutes) }
+            }
+        }
+        return [UIMenu(title: String(localized: "player.sleepTimer"), children: actions)]
+    }
+
     final class Coordinator: NSObject, AVPlayerViewControllerDelegate {
         var lastRefreshID = 0
         var onPictureInPictureWillStart: @MainActor () -> Void
@@ -351,6 +450,7 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
         var onPictureInPictureRestoreRequested: @MainActor (@escaping (Bool) -> Void) -> Void
         var infoHostingController: UIHostingController<AnyView>?
         var isInfoPanelInstalled = false
+        var didDismissInfoPanelForSleepTimer = false
 
         init(
             onPictureInPictureWillStart: @escaping @MainActor () -> Void,
@@ -368,6 +468,20 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
             self.onPictureInPictureDidStop = onPictureInPictureDidStop
             self.onPictureInPictureRestoreRequested =
                 onPictureInPictureRestoreRequested
+        }
+
+        func dismissInfoPanel(_ controller: AVPlayerViewController) {
+            if let presented = controller.presentedViewController {
+                presented.dismiss(animated: true)
+                return
+            }
+            if isInfoPanelInstalled {
+                // The custom Info tab can be hosted inside AVKit instead of
+                // appearing as a presented view controller. Removing the tab
+                // is the reliable fallback that also releases its focus.
+                controller.customInfoViewControllers = []
+                isInfoPanelInstalled = false
+            }
         }
 
         func playerViewControllerWillStartPictureInPicture(

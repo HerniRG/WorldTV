@@ -48,10 +48,10 @@ struct HomeView: View {
             await viewModel.loadIfNeeded()
             NotificationCenter.default.post(name: .topShelfDataDidChange, object: nil)
         }
-        .onAppear {
+        .onReceive(NotificationCenter.default.publisher(for: .playlistSourcesDidChange)) { _ in
             viewModel.reloadVisibleContent()
         }
-        .onReceive(NotificationCenter.default.publisher(for: .playlistSourcesDidChange)) { _ in
+        .onChange(of: favoritesStore.orderedIdentifiers) { _, _ in
             viewModel.reloadVisibleContent()
         }
         #if os(tvOS)
@@ -83,20 +83,20 @@ struct HomeView: View {
             LazyVStack(alignment: .leading, spacing: DesignTokens.sectionSpacing) {
                 header(content.summary)
 
+                if !content.recentlyWatched.isEmpty {
+                    channelCarousel(
+                        title: "home.recentlyWatched",
+                        systemImage: "clock.arrow.circlepath",
+                        channels: content.recentlyWatched
+                    )
+                }
+
                 let favoriteChannels = visibleFavorites(in: content)
                 if !favoriteChannels.isEmpty {
                     channelCarousel(
                         title: "favorites.title",
                         systemImage: "star.fill",
                         channels: favoriteChannels
-                    )
-                }
-
-                if !content.recentlyWatched.isEmpty {
-                    channelCarousel(
-                        title: "home.recentlyWatched",
-                        systemImage: "clock.arrow.circlepath",
-                        channels: content.recentlyWatched
                     )
                 }
 

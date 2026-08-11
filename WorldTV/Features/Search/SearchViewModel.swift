@@ -10,25 +10,32 @@ final class SearchViewModel {
         didSet { scheduleSearch() }
     }
     var selectedCountryCode: String? {
-        didSet { scheduleSearch() }
+        didSet { persist(selectedCountryCode, key: "WorldTV.search.country"); scheduleSearch() }
     }
     var selectedCategoryID: String? {
-        didSet { scheduleSearch() }
+        didSet { persist(selectedCategoryID, key: "WorldTV.search.category"); scheduleSearch() }
     }
     var selectedLanguageCode: String? {
-        didSet { scheduleSearch() }
+        didSet { persist(selectedLanguageCode, key: "WorldTV.search.language"); scheduleSearch() }
     }
     var minimumQuality: Int? {
-        didSet { scheduleSearch() }
+        didSet {
+            if let minimumQuality {
+                UserDefaults.standard.set(minimumQuality, forKey: "WorldTV.search.quality")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "WorldTV.search.quality")
+            }
+            scheduleSearch()
+        }
     }
     var favoritesOnly = false {
-        didSet { scheduleSearch() }
+        didSet { UserDefaults.standard.set(favoritesOnly, forKey: "WorldTV.search.favoritesOnly"); scheduleSearch() }
     }
     var availableOnly = true {
-        didSet { scheduleSearch() }
+        didSet { UserDefaults.standard.set(availableOnly, forKey: "WorldTV.search.availableOnly"); scheduleSearch() }
     }
     var includeGeoBlocked = true {
-        didSet { scheduleSearch() }
+        didSet { UserDefaults.standard.set(includeGeoBlocked, forKey: "WorldTV.search.includeGeoBlocked"); scheduleSearch() }
     }
 
     private let searchChannels: SearchChannelsUseCase
@@ -41,8 +48,14 @@ final class SearchViewModel {
         initialCountryCode: String? = nil
     ) {
         self.searchChannels = searchChannels
-        selectedCategoryID = initialCategoryID
-        selectedCountryCode = initialCountryCode
+        let defaults = UserDefaults.standard
+        selectedCategoryID = initialCategoryID ?? defaults.string(forKey: "WorldTV.search.category")
+        selectedCountryCode = initialCountryCode ?? defaults.string(forKey: "WorldTV.search.country")
+        selectedLanguageCode = defaults.string(forKey: "WorldTV.search.language")
+        minimumQuality = defaults.object(forKey: "WorldTV.search.quality") as? Int
+        favoritesOnly = defaults.object(forKey: "WorldTV.search.favoritesOnly") as? Bool ?? false
+        availableOnly = defaults.object(forKey: "WorldTV.search.availableOnly") as? Bool ?? true
+        includeGeoBlocked = defaults.object(forKey: "WorldTV.search.includeGeoBlocked") as? Bool ?? true
     }
 
     var activeFilterCount: Int {
@@ -141,6 +154,14 @@ final class SearchViewModel {
             } catch {
                 state = .failed(.catalogUnavailable)
             }
+        }
+    }
+
+    private func persist(_ value: String?, key: String) {
+        if let value {
+            UserDefaults.standard.set(value, forKey: key)
+        } else {
+            UserDefaults.standard.removeObject(forKey: key)
         }
     }
 }

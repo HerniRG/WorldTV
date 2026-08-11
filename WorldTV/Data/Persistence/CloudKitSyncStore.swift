@@ -7,6 +7,8 @@ actor CloudKitSyncStore {
     private static let recordName = "worldtv.profile"
     private static let favoritesKey = "favoriteChannelIDs"
     private static let sourcesKey = "playlistSources"
+    private static let historyKey = "recentlyWatched"
+    private static let preferencesKey = "userPreferences"
 
     private let database: CKDatabase
     private let recordID = CKRecord.ID(recordName: recordName)
@@ -25,6 +27,67 @@ actor CloudKitSyncStore {
             return try await load()
         } catch let error as CKError where error.code == .unknownItem {
             return nil
+        }
+    }
+
+    func loadHistory() async throws -> [RecentlyWatchedChannel] {
+        let record = try await database.record(for: recordID)
+        let data = record[Self.historyKey] as? Data ?? Data()
+        return data.isEmpty ? [] : try JSONDecoder().decode([RecentlyWatchedChannel].self, from: data)
+    }
+
+    func saveHistory(_ history: [RecentlyWatchedChannel]) async throws {
+        let record: CKRecord
+        do { record = try await database.record(for: recordID) }
+        catch let error as CKError where error.code == .unknownItem { record = CKRecord(recordType: "WorldTVProfile", recordID: recordID) }
+        record[Self.historyKey] = try JSONEncoder().encode(history) as NSData
+        _ = try await database.save(record)
+        UserDefaults.standard.set(Date(), forKey: "WorldTV.lastCloudKitSync")
+    }
+
+    struct Preferences: Codable, Equatable, Sendable {
+        let autoplayChannels: Bool
+        let preferredQuality: String
+        let showGeoBlockedChannels: Bool
+        let updatedAt: Date
+    }
+
+    func loadPreferences() async throws -> Preferences? {
+        let record = try await database.record(for: recordID)
+        guard let data = record[Self.preferencesKey] as? Data, !data.isEmpty else { return nil }
+        return try JSONDecoder().decode(Preferences.self, from: data)
+    }
+
+    func savePreferences(_ preferences: Preferences) async throws {
+        let record: CKRecord
+        do { record = try await database.record(for: recordID) }
+        catch let error as CKError where error.code == .unknownItem { record = CKRecord(recordType: "WorldTVProfile", recordID: recordID) }
+        record[Self.preferencesKey] = try JSONEncoder().encode(preferences) as NSData
+        _ = try await database.save(record)
+        UserDefaults.standard.set(Date(), forKey: "WorldTV.lastCloudKitSync")
+    }
+
+    func lastSyncDate() -> Date? { UserDefaults.standard.object(forKey: "WorldTV.lastCloudKitSync") as? Date }
+
+    func hasSyncError() -> Bool {
+        UserDefaults.standard.bool(forKey: "WorldTV.cloudKitSyncError")
+    }
+
+    func markSyncSuccess() {
+        UserDefaults.standard.set(false, forKey: "WorldTV.cloudKitSyncError")
+    }
+
+    func markSyncFailure() {
+        UserDefaults.standard.set(true, forKey: "WorldTV.cloudKitSyncError")
+    }
+
+    func retrySync() async {
+        do {
+            _ = try await loadIfExists()
+            UserDefaults.standard.set(Date(), forKey: "WorldTV.lastCloudKitSync")
+            markSyncSuccess()
+        } catch {
+            markSyncFailure()
         }
     }
 
@@ -50,6 +113,8 @@ actor CloudKitSyncStore {
                 record[Self.favoritesKey] = favorites as NSArray
                 record[Self.sourcesKey] = try JSONEncoder().encode(sources) as NSData
                 _ = try await database.save(record)
+                UserDefaults.standard.set(Date(), forKey: "WorldTV.lastCloudKitSync")
+                markSyncSuccess()
                 print("CloudKit profile saved: favorites=\(favorites.count), sources=\(sources.count)")
                 return
             } catch {
@@ -85,6 +150,7 @@ actor SyncedFavoritesRepository: FavoritesRepository {
             try await cloud.save(favorites: localIDs, sources: [])
             return localIDs
         } catch {
+            await cloud.markSyncFailure()
             print("CloudKit favorites load failed: \(error.localizedDescription)")
             return localIDs
         }
@@ -100,6 +166,7 @@ actor SyncedFavoritesRepository: FavoritesRepository {
             let remote = try await cloud.loadIfExists()
             try await cloud.save(favorites: favorites, sources: remote?.sources ?? [])
         } catch {
+            await cloud.markSyncFailure()
             // Local persistence remains available when iCloud is unavailable.
             print("CloudKit favorites save failed: \(error.localizedDescription)")
         }
@@ -112,6 +179,7 @@ actor SyncedFavoritesRepository: FavoritesRepository {
             let remote = try await cloud.loadIfExists()
             try await cloud.save(favorites: [], sources: remote?.sources ?? [])
         } catch {
+            await cloud.markSyncFailure()
             // Local persistence remains available when iCloud is unavailable.
             print("CloudKit favorites clear failed: \(error.localizedDescription)")
         }
@@ -144,6 +212,7 @@ actor SyncedPlaylistSourceStore: PlaylistSourceStore {
             try await cloud.save(favorites: [], sources: localSources)
             return localSources
         } catch {
+            await cloud.markSyncFailure()
             print("CloudKit sources load failed: \(error.localizedDescription)")
             return localSources
         }
@@ -210,5 +279,44 @@ actor SyncedPlaylistSourceStore: PlaylistSourceStore {
             result.append(source)
         }
         return result
+    }
+}
+
+actor SyncedRecentlyWatchedRepository: RecentlyWatchedRepository {
+    private let local: UserDefaultsRecentlyWatchedRepository
+    private let cloud: CloudKitSyncStore
+
+    init(local: UserDefaultsRecentlyWatchedRepository, cloud: CloudKitSyncStore) { self.local = local; self.cloud = cloud }
+
+    func load() async throws -> [RecentlyWatchedChannel] {
+        let localValue = try await local.load()
+        do {
+            let remote = try await cloud.loadHistory()
+            let merged = Self.merge(localValue, remote)
+            if merged != localValue { try await local.replace(merged) }
+            if merged != remote { try await cloud.saveHistory(merged) }
+            return merged
+        } catch {
+            await cloud.markSyncFailure()
+            return localValue
+        }
+    }
+
+    func record(channelID: String, at date: Date) async throws {
+        try await local.record(channelID: channelID, at: date)
+        do { try await cloud.saveHistory(Self.merge(try await local.load(), (try? await cloud.loadHistory()) ?? [])) }
+        catch { await cloud.markSyncFailure() }
+    }
+
+    func clear() async throws {
+        await local.clear()
+        do { try await cloud.saveHistory([]) }
+        catch { await cloud.markSyncFailure() }
+    }
+
+    private static func merge(_ left: [RecentlyWatchedChannel], _ right: [RecentlyWatchedChannel]) -> [RecentlyWatchedChannel] {
+        var byID: [String: RecentlyWatchedChannel] = [:]
+        for item in left + right where byID[item.channelID] == nil || byID[item.channelID]!.watchedAt < item.watchedAt { byID[item.channelID] = item }
+        return Array(byID.values.sorted { $0.watchedAt > $1.watchedAt }.prefix(20))
     }
 }

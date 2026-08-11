@@ -19,9 +19,35 @@ struct AppContainer {
     let clearCatalogCache: ClearCatalogCacheUseCase
     let loadCatalogCacheDate: LoadCatalogCacheDateUseCase
     let loadPlaylistSources: LoadPlaylistSourcesUseCase
+    let restorePlaylistSources: RestorePlaylistSourcesUseCase
     let addPlaylistSource: AddPlaylistSourceUseCase
+    let updatePlaylistSource: UpdatePlaylistSourceUseCase
     let removePlaylistSource: RemovePlaylistSourceUseCase
+    let cloudSyncStore: CloudKitSyncStore
     let topShelfPayloadWriter: TopShelfPayloadWriter
+
+    func synchronizePreferences() async {
+        let defaults = UserDefaults.standard
+        let local = CloudKitSyncStore.Preferences(
+            autoplayChannels: defaults.object(forKey: "autoplayChannels") as? Bool ?? true,
+            preferredQuality: defaults.string(forKey: "preferredQuality") ?? "automatic",
+            showGeoBlockedChannels: defaults.object(forKey: "showGeoBlockedChannels") as? Bool ?? true,
+            updatedAt: defaults.object(forKey: "WorldTV.preferencesUpdatedAt") as? Date ?? .now
+        )
+        do {
+            if let remote = try await cloudSyncStore.loadPreferences(), remote.updatedAt > local.updatedAt {
+                defaults.set(remote.autoplayChannels, forKey: "autoplayChannels")
+                defaults.set(remote.preferredQuality, forKey: "preferredQuality")
+                defaults.set(remote.showGeoBlockedChannels, forKey: "showGeoBlockedChannels")
+                defaults.set(remote.updatedAt, forKey: "WorldTV.preferencesUpdatedAt")
+            } else {
+                try await cloudSyncStore.savePreferences(local)
+                defaults.set(local.updatedAt, forKey: "WorldTV.preferencesUpdatedAt")
+            }
+        } catch {
+            // Local preferences remain available without iCloud.
+        }
+    }
 
     static func live() -> AppContainer {
         let urlCache = URLCache(
@@ -64,7 +90,8 @@ struct AppContainer {
                 return iptvOrgMapper.map(payload)
             }
         )
-        let recentlyWatchedRepository = UserDefaultsRecentlyWatchedRepository()
+        let localRecentlyWatchedRepository = UserDefaultsRecentlyWatchedRepository()
+        let recentlyWatchedRepository = SyncedRecentlyWatchedRepository(local: localRecentlyWatchedRepository, cloud: cloudStore)
         let localFavoritesRepository = UserDefaultsFavoritesRepository()
         let favoritesRepository = SyncedFavoritesRepository(
             local: localFavoritesRepository,
@@ -113,6 +140,7 @@ struct AppContainer {
             ),
             loadCatalogCacheDate: LoadCatalogCacheDateUseCase(cache: metadataStore),
             loadPlaylistSources: LoadPlaylistSourcesUseCase(store: sourceStore),
+            restorePlaylistSources: RestorePlaylistSourcesUseCase(store: sourceStore, cloud: cloudStore),
             addPlaylistSource: AddPlaylistSourceUseCase(
                 store: sourceStore,
                 invalidate: { await repository.invalidate() },
@@ -130,10 +158,15 @@ struct AppContainer {
                     }
                 }
             ),
+            updatePlaylistSource: UpdatePlaylistSourceUseCase(
+                store: sourceStore,
+                invalidate: { await repository.invalidate() }
+            ),
             removePlaylistSource: RemovePlaylistSourceUseCase(
                 store: sourceStore,
                 invalidate: { await repository.invalidate() }
             ),
+            cloudSyncStore: cloudStore,
             topShelfPayloadWriter: TopShelfPayloadWriter(
                 repository: repository,
                 recentlyWatchedRepository: recentlyWatchedRepository,

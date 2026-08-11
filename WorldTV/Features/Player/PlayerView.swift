@@ -10,6 +10,10 @@ struct PlayerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @State private var viewModel: PlayerViewModel
+    @State private var sleepTimerTask: Task<Void, Never>?
+    @State private var selectedSleepTimer: Int?
+    @State private var sleepTimerRemainingSeconds: Int?
+    @State private var isSleepTimerWarningPresented = false
     #if os(macOS)
     @State private var overlayVisibility = PlayerOverlayVisibility()
     #endif
@@ -22,15 +26,18 @@ struct PlayerView: View {
     private let onPictureInPictureDidStop: @MainActor () -> Void
     private let restorePresentation: @MainActor (@escaping (Bool) -> Void) -> Void
     private let preservesPlaybackOnDisappear: @MainActor () -> Bool
+    private let favoritesStore: FavoritesStore?
 
     init(
         channelID: String,
         resolveSources: ResolvePlayableStreamUseCase,
         recordRecentlyWatched: RecordRecentlyWatchedUseCase,
         initialFeedID: String? = nil,
+        favoritesStore: FavoritesStore? = nil,
         closePresentation: (@MainActor () -> Void)? = nil
     ) {
         self.closePresentation = closePresentation
+        self.favoritesStore = favoritesStore
         onPictureInPictureWillStart = {}
         onPictureInPictureDidStart = {}
         onPictureInPictureStartFailed = {}
@@ -49,6 +56,7 @@ struct PlayerView: View {
 
     init(
         viewModel: PlayerViewModel,
+        favoritesStore: FavoritesStore? = nil,
         closePresentation: @escaping @MainActor () -> Void,
         onPictureInPictureWillStart: @escaping @MainActor () -> Void,
         onPictureInPictureDidStart: @escaping @MainActor () -> Void,
@@ -58,6 +66,7 @@ struct PlayerView: View {
         preservesPlaybackOnDisappear: @escaping @MainActor () -> Bool
     ) {
         _viewModel = State(initialValue: viewModel)
+        self.favoritesStore = favoritesStore
         self.closePresentation = closePresentation
         self.onPictureInPictureWillStart = onPictureInPictureWillStart
         self.onPictureInPictureDidStart = onPictureInPictureDidStart
@@ -84,7 +93,11 @@ struct PlayerView: View {
                 onPictureInPictureStartFailed: onPictureInPictureStartFailed,
                 onPictureInPictureDidStop: onPictureInPictureDidStop,
                 onPictureInPictureRestoreRequested: restorePresentation,
-                infoView: infoPanel
+                infoView: infoPanel,
+                sleepTimerMinutes: sleepTimerMinutes,
+                onSleepTimerSelected: setSleepTimer,
+                isSleepTimerWarningPresented: isSleepTimerWarningPresented,
+                sleepTimerRemainingSeconds: sleepTimerRemainingSeconds
             )
 
             switch viewModel.state {
@@ -106,6 +119,17 @@ struct PlayerView: View {
             case .playing, .paused:
                 EmptyView()
             }
+
+            #if !os(macOS)
+            if isSleepTimerWarningPresented, let remaining = sleepTimerRemainingSeconds {
+                SleepTimerWarningView(
+                    remainingSeconds: remaining,
+                    onCancel: { setSleepTimer(nil) }
+                )
+                .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                .zIndex(10)
+            }
+            #endif
         }
         #if os(macOS)
         .overlay(alignment: .topLeading) {
@@ -129,6 +153,9 @@ struct PlayerView: View {
         .platformNavigationTitle(verbatim: viewModel.channelName)
         .modifier(PlayerNavigationStyle())
         .task {
+            if let favoritesStore {
+                await favoritesStore.loadIfNeeded()
+            }
             viewModel.loadIfNeeded(
                 autoplay: autoplayChannels,
                 preferredQuality: Int(preferredQuality)
@@ -155,6 +182,7 @@ struct PlayerView: View {
         }
         #endif
         .onDisappear {
+            sleepTimerTask?.cancel()
             let preservesPlayback = preservesPlaybackOnDisappear()
             playerPictureInPictureLogger.info(
                 "player.disappear preservesPlayback=\(preservesPlayback, privacy: .public)"
@@ -170,6 +198,7 @@ struct PlayerView: View {
     private var topBar: some View {
         VStack(alignment: .leading, spacing: 8) {
             closeButton
+            sleepTimerMenu
             if let title = viewModel.currentSourceTitle {
                 Text(title)
                     .font(.subheadline)
@@ -223,13 +252,107 @@ struct PlayerView: View {
             set: { viewModel.selectFeed($0) }
         )
     }
+
+    private var sleepTimerMenu: some View {
+        Menu {
+            sleepTimerOption("player.sleepTimer.off", minutes: nil)
+            sleepTimerOption("player.sleepTimer.15", minutes: 15)
+            sleepTimerOption("player.sleepTimer.30", minutes: 30)
+            sleepTimerOption("player.sleepTimer.60", minutes: 60)
+        } label: {
+            Label {
+                HStack(spacing: 6) {
+                    Text("player.sleepTimer")
+                    if let selectedSleepTimer {
+                        Text("· \(sleepTimerOptionTitle(selectedSleepTimer))")
+                    }
+                }
+            } icon: {
+                Image(systemName: "moon.zzz")
+            }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(.ultraThinMaterial, in: Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func sleepTimerOption(
+        _ title: LocalizedStringKey,
+        minutes: Int?
+    ) -> some View {
+        Button {
+            setSleepTimer(minutes)
+        } label: {
+            HStack {
+                Text(title)
+                Spacer()
+                if selectedSleepTimer == minutes {
+                    Image(systemName: "checkmark")
+                }
+            }
+        }
+    }
+
+    private func sleepTimerOptionTitle(_ minutes: Int) -> String {
+        switch minutes {
+        case 15: return String(localized: "player.sleepTimer.15")
+        case 30: return String(localized: "player.sleepTimer.30")
+        default: return String(localized: "player.sleepTimer.60")
+        }
+    }
     #endif
+
+    private var sleepTimerMinutes: Int? {
+        selectedSleepTimer
+    }
+
+    private func setSleepTimer(_ minutes: Int?) {
+        sleepTimerTask?.cancel()
+        selectedSleepTimer = minutes
+        sleepTimerRemainingSeconds = nil
+        isSleepTimerWarningPresented = false
+        guard let minutes else {
+            sleepTimerTask = nil
+            return
+        }
+        #if DEBUG
+        let durationInSeconds = minutes == 15 ? 50 : minutes * 60
+        #else
+        let durationInSeconds = minutes * 60
+        #endif
+        let endDate = Date.now.addingTimeInterval(TimeInterval(durationInSeconds))
+        sleepTimerTask = Task { @MainActor in
+            do {
+                while !Task.isCancelled {
+                    let remaining = max(0, Int(ceil(endDate.timeIntervalSinceNow)))
+                    sleepTimerRemainingSeconds = remaining
+                    isSleepTimerWarningPresented = remaining > 0 && remaining <= 30
+                    if remaining == 0 {
+                        viewModel.stop()
+                        close()
+                        return
+                    }
+                    try await Task.sleep(for: .seconds(1))
+                }
+            } catch {
+                // Timer cancellation is expected when the user changes it.
+            }
+        }
+    }
 
     private var infoPanel: AnyView? {
         guard let info = viewModel.channelInfo else {
             return nil
         }
-        return AnyView(ChannelInfoPanelView(info: info))
+        return AnyView(
+            ChannelInfoPanelView(
+                info: info,
+                favoritesStore: favoritesStore,
+                sleepTimerMinutes: selectedSleepTimer,
+                onSleepTimerSelected: setSleepTimer
+            )
+        )
     }
 
     private func progress(_ title: LocalizedStringKey) -> some View {
@@ -279,6 +402,9 @@ struct PlayerView: View {
     }
 
     private func close() {
+        sleepTimerTask?.cancel()
+        sleepTimerTask = nil
+        selectedSleepTimer = nil
         viewModel.stop()
         if let closePresentation {
             closePresentation()
@@ -298,6 +424,84 @@ struct PlayerView: View {
         case .unavailable:
             "player.error.unavailable"
         }
+    }
+}
+
+struct SleepTimerWarningView: View {
+    let remainingSeconds: Int
+    let onCancel: @MainActor () -> Void
+    #if os(tvOS)
+    @FocusState private var cancelIsFocused: Bool
+    #endif
+
+    var body: some View {
+        VStack(spacing: 18) {
+            Image(systemName: "moon.zzz.fill")
+                .font(.system(size: 42, weight: .semibold))
+                .accessibilityHidden(true)
+            Text("player.sleepTimer.warningTitle")
+                .font(.title2.bold())
+            Text("player.sleepTimer.warningPrefix")
+                .foregroundStyle(.secondary)
+            Text(format(remainingSeconds))
+                .font(.system(size: 52, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .accessibilityLabel(Text("player.sleepTimer.remaining"))
+            Button(action: onCancel) {
+                SleepTimerCancelLabel()
+            }
+                .buttonStyle(.bordered)
+                #if os(tvOS)
+                .focused($cancelIsFocused)
+                .prefersDefaultFocus(true, in: warningFocusNamespace)
+                #endif
+        }
+        .padding(.horizontal, 54)
+        .padding(.vertical, 42)
+        .foregroundStyle(.white)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(Color.white.opacity(0.18), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.45), radius: 28, y: 12)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("player.sleepTimer.warning")
+        #if os(tvOS)
+        .focusScope(warningFocusNamespace)
+        .focusSection()
+        .onAppear {
+            Task { @MainActor in
+                await Task.yield()
+                cancelIsFocused = true
+                try? await Task.sleep(for: .milliseconds(250))
+                cancelIsFocused = true
+            }
+        }
+        .onMoveCommand { _ in
+            cancelIsFocused = true
+        }
+        .onExitCommand {
+            cancelIsFocused = true
+        }
+        #endif
+    }
+
+    private func format(_ seconds: Int) -> String {
+        String(format: "%02d:%02d", seconds / 60, seconds % 60)
+    }
+
+    #if os(tvOS)
+    @Namespace private var warningFocusNamespace
+    #endif
+}
+
+private struct SleepTimerCancelLabel: View {
+    @Environment(\.isFocused) private var isFocused
+
+    var body: some View {
+        Text("player.sleepTimer.cancel")
+            .foregroundStyle(isFocused ? Color.black : Color.white)
     }
 }
 

@@ -99,6 +99,7 @@ struct NativePlayerPresenter: UIViewControllerRepresentable {
             )
             let player = PlayerView(
                 viewModel: viewModel,
+                favoritesStore: container.favoritesStore,
                 closePresentation: { [weak self] in
                     self?.requestFinalDismissal(for: presentationID)
                 },
