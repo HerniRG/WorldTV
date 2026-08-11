@@ -88,7 +88,7 @@ struct PlayerView: View {
                 selectedFeedID: viewModel.selectedFeedID,
                 onSelectFeed: { viewModel.selectFeed($0) },
                 onPlayerDismissRequested: close,
-                onPictureInPictureWillStart: onPictureInPictureWillStart,
+                onPictureInPictureWillStart: handlePictureInPictureWillStart,
                 onPictureInPictureDidStart: onPictureInPictureDidStart,
                 onPictureInPictureStartFailed: onPictureInPictureStartFailed,
                 onPictureInPictureDidStop: onPictureInPictureDidStop,
@@ -339,6 +339,12 @@ struct PlayerView: View {
                 // Timer cancellation is expected when the user changes it.
             }
         }
+    }
+
+    @MainActor
+    private func handlePictureInPictureWillStart() {
+        setSleepTimer(nil)
+        onPictureInPictureWillStart()
     }
 
     private var infoPanel: AnyView? {
