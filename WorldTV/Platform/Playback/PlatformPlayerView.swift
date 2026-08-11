@@ -299,6 +299,7 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
                 context.coordinator.infoHostingController = newHosting
                 return newHosting
             }()
+            hosting.rootView = infoView
             // AVKit can be in the middle of presenting the Info panel when
             // SwiftUI updates this representable (for example, as playback
             // changes state). Reassigning this property on every update makes

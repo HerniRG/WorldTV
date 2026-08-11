@@ -90,6 +90,9 @@ struct ChannelInfoPanelView: View {
                 isFavorite = favoritesStore.contains(info.channelID)
             }
         }
+        .onChange(of: sleepTimerMinutes) { _, newValue in
+            selectedSleepTimer = newValue
+        }
     }
 
     private var favoriteButton: some View {
