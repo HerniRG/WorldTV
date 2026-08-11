@@ -431,6 +431,7 @@ struct SleepTimerWarningView: View {
     let remainingSeconds: Int
     let onCancel: @MainActor () -> Void
     #if os(tvOS)
+    @Environment(\.resetFocus) private var resetFocus
     @FocusState private var cancelIsFocused: Bool
     #endif
 
@@ -470,19 +471,29 @@ struct SleepTimerWarningView: View {
         #if os(tvOS)
         .focusScope(warningFocusNamespace)
         .focusSection()
-        .onAppear {
+        .task {
+            for delay in [0, 150, 350, 700] {
+                if delay > 0 {
+                    try? await Task.sleep(for: .milliseconds(delay))
+                } else {
+                    await Task.yield()
+                }
+                guard !Task.isCancelled else { return }
+                forceCancelFocus()
+            }
+        }
+        .onChange(of: cancelIsFocused) { _, isFocused in
+            guard !isFocused else { return }
             Task { @MainActor in
                 await Task.yield()
-                cancelIsFocused = true
-                try? await Task.sleep(for: .milliseconds(250))
-                cancelIsFocused = true
+                forceCancelFocus()
             }
         }
         .onMoveCommand { _ in
-            cancelIsFocused = true
+            forceCancelFocus()
         }
         .onExitCommand {
-            cancelIsFocused = true
+            forceCancelFocus()
         }
         #endif
     }
@@ -493,6 +504,11 @@ struct SleepTimerWarningView: View {
 
     #if os(tvOS)
     @Namespace private var warningFocusNamespace
+
+    private func forceCancelFocus() {
+        cancelIsFocused = true
+        resetFocus(in: warningFocusNamespace)
+    }
     #endif
 }
 

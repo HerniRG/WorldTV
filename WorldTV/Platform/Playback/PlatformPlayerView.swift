@@ -318,6 +318,8 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
         context.coordinator.onPictureInPictureRestoreRequested =
             onPictureInPictureRestoreRequested
         controller.player = player
+        controller.showsPlaybackControls = !isSleepTimerWarningPresented
+        controller.view.isUserInteractionEnabled = !isSleepTimerWarningPresented
         if context.coordinator.lastRefreshID != refreshID {
             context.coordinator.lastRefreshID = refreshID
             controller.player = nil
