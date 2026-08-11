@@ -105,7 +105,12 @@ struct SettingsView: View {
 
             Section("settings.section.sync") {
                 LabeledContent("settings.sync.status") {
-                    Text(viewModel.lastSyncDate.map { $0.formatted(date: .abbreviated, time: .shortened) } ?? String(localized: "settings.sync.never"))
+                    if viewModel.syncHasError {
+                        Label("settings.status.failed", systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(.orange)
+                    } else {
+                        Text(viewModel.lastSyncDate.map { $0.formatted(date: .abbreviated, time: .shortened) } ?? String(localized: "settings.sync.never"))
+                    }
                 }
                 Button("settings.sync.retry") { Task { await viewModel.retrySync() } }
                 Text("settings.sync.private")

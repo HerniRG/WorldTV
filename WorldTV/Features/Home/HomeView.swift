@@ -54,6 +54,9 @@ struct HomeView: View {
         .onReceive(NotificationCenter.default.publisher(for: .playlistSourcesDidChange)) { _ in
             viewModel.reloadVisibleContent()
         }
+        .onChange(of: favoritesStore.orderedIdentifiers) { _, _ in
+            viewModel.reloadVisibleContent()
+        }
         #if os(tvOS)
         .onChange(of: favoritesStore.orderedIdentifiers) { _, _ in
             restoreFocusIfNeeded()

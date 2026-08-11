@@ -69,9 +69,26 @@ actor CloudKitSyncStore {
 
     func lastSyncDate() -> Date? { UserDefaults.standard.object(forKey: "WorldTV.lastCloudKitSync") as? Date }
 
+    func hasSyncError() -> Bool {
+        UserDefaults.standard.bool(forKey: "WorldTV.cloudKitSyncError")
+    }
+
+    private func markSyncSuccess() {
+        UserDefaults.standard.set(false, forKey: "WorldTV.cloudKitSyncError")
+    }
+
+    private func markSyncFailure() {
+        UserDefaults.standard.set(true, forKey: "WorldTV.cloudKitSyncError")
+    }
+
     func retrySync() async {
-        do { _ = try await loadIfExists(); UserDefaults.standard.set(Date(), forKey: "WorldTV.lastCloudKitSync") }
-        catch { }
+        do {
+            _ = try await loadIfExists()
+            UserDefaults.standard.set(Date(), forKey: "WorldTV.lastCloudKitSync")
+            markSyncSuccess()
+        } catch {
+            markSyncFailure()
+        }
     }
 
     private func decode(_ record: CKRecord) throws -> (favorites: [String], sources: [PlaylistSource]) {
@@ -97,6 +114,7 @@ actor CloudKitSyncStore {
                 record[Self.sourcesKey] = try JSONEncoder().encode(sources) as NSData
                 _ = try await database.save(record)
                 UserDefaults.standard.set(Date(), forKey: "WorldTV.lastCloudKitSync")
+                markSyncSuccess()
                 print("CloudKit profile saved: favorites=\(favorites.count), sources=\(sources.count)")
                 return
             } catch {

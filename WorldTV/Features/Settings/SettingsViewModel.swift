@@ -9,6 +9,7 @@ final class SettingsViewModel {
     private(set) var isWorking = false
     private(set) var statusKey: String?
     private(set) var lastSyncDate: Date?
+    private(set) var syncHasError = false
     private(set) var syncIsWorking = false
 
     private let refreshCatalog: RefreshCatalogUseCase
@@ -39,6 +40,7 @@ final class SettingsViewModel {
             logger.warning("Catalog cache date could not be read")
         }
         lastSyncDate = await cloudSyncStore.lastSyncDate()
+        syncHasError = await cloudSyncStore.hasSyncError()
     }
 
     func retrySync() async {
@@ -46,6 +48,7 @@ final class SettingsViewModel {
         syncIsWorking = true; defer { syncIsWorking = false }
         await cloudSyncStore.retrySync()
         lastSyncDate = await cloudSyncStore.lastSyncDate()
+        syncHasError = await cloudSyncStore.hasSyncError()
     }
 
     func savePreferences(
