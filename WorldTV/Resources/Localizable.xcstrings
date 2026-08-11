@@ -5403,6 +5403,34 @@
         }
       }
     },
+    "player.sleepTimer" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "مؤقت النوم" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Einschlaftimer" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sleep timer" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Temporizador de apagado" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Minuterie d’arrêt" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "स्लीप टाइमर" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Timer di spegnimento" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スリープタイマー" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Temporizador de suspensão" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "睡眠定时器" } }
+      }
+    },
+    "player.sleepTimer.off" : {
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إيقاف" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aus" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Off" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Desactivado" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Désactivé" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "बंद" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Disattivato" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "オフ" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Desativado" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "关闭" } }
+      }
+    },
     "player.info" : {
       "localizations" : {
         "ar" : {

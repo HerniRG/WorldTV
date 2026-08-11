@@ -10,6 +10,7 @@ struct PlayerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @State private var viewModel: PlayerViewModel
+    @State private var sleepTimerTask: Task<Void, Never>?
     #if os(macOS)
     @State private var overlayVisibility = PlayerOverlayVisibility()
     #endif
@@ -89,7 +90,9 @@ struct PlayerView: View {
                 onPictureInPictureStartFailed: onPictureInPictureStartFailed,
                 onPictureInPictureDidStop: onPictureInPictureDidStop,
                 onPictureInPictureRestoreRequested: restorePresentation,
-                infoView: infoPanel
+                infoView: infoPanel,
+                sleepTimerMinutes: sleepTimerMinutes,
+                onSleepTimerSelected: setSleepTimer
             )
 
             switch viewModel.state {
@@ -163,6 +166,7 @@ struct PlayerView: View {
         }
         #endif
         .onDisappear {
+            sleepTimerTask?.cancel()
             let preservesPlayback = preservesPlaybackOnDisappear()
             playerPictureInPictureLogger.info(
                 "player.disappear preservesPlayback=\(preservesPlayback, privacy: .public)"
@@ -178,6 +182,7 @@ struct PlayerView: View {
     private var topBar: some View {
         VStack(alignment: .leading, spacing: 8) {
             closeButton
+            sleepTimerMenu
             if let title = viewModel.currentSourceTitle {
                 Text(title)
                     .font(.subheadline)
@@ -231,7 +236,44 @@ struct PlayerView: View {
             set: { viewModel.selectFeed($0) }
         )
     }
+
+    private var sleepTimerMenu: some View {
+        Menu {
+            Button("player.sleepTimer.off") { setSleepTimer(nil) }
+            Button("15 min") { setSleepTimer(15) }
+            Button("30 min") { setSleepTimer(30) }
+            Button("60 min") { setSleepTimer(60) }
+        } label: {
+            Label("player.sleepTimer", systemImage: "moon.zzz")
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(.ultraThinMaterial, in: Capsule())
+        }
+        .buttonStyle(.plain)
+    }
     #endif
+
+    private var sleepTimerMinutes: Int? {
+        nil
+    }
+
+    private func setSleepTimer(_ minutes: Int?) {
+        sleepTimerTask?.cancel()
+        guard let minutes else {
+            sleepTimerTask = nil
+            return
+        }
+        sleepTimerTask = Task { @MainActor in
+            do {
+                try await Task.sleep(for: .seconds(minutes * 60))
+                guard !Task.isCancelled else { return }
+                viewModel.stop()
+                close()
+            } catch {
+                // Timer cancellation is expected when the user changes it.
+            }
+        }
+    }
 
     private var infoPanel: AnyView? {
         guard let info = viewModel.channelInfo else {

@@ -36,6 +36,8 @@ struct PlatformPlayerView: NSViewRepresentable {
     let onPictureInPictureDidStop: @MainActor () -> Void
     let onPictureInPictureRestoreRequested: @MainActor (@escaping (Bool) -> Void) -> Void
     let infoView: AnyView?
+    let sleepTimerMinutes: Int?
+    let onSleepTimerSelected: @MainActor (Int?) -> Void
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -77,6 +79,8 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
     let onPictureInPictureDidStop: @MainActor () -> Void
     let onPictureInPictureRestoreRequested: @MainActor (@escaping (Bool) -> Void) -> Void
     let infoView: AnyView?
+    let sleepTimerMinutes: Int?
+    let onSleepTimerSelected: @MainActor (Int?) -> Void
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
@@ -216,6 +220,8 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
     let onPictureInPictureDidStop: @MainActor () -> Void
     let onPictureInPictureRestoreRequested: @MainActor (@escaping (Bool) -> Void) -> Void
     let infoView: AnyView?
+    let sleepTimerMinutes: Int?
+    let onSleepTimerSelected: @MainActor (Int?) -> Void
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
@@ -261,6 +267,9 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
             feeds: feeds,
             selectedFeedID: selectedFeedID,
             onSelectFeed: onSelectFeed
+        ) + Self.makeSleepTimerMenuItems(
+            selectedMinutes: sleepTimerMinutes,
+            onSelect: onSleepTimerSelected
         )
         configureInfoPanel(controller, context: context)
     }
@@ -339,6 +348,27 @@ struct PlatformPlayerView: UIViewControllerRepresentable {
             children: [automatic] + feedActions
         )
         return [menu]
+    }
+
+    private static func makeSleepTimerMenuItems(
+        selectedMinutes: Int?,
+        onSelect: @escaping @MainActor (Int?) -> Void
+    ) -> [UIMenuElement] {
+        let options: [(String, Int?)] = [
+            (String(localized: "player.sleepTimer.off"), nil),
+            ("15 min", 15),
+            ("30 min", 30),
+            ("60 min", 60)
+        ]
+        let actions = options.map { title, minutes in
+            UIAction(
+                title: title,
+                state: selectedMinutes == minutes ? .on : .off
+            ) { _ in
+                Task { @MainActor in onSelect(minutes) }
+            }
+        }
+        return [UIMenu(title: String(localized: "player.sleepTimer"), children: actions)]
     }
 
     final class Coordinator: NSObject, AVPlayerViewControllerDelegate {
