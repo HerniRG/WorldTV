@@ -105,9 +105,7 @@ struct ChannelInfoPanelView: View {
         } label: {
             FavoriteActionLabel(isFavorite: isFavorite)
         }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.large)
-        .tint(.accentColor)
+        .buttonStyle(.bordered)
         .accessibilityLabel(
             isFavorite ? Text("favorites.remove") : Text("favorites.add")
         )
@@ -120,9 +118,7 @@ struct ChannelInfoPanelView: View {
         } label: {
             SleepTimerActionLabel(selectedMinutes: selectedSleepTimer)
         }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.large)
-        .tint(.accentColor)
+        .buttonStyle(.bordered)
         .confirmationDialog(
             "player.sleepTimer",
             isPresented: $isSleepTimerMenuPresented,
@@ -197,10 +193,10 @@ private struct FavoriteActionLabel: View {
     var body: some View {
         Image(systemName: isFavorite ? "star.fill" : "star")
             .font(.system(size: DesignTokens.favoriteIconSize, weight: .semibold))
-            .foregroundStyle(isFocused ? Color.white : (isFavorite ? Color.yellow : Color.primary))
+            .foregroundStyle(isFocused ? Color.black : (isFavorite ? Color.yellow : Color.primary))
             .frame(
-                width: DesignTokens.playerActionButtonSize,
-                height: DesignTokens.playerActionButtonSize
+                width: DesignTokens.favoriteButtonSize,
+                height: DesignTokens.favoriteButtonSize
             )
             .accessibilityHidden(true)
     }
@@ -208,6 +204,7 @@ private struct FavoriteActionLabel: View {
 
 private struct SleepTimerActionLabel: View {
     let selectedMinutes: Int?
+    @Environment(\.isFocused) private var isFocused
 
     var body: some View {
         HStack(spacing: 8) {
@@ -221,7 +218,8 @@ private struct SleepTimerActionLabel: View {
             }
         }
         .font(.headline)
-        .frame(minHeight: DesignTokens.playerActionButtonSize)
+        .foregroundStyle(isFocused ? Color.black : Color.white)
+        .frame(minHeight: DesignTokens.favoriteButtonSize)
     }
 
     private func sleepTimerOptionTitle(_ minutes: Int) -> String {

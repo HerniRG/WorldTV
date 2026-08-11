@@ -444,8 +444,10 @@ private struct SleepTimerWarningView: View {
                 .font(.system(size: 52, weight: .bold, design: .rounded))
                 .monospacedDigit()
                 .accessibilityLabel(Text("player.sleepTimer.remaining"))
-            Button("player.sleepTimer.cancel", action: onCancel)
-                .buttonStyle(.borderedProminent)
+            Button(action: onCancel) {
+                SleepTimerCancelLabel()
+            }
+                .buttonStyle(.bordered)
                 #if os(tvOS)
                 .focused($cancelIsFocused)
                 .prefersDefaultFocus(true, in: warningFocusNamespace)
@@ -489,6 +491,15 @@ private struct SleepTimerWarningView: View {
     #if os(tvOS)
     @Namespace private var warningFocusNamespace
     #endif
+}
+
+private struct SleepTimerCancelLabel: View {
+    @Environment(\.isFocused) private var isFocused
+
+    var body: some View {
+        Text("player.sleepTimer.cancel")
+            .foregroundStyle(isFocused ? Color.black : Color.white)
+    }
 }
 
 #if os(macOS)
