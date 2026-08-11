@@ -56,7 +56,25 @@ class LoadableViewModel<Value: Sendable> {
             } catch is CancellationError {
                 return
             } catch {
-                state = .failed(.catalogUnavailable)
+                // A transient CloudKit or network failure should not turn the
+                // first launch into an error screen. Keep the loading state and
+                // give the local/network layers one short recovery window.
+                guard !forceRefresh else {
+                    state = .failed(.catalogUnavailable)
+                    return
+                }
+                do {
+                    try await Task.sleep(for: .milliseconds(700))
+                    let value = try await loadValue(false)
+                    guard !Task.isCancelled else { return }
+                    state = value.map { .loaded($0) } ?? .empty
+                    return
+                } catch is CancellationError {
+                    return
+                } catch {
+                    state = .failed(.catalogUnavailable)
+                    return
+                }
             }
         }
         _ = await loadTask?.value

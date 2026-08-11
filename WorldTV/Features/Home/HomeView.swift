@@ -48,9 +48,6 @@ struct HomeView: View {
             await viewModel.loadIfNeeded()
             NotificationCenter.default.post(name: .topShelfDataDidChange, object: nil)
         }
-        .onAppear {
-            viewModel.reloadVisibleContent()
-        }
         .onReceive(NotificationCenter.default.publisher(for: .playlistSourcesDidChange)) { _ in
             viewModel.reloadVisibleContent()
         }
